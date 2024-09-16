@@ -13,13 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aigarsp.braintrainerapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.aigarsp.braintrainerapp"
     },
     "web": {
       "bundler": "metro",
@@ -27,7 +29,14 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-5238286944896076~6180701555",
+          "iosAppId": "ca-app-pub-5238286944896076~6072715024"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
