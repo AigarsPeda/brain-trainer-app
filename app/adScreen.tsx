@@ -1,31 +1,33 @@
-import { Image, StyleSheet, Platform, Button } from "react-native";
+import { Button, Image, StyleSheet } from "react-native";
 
-import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 
 import { useEffect, useState } from "react";
 
+import * as Device from "expo-device";
+import { useRouter } from "expo-router";
 import {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
 } from "react-native-google-mobile-ads";
-import { Link, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const ios = "ca-app-pub-5238286944896076/6557213296";
 const android = "ca-app-pub-5238286944896076/2318585385";
 
-const adUnitId = __DEV__ ? TestIds.REWARDED : ios;
+const adDeviceId = Device.osName === "iOS" ? ios : android;
+const adUnitId = __DEV__ ? TestIds.REWARDED : adDeviceId;
 
 const rewarded = RewardedAd.createForAdRequest(adUnitId, {
   keywords: ["games", "kids", "fun", "education", "learning"],
 });
 
 export default function AdScreen() {
-  const [loaded, setLoaded] = useState(false);
   const router = useRouter();
+  const [loaded, setLoaded] = useState(false);
+  const [isRewarded, setIsRewarded] = useState(false);
 
   useEffect(() => {
     const unsubscribeLoaded = rewarded.addAdEventListener(
@@ -38,7 +40,12 @@ export default function AdScreen() {
       RewardedAdEventType.EARNED_REWARD,
       (reward) => {
         console.log("User earned reward of ", reward);
-        router.navigate("/");
+
+        if (reward.type === "coins") {
+          setIsRewarded(true);
+        }
+
+        // router.navigate("/");
       }
     );
 
@@ -52,22 +59,37 @@ export default function AdScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    if (isRewarded) {
+      router.navigate("/");
+    }
+  }, [isRewarded]);
+
   // No advert ready to show yet
   if (!loaded) {
     return null;
   }
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
-    >
-      <ThemedText type="title">Ad Screen</ThemedText>
+    // <ParallaxScrollView
+    //   headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+    //   headerImage={
+    //     <Image
+    //       source={require("@/assets/images/partial-react-logo.png")}
+    //       style={styles.reactLogo}
+    //     />
+    //   }
+    // >
+    //   <ThemedText type="title">Ad Screen</ThemedText>
+    //   <Button
+    //     title="Show rewarded"
+    //     onPress={() => {
+    //       console.log("Show rewarded");
+    //       rewarded.show();
+    //     }}
+    //   />
+    // </ParallaxScrollView>
+    <SafeAreaView>
       <Button
         title="Show rewarded"
         onPress={() => {
@@ -75,7 +97,7 @@ export default function AdScreen() {
           rewarded.show();
         }}
       />
-    </ParallaxScrollView>
+    </SafeAreaView>
   );
 }
 
