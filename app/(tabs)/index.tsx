@@ -1,27 +1,19 @@
-import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { Link } from "expo-router";
-import {
-  FlatList,
-  Image,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
-import { AVAILABLE_LEVEL_COUNT, MATH_LEVEL_1_TASKS } from "@/data/math";
+import { AVAILABLE_LEVEL_COUNT } from "@/data/math";
 import createArray from "@/util/createArray";
+import { Link } from "expo-router";
+import { FlatList, Image, Pressable, StyleSheet } from "react-native";
 
 import { useRef } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import ParallaxScrollFlatView from "../../components/ParallaxScrollFlatView";
 
 export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
   const array = createArray(AVAILABLE_LEVEL_COUNT);
   return (
     <>
-      <ParallaxScrollView
+      {/* <ParallaxScrollView
         headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
         headerImage={
           <Image
@@ -37,7 +29,24 @@ export default function HomeScreen() {
             </Pressable>
           </Link>
         ))}
-      </ParallaxScrollView>
+      </ParallaxScrollView> */}
+      <ParallaxScrollFlatView
+        data={array}
+        renderItem={({ item }) => (
+          <Link href="/adScreen" asChild>
+            <Pressable>
+              <ThemedText type="link">Go to AdScreen</ThemedText>
+            </Pressable>
+          </Link>
+        )}
+        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+        headerImage={
+          <Image
+            source={require("@/assets/images/partial-react-logo.png")}
+            style={styles.reactLogo}
+          />
+        }
+      />
     </>
   );
 }
