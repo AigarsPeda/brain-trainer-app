@@ -20,55 +20,46 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
   const array = createArray(AVAILABLE_LEVEL_COUNT);
   return (
-    // <ParallaxScrollView
-    //   headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-    //   headerImage={
-    //     <Image
-    //       source={require("@/assets/images/partial-react-logo.png")}
-    //       style={styles.reactLogo}
-    //     />
-    //   }
-    // >
-    <SafeAreaView
-      style={{
-        flex: 1,
-        padding: 16,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <FlatList
-        data={array}
-        ref={flatListRef}
-        contentContainerStyle={{
-          gap: 8,
-          padding: 16,
-          // alignItems: "center",
-          // flexDirection: "column",
-          // justifyContent: "center",
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={false}
-            onRefresh={() => {
-              console.log("Refresh");
-            }}
+    <>
+      <ParallaxScrollView
+        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+        headerImage={
+          <Image
+            source={require("@/assets/images/partial-react-logo.png")}
+            style={styles.reactLogo}
           />
         }
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(_item, index) => index.toString()}
-        renderItem={({ item, index }) => {
-          return (
-            <Link href="/adScreen" asChild>
-              <Pressable>
-                <ThemedText type="link">Go to AdScreen</ThemedText>
-              </Pressable>
-            </Link>
-          );
-        }}
-      />
-    </SafeAreaView>
+      >
+        <FlatList
+          data={array}
+          ref={flatListRef}
+          contentContainerStyle={{
+            gap: 8,
+            padding: 16,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={false}
+              onRefresh={() => {
+                console.log("Refresh");
+              }}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(_item, index) => index.toString()}
+          renderItem={({ item, index }) => {
+            return (
+              <Link key={index} href="/adScreen" asChild>
+                <Pressable>
+                  <ThemedText type="link">Go to AdScreen</ThemedText>
+                </Pressable>
+              </Link>
+            );
+          }}
+        />
+      </ParallaxScrollView>
+    </>
   );
 }
 

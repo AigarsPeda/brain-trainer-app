@@ -17,4 +17,4 @@ export const MATH_LEVEL_1_TASKS = [
 ];
 
 // export const AVAILABLE_LEVEL_COUNT = Object.keys(MATH_TASKS).length * 10;
-export const AVAILABLE_LEVEL_COUNT = 10;
+export const AVAILABLE_LEVEL_COUNT = 50;
