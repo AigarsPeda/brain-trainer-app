@@ -30,34 +30,13 @@ export default function HomeScreen() {
           />
         }
       >
-        <FlatList
-          data={array}
-          ref={flatListRef}
-          contentContainerStyle={{
-            gap: 8,
-            padding: 16,
-          }}
-          refreshControl={
-            <RefreshControl
-              refreshing={false}
-              onRefresh={() => {
-                console.log("Refresh");
-              }}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(_item, index) => index.toString()}
-          renderItem={({ item, index }) => {
-            return (
-              <Link key={index} href="/adScreen" asChild>
-                <Pressable>
-                  <ThemedText type="link">Go to AdScreen</ThemedText>
-                </Pressable>
-              </Link>
-            );
-          }}
-        />
+        {array.map((_, index) => (
+          <Link key={index} href="/adScreen" asChild>
+            <Pressable>
+              <ThemedText type="link">Go to AdScreen</ThemedText>
+            </Pressable>
+          </Link>
+        ))}
       </ParallaxScrollView>
     </>
   );
