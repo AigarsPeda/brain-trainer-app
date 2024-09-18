@@ -20,7 +20,7 @@ export default function HomeScreen() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText type="title">Welcome! 1</ThemedText>
         <HelloWave />
       </ThemedView>
       <Link href="/adScreen" asChild>
