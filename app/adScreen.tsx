@@ -1,12 +1,7 @@
-import { Button, Image, StyleSheet } from "react-native";
-
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-
-import { useEffect, useState } from "react";
-
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Button, StyleSheet } from "react-native";
 import {
   RewardedAd,
   RewardedAdEventType,
