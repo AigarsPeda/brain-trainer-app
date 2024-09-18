@@ -1,6 +1,7 @@
-# Welcome to your Expo app 👋
+# Welcome to Brain Trainer 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Since app was prebuilded and this script changes the app.json file, you can't run the app with `expo start` command.
+You need to run `expo prebuild` before running the app.
 
 ## Get started
 
