@@ -19,12 +19,14 @@ interface AnimatedFlatListProps<T>
     viewableItems: ViewToken[];
     changed: ViewToken[];
   }) => void;
+  paddingTop?: number;
 }
 
 function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
   const {
     data,
     renderItem,
+    paddingTop,
     contentContainerStyle,
     onViewableItemsChanged,
     ...rest
@@ -53,15 +55,16 @@ function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={data}
-        renderItem={renderAnimatedItem}
-        onViewableItemsChanged={handleViewableItemsChanged}
-        contentContainerStyle={[{ paddingTop: 40 }, contentContainerStyle]}
-        {...rest}
-      />
-    </View>
+    <FlatList
+      data={data}
+      renderItem={renderAnimatedItem}
+      onViewableItemsChanged={handleViewableItemsChanged}
+      contentContainerStyle={[
+        { paddingTop: paddingTop ?? 0 },
+        contentContainerStyle,
+      ]}
+      {...rest}
+    />
   );
 }
 
