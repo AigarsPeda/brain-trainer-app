@@ -34,7 +34,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
 
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
-        <ThemedText type="link">{item.id}</ThemedText>
+        <ThemedText type="link">{item?.id}</ThemedText>
       </Animated.View>
     );
   }
