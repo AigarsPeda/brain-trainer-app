@@ -7,6 +7,7 @@ import { FlatList, Image, Pressable, StyleSheet } from "react-native";
 
 import { useRef } from "react";
 import ParallaxScrollFlatView from "../../components/ParallaxScrollFlatView";
+import AnimatedFlatList from "@/components/AnimatedFlatList";
 
 export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
@@ -30,7 +31,7 @@ export default function HomeScreen() {
           </Link>
         ))}
       </ParallaxScrollView> */}
-      <ParallaxScrollFlatView
+      {/* <ParallaxScrollFlatView
         data={array}
         renderItem={({ item }) => (
           <Link href="/adScreen" asChild>
@@ -46,7 +47,8 @@ export default function HomeScreen() {
             style={styles.reactLogo}
           />
         }
-      />
+      /> */}
+      <AnimatedFlatList />
     </>
   );
 }
