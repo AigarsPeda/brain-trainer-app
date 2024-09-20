@@ -1,24 +1,14 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
+import { HelloWave } from "@/components/HelloWave";
 import ListItem from "@/components/ListItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { AVAILABLE_LEVEL_COUNT } from "@/data/math";
+import { TaskInfoType } from "@/data/common";
 import useAppContext from "@/hooks/useAppContext";
 import { router } from "expo-router";
 import { ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface DataItem {
-  id: number;
-}
-
-const data: DataItem[] = Array.from(
-  { length: AVAILABLE_LEVEL_COUNT },
-  (_, index) => ({
-    id: index + 1,
-  })
-);
 
 export default function HomeScreen() {
   const { state } = useAppContext();
@@ -27,14 +17,21 @@ export default function HomeScreen() {
     <ThemedView>
       <SafeAreaView
         style={{
+          gap: 8,
           paddingBottom: 5,
+          flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         <ThemedText type="title">{state.name}</ThemedText>
+        <HelloWave />
       </SafeAreaView>
-      <AnimatedFlatList paddingTop={0} data={data} renderItem={renderItem} />
+      <AnimatedFlatList
+        paddingTop={0}
+        data={state.taskInfos}
+        renderItem={renderItem}
+      />
     </ThemedView>
   );
 }
@@ -45,7 +42,7 @@ const renderItem = ({
   viewableItems,
 }: {
   index: number;
-  item: DataItem;
+  item: TaskInfoType;
   viewableItems: SharedValue<ViewToken[]>;
 }) => {
   return (

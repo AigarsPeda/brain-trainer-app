@@ -1,7 +1,10 @@
+import { TaskInfoType } from "@/data/common";
+import { AVAILABLE_LEVEL_COUNT } from "@/data/math";
 import { createContext } from "react";
 
 type AppContextState = {
   name: string;
+  taskInfos: TaskInfoType[];
 };
 
 export type AppContextActionType = SetNameAction;
@@ -18,6 +21,9 @@ export type AppContextType = {
 
 export const initialState: AppContextState = {
   name: "Aigars",
+  taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({
+    id: index + 1,
+  })),
 };
 
 export const initialContext: AppContextType = {
