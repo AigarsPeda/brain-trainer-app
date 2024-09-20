@@ -1,38 +1,3 @@
-// import { FlatList, StyleSheet, View, ViewToken } from "react-native";
-// import { useSharedValue } from "react-native-reanimated";
-// import ListItem from "@/components/ListItem";
-// import type { FC } from "react";
-
-// const data = new Array(50).fill(0).map((_, index) => ({ id: index }));
-
-// const AnimatedFlatList = () => {
-//   const viewableItems = useSharedValue<ViewToken[]>([]);
-
-//   return (
-//     <View style={styles.container}>
-//       <FlatList
-//         data={data}
-//         contentContainerStyle={{ paddingTop: 40 }}
-//         onViewableItemsChanged={({ viewableItems: vItems }) => {
-//           viewableItems.value = vItems;
-//         }}
-//         renderItem={({ item }) => {
-//           return <ListItem item={item} viewableItems={viewableItems} />;
-//         }}
-//       />
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#fff",
-//   },
-// });
-
-// export default AnimatedFlatList;
-
 import {
   View,
   FlatList,
@@ -68,11 +33,11 @@ function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
   const viewableItems = useSharedValue<ViewToken[]>([]);
 
   const handleViewableItemsChanged = ({
-    viewableItems: vItems,
     changed,
+    viewableItems: vItems,
   }: {
-    viewableItems: ViewToken[];
     changed: ViewToken[];
+    viewableItems: ViewToken[];
   }) => {
     viewableItems.value = vItems;
     if (onViewableItemsChanged) {
@@ -91,9 +56,9 @@ function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
     <View style={styles.container}>
       <FlatList
         data={data}
-        contentContainerStyle={[{ paddingTop: 40 }, contentContainerStyle]}
-        onViewableItemsChanged={handleViewableItemsChanged}
         renderItem={renderAnimatedItem}
+        onViewableItemsChanged={handleViewableItemsChanged}
+        contentContainerStyle={[{ paddingTop: 40 }, contentContainerStyle]}
         {...rest}
       />
     </View>

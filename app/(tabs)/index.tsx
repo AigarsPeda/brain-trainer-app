@@ -1,8 +1,9 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
 import ListItem from "@/components/ListItem";
 import { AVAILABLE_LEVEL_COUNT } from "@/data/math";
-import { StyleSheet, ViewToken } from "react-native";
+import { ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
+import { router } from "expo-router";
 
 interface DataItem {
   id: number;
@@ -11,7 +12,7 @@ interface DataItem {
 const data: DataItem[] = Array.from(
   { length: AVAILABLE_LEVEL_COUNT },
   (_, index) => ({
-    id: index,
+    id: index + 1,
   })
 );
 
@@ -24,9 +25,17 @@ const renderItem = ({
   index,
   viewableItems,
 }: {
-  item: DataItem;
   index: number;
+  item: DataItem;
   viewableItems: SharedValue<ViewToken[]>;
 }) => {
-  return <ListItem item={item} viewableItems={viewableItems} />;
+  return (
+    <ListItem
+      item={item}
+      viewableItems={viewableItems}
+      handleClick={() => {
+        router.push("/adScreen");
+      }}
+    />
+  );
 };
