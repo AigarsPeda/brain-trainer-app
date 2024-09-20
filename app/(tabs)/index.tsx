@@ -1,14 +1,13 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
 import ListItem from "@/components/ListItem";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { AVAILABLE_LEVEL_COUNT } from "@/data/math";
+import useAppContext from "@/hooks/useAppContext";
+import { router } from "expo-router";
 import { ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
-import { router } from "expo-router";
-import useAppContext from "@/hooks/useAppContext";
-import { ThemedText } from "@/components/ThemedText";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View } from "react-native-reanimated/lib/typescript/Animated";
-import { ThemedView } from "@/components/ThemedView";
 
 interface DataItem {
   id: number;
