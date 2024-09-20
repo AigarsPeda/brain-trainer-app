@@ -44,10 +44,13 @@ const styles = StyleSheet.create({
   listItem: {
     height: 80,
     width: "90%",
-    backgroundColor: "#78CAD2",
-    alignSelf: "center",
-    borderRadius: 15,
     marginTop: 20,
+    display: "flex",
+    borderRadius: 15,
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#78CAD2",
   },
 });
 
