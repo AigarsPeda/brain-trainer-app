@@ -53,12 +53,12 @@ const renderLastItem = ({
 }) => {
   return (
     <LastListItem
+      bgColor="#f59e0b"
+      viewableItems={viewableItems}
       item={{
         id: item.id,
         title: "Under construction",
       }}
-      bgColor="#f59e0b"
-      viewableItems={viewableItems}
       handleClick={() => {
         router.push("/adScreen");
       }}

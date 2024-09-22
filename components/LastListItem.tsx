@@ -49,7 +49,7 @@ const LastListItem: FC<LastListItemProps> = memo(
             borderRadius: 15,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: bgColor || "#78CAD2",
+            backgroundColor: bgColor || "#172554",
           }}
         >
           <ThemedText type="link">{item?.title}</ThemedText>

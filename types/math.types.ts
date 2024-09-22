@@ -1,5 +1,5 @@
 type MathQuestion = {
   id: string;
-  question: string;
   answer: number;
+  question: string;
 };

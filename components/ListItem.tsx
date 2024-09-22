@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { ThemedText } from "./ThemedText";
+import { useThemeColor } from "../hooks/useThemeColor";
 
 type ListItemProps = {
   bgColor?: string;
@@ -18,6 +19,8 @@ type ListItemProps = {
 
 const ListItem: FC<ListItemProps> = memo(
   ({ item, handleClick, viewableItems, bgColor }) => {
+    const color = useThemeColor({}, "cardBgColor");
+
     const rStyle = useAnimatedStyle(() => {
       const isVisible = Boolean(
         viewableItems.value
@@ -51,7 +54,7 @@ const ListItem: FC<ListItemProps> = memo(
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: bgColor || "#78CAD2",
+            backgroundColor: color,
           }}
         >
           <ThemedText type="title">{item?.title}</ThemedText>
