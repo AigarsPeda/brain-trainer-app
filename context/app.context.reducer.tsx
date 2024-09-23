@@ -24,6 +24,7 @@ export const initialState: AppContextState = {
   taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({
     id: index + 1,
     title: `Task ${index + 1}`,
+    stars: 5,
   })),
 };
 

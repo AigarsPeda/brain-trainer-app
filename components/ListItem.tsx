@@ -3,7 +3,7 @@ import type { TaskInfoType } from "@/data/common";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
-import { Pressable, StyleSheet, ViewToken } from "react-native";
+import { Pressable, StyleSheet, View, ViewToken } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -11,6 +11,9 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import createArray from "@/util/createArray";
+import StarIcon from "./icons/Star";
 
 type ListItemProps = {
   bgColor?: string;
@@ -68,25 +71,62 @@ const ListItem: FC<ListItemProps> = memo(
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
         <Animated.View style={[pressableStyle]}>
-          <Pressable
-            onPressIn={() => {
-              scale.value = 0.85;
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          <View
+            style={{
+              flexDirection: "column",
+              // justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              padding: 10,
             }}
-            onPressOut={() => {
-              scale.value = 1;
-              handleClick();
-            }}
-            style={[
-              styles.pressable,
-              {
-                shadowColor: shadowColor,
-                backgroundColor: backgroundColor,
-              },
-            ]}
           >
-            <ThemedText>{item?.id}</ThemedText>
-          </Pressable>
+            <Pressable
+              onPressIn={() => {
+                scale.value = 0.85;
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              onPressOut={() => {
+                scale.value = 1;
+                handleClick();
+              }}
+              style={[
+                styles.pressable,
+                {
+                  shadowColor: shadowColor,
+                  backgroundColor: backgroundColor,
+                },
+              ]}
+            >
+              <ThemedText>{item?.id}</ThemedText>
+            </Pressable>
+            {/* <Ionicons name="star" size={22} color="green" /> */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                display: "flex",
+                marginTop: 8,
+              }}
+            >
+              {createArray(item.stars).map((_, index) => {
+                return (
+                  <StarIcon
+                    key={index}
+                    fill="#f1c40f"
+                    stroke="#1C274C"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      marginHorizontal: 2,
+                    }}
+                  />
+                );
+              })}
+            </View>
+          </View>
         </Animated.View>
       </Animated.View>
     );
@@ -95,7 +135,7 @@ const ListItem: FC<ListItemProps> = memo(
 
 const styles = StyleSheet.create({
   listItem: {
-    height: 80,
+    height: 120,
     width: "90%",
     marginTop: 20,
     display: "flex",

@@ -56,6 +56,7 @@ const renderLastItem = ({
       bgColor="#010f18"
       viewableItems={viewableItems}
       item={{
+        stars: 0,
         id: item.id,
         title: "Under construction",
       }}
