@@ -1,6 +1,8 @@
+import StarIcon from "@/components/icons/Star";
 import { ThemedText } from "@/components/ThemedText";
 import type { TaskInfoType } from "@/data/common";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import createArray from "@/util/createArray";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
 import { Pressable, StyleSheet, View, ViewToken } from "react-native";
@@ -11,9 +13,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import createArray from "@/util/createArray";
-import StarIcon from "./icons/Star";
 
 type ListItemProps = {
   bgColor?: string;
@@ -104,19 +103,19 @@ const ListItem: FC<ListItemProps> = memo(
             {/* <Ionicons name="star" size={22} color="green" /> */}
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                display: "flex",
                 marginTop: 8,
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               {createArray(item.stars).map((_, index) => {
                 return (
                   <StarIcon
                     key={index}
-                    fill="#f1c40f"
-                    stroke="#1C274C"
+                    fill="#1C274C"
+                    // stroke="#1C274C"
                     style={{
                       width: 20,
                       height: 20,
