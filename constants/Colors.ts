@@ -6,9 +6,6 @@
 const tintColorLight = "#4338ca";
 const tintColorDark = "#fff";
 
-const cardBgColorLight = "#e0e0e0";
-const cardBgColorDark = "#4338ca";
-
 const GAME_CARD_COLORS_DARK = ["#ebf1fe", "#f6edff", "#e8f8ff", "#dcf7de"];
 const GAME_CARD_COLORS_SHADOW_DARK = [
   "#bbc0cb",
