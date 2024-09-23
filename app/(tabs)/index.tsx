@@ -53,7 +53,7 @@ const renderLastItem = ({
 }) => {
   return (
     <LastListItem
-      bgColor="#f59e0b"
+      bgColor="#010f18"
       viewableItems={viewableItems}
       item={{
         id: item.id,
