@@ -1,4 +1,6 @@
+import { ThemedText } from "@/components/ThemedText";
 import type { TaskInfoType } from "@/data/common";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
 import { Pressable, StyleSheet, ViewToken } from "react-native";
@@ -7,8 +9,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
-import { ThemedText } from "./ThemedText";
-import { useThemeColor } from "../hooks/useThemeColor";
 
 type ListItemProps = {
   bgColor?: string;
