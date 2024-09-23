@@ -7,24 +7,28 @@ import { Pressable, StyleSheet, ViewToken } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
+  useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
 type ListItemProps = {
   bgColor?: string;
+  shColor?: string;
   item: TaskInfoType;
   handleClick: () => void;
   viewableItems: SharedValue<ViewToken[]>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, handleClick, viewableItems, bgColor }) => {
+  ({ item, handleClick, viewableItems, bgColor, shColor }) => {
     const color = useThemeColor({}, "cardBgColor");
+    const shadColor = useThemeColor({}, "cardShadowColors");
 
     const rStyle = useAnimatedStyle(() => {
       const isVisible = Boolean(
         viewableItems.value
-          .filter((item) => item.isViewable)
+          .filter((viewable) => viewable.isViewable)
           .find((viewableItem) => viewableItem.item.id === item.id)
       );
 
@@ -36,46 +40,54 @@ const ListItem: FC<ListItemProps> = memo(
           },
         ],
       };
-    }, []);
+    }, [viewableItems.value, item.id]);
 
     const getBgColor = (index: number) => {
-      return color[index % color.length];
+      //   return color[index % color.length];
+      return {
+        bgColor: color[index % color.length],
+        shadowColor: shadColor[index % shadColor.length],
+      };
     };
+
+    // Adding press animation for scaling and shadow effect
+    const scale = useSharedValue(1);
+    // const shadowOpacity = useSharedValue(0.2);
+
+    const pressableStyle = useAnimatedStyle(() => {
+      return {
+        transform: [{ scale: withSpring(scale.value) }],
+        // shadowOpacity: shadowOpacity.value,
+      };
+    });
+
+    // Get the background color (from props or dynamically)
+    const shadowColor = shColor ?? getBgColor(item.id).shadowColor;
+    const backgroundColor = bgColor ?? getBgColor(item.id).bgColor;
 
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            handleClick();
-          }}
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            borderRadius: 15,
-            overflow: "hidden",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            // backgroundColor: color,
-            backgroundColor: bgColor || getBgColor(item.id),
-          }}
-        >
-          <ThemedText type="title">{item?.title}</ThemedText>
-          <ThemedText
-            style={{
-              right: -10,
-              opacity: 0.5,
-              fontSize: 125,
-              lineHeight: 155,
-              fontWeight: "bold",
-              position: "absolute",
+        <Animated.View style={[pressableStyle]}>
+          <Pressable
+            onPressIn={() => {
+              scale.value = 0.85;
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
+            onPressOut={() => {
+              scale.value = 1;
+              handleClick();
+            }}
+            style={[
+              styles.pressable,
+              {
+                shadowColor: shadowColor,
+                backgroundColor: backgroundColor,
+              },
+            ]}
           >
-            {item?.id + 1}
-          </ThemedText>
-        </Pressable>
+            <ThemedText>{item?.id}</ThemedText>
+          </Pressable>
+        </Animated.View>
       </Animated.View>
     );
   }
@@ -90,6 +102,25 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#e5e7eb",
+  },
+  pressable: {
+    width: 68,
+    height: 68,
+    display: "flex",
+    borderRadius: 15,
+    overflow: "hidden",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    // Adjusting shadow properties to make it more visible
+    shadowOffset: {
+      width: 4,
+      height: 10, // Increase the vertical shadow offset
+    },
+    shadowOpacity: 0.5, // Increased opacity to make the shadow darker and more visible
+    shadowRadius: 8, // Increased blur radius for a softer but more noticeable shadow
+    elevation: 7, // Increased elevation for Android to enhance shadow visibility
   },
 });
 
