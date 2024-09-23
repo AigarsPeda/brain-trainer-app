@@ -38,6 +38,10 @@ const ListItem: FC<ListItemProps> = memo(
       };
     }, []);
 
+    const getBgColor = (index: number) => {
+      return color[index % color.length];
+    };
+
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
         <Pressable
@@ -54,7 +58,8 @@ const ListItem: FC<ListItemProps> = memo(
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: color,
+            // backgroundColor: color,
+            backgroundColor: bgColor || getBgColor(item.id),
           }}
         >
           <ThemedText type="title">{item?.title}</ThemedText>
