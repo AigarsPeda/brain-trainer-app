@@ -32,39 +32,12 @@ export default function HomeScreen() {
         paddingBottom={150}
         data={state.taskInfos}
         renderItem={({ item, index, viewableItems }) =>
-          // index === state.taskInfos.length - 1
-          //   ? renderLastItem({ item, index, viewableItems })
           renderItem({ item, index, viewableItems })
         }
       />
     </ThemedView>
   );
 }
-
-// const renderLastItem = ({
-//   item,
-//   index,
-//   viewableItems,
-// }: {
-//   index: number;
-//   item: TaskInfoType;
-//   viewableItems: SharedValue<ViewToken[]>;
-// }) => {
-//   return (
-//     <LastListItem
-//       bgColor="#010f18"
-//       viewableItems={viewableItems}
-//       item={{
-//         stars: 0,
-//         id: item.id,
-//         title: "Under construction",
-//       }}
-//       handleClick={() => {
-//         router.push("/adScreen");
-//       }}
-//     />
-//   );
-// };
 
 const renderItem = ({
   item,

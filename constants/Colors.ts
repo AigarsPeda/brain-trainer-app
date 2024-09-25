@@ -6,7 +6,8 @@
 const tintColorLight = "#4338ca";
 const tintColorDark = "#fff";
 
-const GAME_CARD_COLORS_DARK = ["#ebf1fe", "#f6edff", "#e8f8ff", "#dcf7de"];
+// const GAME_CARD_COLORS_DARK = ["#ebf1fe", "#f6edff", "#e8f8ff", "#dcf7de"];
+const GAME_CARD_COLORS_DARK = ["#cf8188", "#e8ae4a", "#98bb8c", "#858bb2"];
 const GAME_CARD_COLORS_SHADOW_DARK = [
   "#bbc0cb",
   "#c4bdcc",
@@ -24,20 +25,20 @@ const GAME_CARD_COLORS_SHADOW_LIGHT = [
 
 export const Colors = {
   light: {
+    icon: "#687076",
     text: "#11181C",
     background: "#fff",
     tint: tintColorLight,
-    icon: "#687076",
     tabIconDefault: "#687076",
     tabIconSelected: tintColorLight,
     cardBgColor: GAME_CARD_COLORS_LIGHT,
     cardShadowColors: GAME_CARD_COLORS_SHADOW_LIGHT,
   },
   dark: {
+    icon: "#9BA1A6",
     text: "#ECEDEE",
     background: "#151718",
     tint: tintColorDark,
-    icon: "#9BA1A6",
     tabIconDefault: "#9BA1A6",
     tabIconSelected: tintColorDark,
     cardBgColor: GAME_CARD_COLORS_DARK,

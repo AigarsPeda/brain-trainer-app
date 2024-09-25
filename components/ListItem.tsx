@@ -5,7 +5,13 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import createArray from "@/util/createArray";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
-import { Pressable, StyleSheet, View, ViewToken } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  useColorScheme,
+  View,
+  ViewToken,
+} from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -26,6 +32,9 @@ const ListItem: FC<ListItemProps> = memo(
   ({ item, handleClick, viewableItems, bgColor, shColor }) => {
     const color = useThemeColor({}, "cardBgColor");
     const shadColor = useThemeColor({}, "cardShadowColors");
+    const cardBackgroundColor = useThemeColor({}, "background");
+
+    const theme = useColorScheme() ?? "light";
 
     const rStyle = useAnimatedStyle(() => {
       const isVisible = Boolean(
@@ -68,17 +77,24 @@ const ListItem: FC<ListItemProps> = memo(
     const backgroundColor = bgColor ?? getBgColor(item.id).bgColor;
 
     return (
-      <Animated.View style={[styles.listItem, rStyle]}>
+      <Animated.View
+        style={[
+          styles.listItem,
+          rStyle,
+          // {
+          //   backgroundColor: "#e5e7eb",
+          // },
+        ]}
+      >
         <Animated.View style={[pressableStyle]}>
           <View
             style={{
-              flexDirection: "column",
-              // justifyContent: "space-between",
-              alignItems: "center",
+              padding: 10,
               width: "100%",
               height: "100%",
               display: "flex",
-              padding: 10,
+              alignItems: "center",
+              flexDirection: "column",
             }}
           >
             <Pressable
@@ -98,9 +114,15 @@ const ListItem: FC<ListItemProps> = memo(
                 },
               ]}
             >
-              <ThemedText>{item?.id}</ThemedText>
+              <ThemedText
+                style={{
+                  fontSize: 20,
+                  color: theme === "light" ? "#1C274C" : "#1C274C",
+                }}
+              >
+                {item?.id}
+              </ThemedText>
             </Pressable>
-            {/* <Ionicons name="star" size={22} color="green" /> */}
             <View
               style={{
                 marginTop: 8,
@@ -114,8 +136,7 @@ const ListItem: FC<ListItemProps> = memo(
                 return (
                   <StarIcon
                     key={index}
-                    fill="#1C274C"
-                    // stroke="#1C274C"
+                    fill={theme === "light" ? "#1C274C" : "#e8ae4a"}
                     style={{
                       width: 20,
                       height: 20,
@@ -141,7 +162,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#e5e7eb",
+    // backgroundColor: "#e5e7eb",
   },
   pressable: {
     width: 68,
