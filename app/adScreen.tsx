@@ -1,14 +1,13 @@
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Button, StyleSheet } from "react-native";
+import { Button } from "react-native";
 import {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
 } from "react-native-google-mobile-ads";
 import { SafeAreaView } from "react-native-safe-area-context";
-import useAppContext from "../hooks/useAppContext";
 
 const ios = "ca-app-pub-5238286944896076/6557213296";
 const android = "ca-app-pub-5238286944896076/2318585385";
@@ -22,7 +21,6 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
 
 export default function AdScreen() {
   const router = useRouter();
-  const { dispatch } = useAppContext();
   const [loaded, setLoaded] = useState(false);
   const [isRewarded, setIsRewarded] = useState(false);
 
@@ -31,7 +29,6 @@ export default function AdScreen() {
       RewardedAdEventType.LOADED,
       () => {
         setLoaded(true);
-        dispatch({ type: "SET_AD_LOADED" });
       }
     );
     const unsubscribeEarned = rewarded.addAdEventListener(
@@ -69,15 +66,14 @@ export default function AdScreen() {
   }
 
   return (
-    <></>
-    // <SafeAreaView>
-    //   <Button
-    //     title="Show rewarded"
-    //     onPress={() => {
-    //       console.log("Show rewarded");
-    //       rewarded.show();
-    //     }}
-    //   />
-    // </SafeAreaView>
+    <SafeAreaView>
+      <Button
+        title="Show rewarded"
+        onPress={() => {
+          console.log("Show rewarded");
+          rewarded.show();
+        }}
+      />
+    </SafeAreaView>
   );
 }
