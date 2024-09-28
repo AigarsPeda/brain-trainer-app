@@ -20,9 +20,9 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
   keywords: ["games", "kids", "fun", "education", "learning"],
 });
 
-export default function AdScreen() {
+const useGoogleAd = () => {
   const router = useRouter();
-  const { dispatch } = useAppContext();
+  // const { dispatch } = useAppContext();
   const [loaded, setLoaded] = useState(false);
   const [isRewarded, setIsRewarded] = useState(false);
 
@@ -31,7 +31,7 @@ export default function AdScreen() {
       RewardedAdEventType.LOADED,
       () => {
         setLoaded(true);
-        dispatch({ type: "SET_AD_LOADED" });
+        // dispatch({ type: "SET_AD_LOADED" });
       }
     );
     const unsubscribeEarned = rewarded.addAdEventListener(
@@ -63,21 +63,11 @@ export default function AdScreen() {
     }
   }, [isRewarded]);
 
-  // No advert ready to show yet
-  if (!loaded) {
-    return null;
-  }
+  return {
+    loaded,
+    isRewarded,
+    rewarded,
+  };
+};
 
-  return (
-    <></>
-    // <SafeAreaView>
-    //   <Button
-    //     title="Show rewarded"
-    //     onPress={() => {
-    //       console.log("Show rewarded");
-    //       rewarded.show();
-    //     }}
-    //   />
-    // </SafeAreaView>
-  );
-}
+export default useGoogleAd;

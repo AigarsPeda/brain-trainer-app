@@ -7,12 +7,15 @@ import { ThemedView } from "@/components/ThemedView";
 import type { TaskInfoType } from "@/data/common";
 import useAppContext from "@/hooks/useAppContext";
 import { router } from "expo-router";
-import { ViewToken } from "react-native";
+import { Button, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useGoogleAd from "../../hooks/useGoogleAd";
 
 export default function HomeScreen() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
+
+  const { isRewarded, loaded, rewarded } = useGoogleAd();
 
   return (
     <ThemedView>
@@ -27,6 +30,10 @@ export default function HomeScreen() {
         <ThemedText type="title">{state.name}</ThemedText>
         <HelloWave />
       </SafeAreaView>
+      <ThemedText type="subtitle">
+        Is Ad loaded: {loaded ? "Yes" : "No"}
+      </ThemedText>
+      <Button title="Show ad" onPress={() => rewarded.show()} />
       <AnimatedFlatList
         paddingTop={0}
         paddingBottom={150}
