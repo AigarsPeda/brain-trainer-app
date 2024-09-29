@@ -1,14 +1,11 @@
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Button, StyleSheet } from "react-native";
 import {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
 } from "react-native-google-mobile-ads";
-import { SafeAreaView } from "react-native-safe-area-context";
-import useAppContext from "../hooks/useAppContext";
 
 const ios = "ca-app-pub-5238286944896076/6557213296";
 const android = "ca-app-pub-5238286944896076/2318585385";
