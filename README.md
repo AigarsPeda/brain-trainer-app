@@ -28,3 +28,6 @@ You need to run `expo prebuild` before running the app.
    ```bash
     npx expo run:android
    ```
+
+Icons:
+https://www.svgrepo.com/collection/solar-line-duotone-icons/2

@@ -10,10 +10,10 @@ import { router } from "expo-router";
 import { Button, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import HeartIcon from "../../components/icons/HeartIcon";
 
 export default function HomeScreen() {
-  const { state, dispatch } = useAppContext();
-
+  const { state } = useAppContext();
   const { isRewarded, loaded, rewarded } = useGoogleAd();
 
   return (
@@ -28,6 +28,7 @@ export default function HomeScreen() {
       >
         <ThemedText type="title">{state.name}</ThemedText>
         <HelloWave />
+        <HeartIcon stroke={"#ff0000"} />
       </SafeAreaView>
       <ThemedView
         style={{

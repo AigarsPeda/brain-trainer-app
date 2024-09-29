@@ -1,4 +1,4 @@
-import StarIcon from "@/components/icons/Star";
+import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
 import type { TaskInfoType } from "@/data/common";
 import { useThemeColor } from "@/hooks/useThemeColor";
