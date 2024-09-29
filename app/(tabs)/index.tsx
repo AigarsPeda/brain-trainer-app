@@ -7,7 +7,7 @@ import type { TaskInfoType } from "@/data/common";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { router } from "expo-router";
-import { Button, ViewToken } from "react-native";
+import { Button, View, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HeartIcon from "../../components/icons/HeartIcon";
@@ -27,7 +27,8 @@ export default function HomeScreen() {
         }}
       >
         <ThemedText type="title">{state.name}</ThemedText>
-        <HelloWave />
+        <HeartIcon stroke={"#ff0000"} />
+        <HeartIcon stroke={"#ff0000"} />
         <HeartIcon stroke={"#ff0000"} />
       </SafeAreaView>
       <ThemedView
@@ -63,6 +64,11 @@ const renderItem = ({
   item: TaskInfoType;
   viewableItems: SharedValue<ViewToken[]>;
 }) => {
+  // move position from 0 to 3 and then back from 3 to 0 and do it again and again
+  const number = index % 6 <= 3 ? index % 6 : 6 - (index % 6);
+
+  console.log("number", number);
+
   return (
     <ListItem
       item={item}

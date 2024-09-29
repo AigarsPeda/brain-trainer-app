@@ -32,7 +32,7 @@ const ListItem: FC<ListItemProps> = memo(
   ({ item, handleClick, viewableItems, bgColor, shColor }) => {
     const color = useThemeColor({}, "cardBgColor");
     const shadColor = useThemeColor({}, "cardShadowColors");
-    const cardBackgroundColor = useThemeColor({}, "background");
+    // const cardBackgroundColor = useThemeColor({}, "background");
 
     const theme = useColorScheme() ?? "light";
 
@@ -81,12 +81,20 @@ const ListItem: FC<ListItemProps> = memo(
         style={[
           styles.listItem,
           rStyle,
-          // {
-          //   backgroundColor: "#e5e7eb",
-          // },
+          {
+            position: "relative",
+          },
         ]}
       >
-        <Animated.View style={[pressableStyle]}>
+        <Animated.View
+          style={[
+            pressableStyle,
+            {
+              position: "absolute",
+              left: 0,
+            },
+          ]}
+        >
           <View
             style={{
               padding: 10,
@@ -165,8 +173,8 @@ const styles = StyleSheet.create({
     // backgroundColor: "#e5e7eb",
   },
   pressable: {
-    width: 68,
-    height: 68,
+    width: 85,
+    height: 85,
     display: "flex",
     borderRadius: 15,
     overflow: "hidden",
