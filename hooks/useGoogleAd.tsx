@@ -19,7 +19,6 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
 
 const useGoogleAd = () => {
   const router = useRouter();
-  // const { dispatch } = useAppContext();
   const [loaded, setLoaded] = useState(false);
   const [isRewarded, setIsRewarded] = useState(false);
 
@@ -28,7 +27,6 @@ const useGoogleAd = () => {
       RewardedAdEventType.LOADED,
       () => {
         setLoaded(true);
-        // dispatch({ type: "SET_AD_LOADED" });
       }
     );
     const unsubscribeEarned = rewarded.addAdEventListener(
