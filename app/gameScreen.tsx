@@ -17,11 +17,11 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
 
 export default function AdScreen() {
   const router = useRouter();
-  const { level } = useLocalSearchParams();
+  const { level } = useLocalSearchParams<{
+    level: string;
+  }>();
 
-  // get param
-
-  console.log("local", level);
+  console.log("local", typeof level, level);
 
   return (
     <SafeAreaView>
