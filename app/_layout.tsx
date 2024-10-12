@@ -34,8 +34,17 @@ export default function RootLayout() {
     <AppContextProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="adScreen" />
+          <Stack.Screen name="(home)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="gameScreen"
+            options={{
+              title: "Game Screen",
+              headerShown: true,
+              // headerTitleStyle: { fontFamily: "SpaceMono" },
+              headerBackTitle: "Back",
+            }}
+          />
+
           <Stack.Screen name="+not-found" />
         </Stack>
       </ThemeProvider>

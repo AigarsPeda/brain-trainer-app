@@ -1,5 +1,5 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
-import { HelloWave } from "@/components/HelloWave";
+import HeartIcon from "@/components/icons/HeartIcon";
 import ListItem from "@/components/ListItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -7,10 +7,9 @@ import type { TaskInfoType } from "@/data/common";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { router } from "expo-router";
-import { Button, View, ViewToken } from "react-native";
+import { Button, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import HeartIcon from "../../components/icons/HeartIcon";
 
 export default function HomeScreen() {
   const { state } = useAppContext();
@@ -73,7 +72,7 @@ const renderItem = ({
       position={number}
       viewableItems={viewableItems}
       handleClick={() => {
-        router.push("/adScreen");
+        router.push("/gameScreen");
       }}
     />
   );
