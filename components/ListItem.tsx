@@ -23,16 +23,16 @@ import Animated, {
 type ListItemProps = {
   bgColor?: string;
   shColor?: string;
+  position: number;
   item: TaskInfoType;
   handleClick: () => void;
   viewableItems: SharedValue<ViewToken[]>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, handleClick, viewableItems, bgColor, shColor }) => {
+  ({ item, bgColor, shColor, position, viewableItems, handleClick }) => {
     const color = useThemeColor({}, "cardBgColor");
     const shadColor = useThemeColor({}, "cardShadowColors");
-    // const cardBackgroundColor = useThemeColor({}, "background");
 
     const theme = useColorScheme() ?? "light";
 
@@ -54,21 +54,17 @@ const ListItem: FC<ListItemProps> = memo(
     }, [viewableItems.value, item.id]);
 
     const getBgColor = (index: number) => {
-      //   return color[index % color.length];
       return {
         bgColor: color[index % color.length],
         shadowColor: shadColor[index % shadColor.length],
       };
     };
 
-    // Adding press animation for scaling and shadow effect
     const scale = useSharedValue(1);
-    // const shadowOpacity = useSharedValue(0.2);
 
     const pressableStyle = useAnimatedStyle(() => {
       return {
         transform: [{ scale: withSpring(scale.value) }],
-        // shadowOpacity: shadowOpacity.value,
       };
     });
 
@@ -91,7 +87,7 @@ const ListItem: FC<ListItemProps> = memo(
             pressableStyle,
             {
               position: "absolute",
-              left: 0,
+              left: position * 72,
             },
           ]}
         >
@@ -163,14 +159,13 @@ const ListItem: FC<ListItemProps> = memo(
 
 const styles = StyleSheet.create({
   listItem: {
-    height: 120,
+    height: 170,
     width: "90%",
     marginTop: 20,
     display: "flex",
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
-    // backgroundColor: "#e5e7eb",
   },
   pressable: {
     width: 85,

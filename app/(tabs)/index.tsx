@@ -67,11 +67,10 @@ const renderItem = ({
   // move position from 0 to 3 and then back from 3 to 0 and do it again and again
   const number = index % 6 <= 3 ? index % 6 : 6 - (index % 6);
 
-  console.log("number", number);
-
   return (
     <ListItem
       item={item}
+      position={number}
       viewableItems={viewableItems}
       handleClick={() => {
         router.push("/adScreen");
