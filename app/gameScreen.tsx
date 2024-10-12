@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import * as Device from "expo-device";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { RewardedAd, TestIds } from "react-native-google-mobile-ads";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,6 +17,11 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
 
 export default function AdScreen() {
   const router = useRouter();
+  const { level } = useLocalSearchParams();
+
+  // get param
+
+  console.log("local", level);
 
   return (
     <SafeAreaView>
@@ -29,10 +34,9 @@ export default function AdScreen() {
         <ThemedText
           style={{
             fontSize: 20,
-            color: "#1C274C",
           }}
         >
-          "Game Screen"
+          "Game Screen" {level}
         </ThemedText>
       </ThemedView>
     </SafeAreaView>

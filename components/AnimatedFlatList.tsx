@@ -1,12 +1,10 @@
 import {
-  View,
   FlatList,
-  StyleSheet,
   FlatListProps,
-  ViewToken,
   ListRenderItemInfo,
+  ViewToken,
 } from "react-native";
-import { useSharedValue, SharedValue } from "react-native-reanimated";
+import { SharedValue, useSharedValue } from "react-native-reanimated";
 
 interface AnimatedFlatListProps<T>
   extends Omit<FlatListProps<T>, "renderItem" | "onViewableItemsChanged"> {
@@ -69,12 +67,5 @@ function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
     />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-});
 
 export default AnimatedFlatList;
