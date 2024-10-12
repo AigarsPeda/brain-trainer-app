@@ -4,7 +4,7 @@ import type { TaskInfoType } from "@/data/common";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import createArray from "@/util/createArray";
 import * as Haptics from "expo-haptics";
-import { type FC, memo } from "react";
+import { type FC, memo, useRef } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -24,15 +24,23 @@ type ListItemProps = {
   bgColor?: string;
   shColor?: string;
   position: number;
+  skewAngle: number;
   item: TaskInfoType;
   handleClick: () => void;
   viewableItems: SharedValue<ViewToken[]>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, bgColor, shColor, position, viewableItems, handleClick }) => {
+  ({
+    item,
+    bgColor,
+    shColor,
+    skewAngle,
+    position,
+    viewableItems,
+    handleClick,
+  }) => {
     const color = useThemeColor({}, "cardBgColor");
-    const shadColor = useThemeColor({}, "cardShadowColors");
 
     const theme = useColorScheme() ?? "light";
 
@@ -56,7 +64,6 @@ const ListItem: FC<ListItemProps> = memo(
     const getBgColor = (index: number) => {
       return {
         bgColor: color[index % color.length],
-        shadowColor: shadColor[index % shadColor.length],
       };
     };
 
@@ -64,12 +71,15 @@ const ListItem: FC<ListItemProps> = memo(
 
     const pressableStyle = useAnimatedStyle(() => {
       return {
-        transform: [{ scale: withSpring(scale.value) }],
+        transform: [
+          { scale: withSpring(scale.value) },
+          { skewX: `${skewAngle}deg` }, // SkewX transformation based on direction
+        ],
       };
     });
 
     // Get the background color (from props or dynamically)
-    const shadowColor = shColor ?? getBgColor(item.id).shadowColor;
+    // const shadowColor = shColor ?? getBgColor(item.id).shadowColor;
     const backgroundColor = bgColor ?? getBgColor(item.id).bgColor;
 
     return (
@@ -113,7 +123,7 @@ const ListItem: FC<ListItemProps> = memo(
               style={[
                 styles.pressable,
                 {
-                  shadowColor: shadowColor,
+                  // shadowColor: shadowColor,
                   backgroundColor: backgroundColor,
                 },
               ]}
@@ -188,3 +198,6 @@ const styles = StyleSheet.create({
 });
 
 export default ListItem;
+function useEffect(arg0: () => void, arg1: number[]) {
+  throw new Error("Function not implemented.");
+}

@@ -63,13 +63,17 @@ const renderItem = ({
   item: TaskInfoType;
   viewableItems: SharedValue<ViewToken[]>;
 }) => {
+  const isPositive = index % 6 <= 3;
   // move position from 0 to 3 and then back from 3 to 0 and do it again and again
-  const number = index % 6 <= 3 ? index % 6 : 6 - (index % 6);
+  const number = isPositive ? index % 6 : 6 - (index % 6);
+  // skew angle for the item
+  const skewAngle = isPositive ? number * 5 : -number * 5;
 
   return (
     <ListItem
       item={item}
       position={number}
+      skewAngle={number === 3 ? 0 : skewAngle}
       viewableItems={viewableItems}
       handleClick={() => {
         router.push("/gameScreen");
