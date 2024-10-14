@@ -1,3 +1,4 @@
+import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import * as Device from "expo-device";
@@ -27,17 +28,11 @@ export default function AdScreen() {
     <SafeAreaView>
       <ThemedView
         style={{
-          justifyContent: "center",
           alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <ThemedText
-          style={{
-            fontSize: 20,
-          }}
-        >
-          "Game Screen" {level}
-        </ThemedText>
+        <MathTaskWithResult />
       </ThemedView>
     </SafeAreaView>
   );
