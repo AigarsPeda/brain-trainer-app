@@ -1,7 +1,11 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
-export default function MathTaskWithResult() {
+interface MathTaskWithResultProps {
+  level: string;
+}
+
+export default function MathTaskWithResult({ level }: MathTaskWithResultProps) {
   return (
     <ThemedView
       style={{
@@ -14,7 +18,7 @@ export default function MathTaskWithResult() {
           fontSize: 20,
         }}
       >
-        "Math Task With Result"
+        "Math Task With Result" {level}
       </ThemedText>
     </ThemedView>
   );

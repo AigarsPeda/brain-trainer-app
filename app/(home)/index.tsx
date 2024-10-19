@@ -76,9 +76,6 @@ const renderItem = ({
       skewAngle={number === 3 ? 0 : skewAngle}
       viewableItems={viewableItems}
       handleClick={() => {
-        // router.push("", { id: item.id });
-        // router.push("/game/[id]");
-        // router.push("/gameScreen", { id: item.id });
         router.push({ pathname: "/gameScreen", params: { level: item.id } });
       }}
     />

@@ -32,7 +32,7 @@ export default function AdScreen() {
           justifyContent: "center",
         }}
       >
-        <MathTaskWithResult />
+        <MathTaskWithResult level={level} />
       </ThemedView>
     </SafeAreaView>
   );
