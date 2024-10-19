@@ -1,9 +1,6 @@
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
-// import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-// import * as Device from "expo-device";
 import { useLocalSearchParams, useRouter } from "expo-router";
-// import { RewardedAd, TestIds } from "react-native-google-mobile-ads";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // const ios = "ca-app-pub-5238286944896076/6557213296";
@@ -16,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 //   keywords: ["games", "kids", "fun", "education", "learning"],
 // });
 
-export default function AdScreen() {
+export default function GameScreen() {
   const router = useRouter();
   const { level } = useLocalSearchParams<{
     level: string;
