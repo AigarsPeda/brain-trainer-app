@@ -13,6 +13,35 @@ import { SafeAreaView } from "react-native-safe-area-context";
 //   keywords: ["games", "kids", "fun", "education", "learning"],
 // });
 
+const MATH_TASK = [
+  {
+    taskType: "mathTaskWithResult",
+    result: 8,
+    tasks: [
+      {
+        task: "4 + 4",
+        result: 8,
+        correckt: true,
+      },
+      {
+        task: "5 + 2",
+        result: 7,
+        correckt: false,
+      },
+      {
+        task: "10 - 2",
+        result: 8,
+        correckt: true,
+      },
+      {
+        task: "6 + 3",
+        result: 9,
+        correckt: false,
+      },
+    ],
+  },
+];
+
 export default function GameScreen() {
   const router = useRouter();
   const { level } = useLocalSearchParams<{
@@ -29,7 +58,11 @@ export default function GameScreen() {
           justifyContent: "center",
         }}
       >
-        <MathTaskWithResult level={level} />
+        {MATH_TASK.map((task) => {
+          if (task.taskType === "mathTaskWithResult") {
+            return <MathTaskWithResult level={level} task={task} />;
+          }
+        })}
       </ThemedView>
     </SafeAreaView>
   );
