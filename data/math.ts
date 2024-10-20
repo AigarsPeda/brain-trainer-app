@@ -5,6 +5,7 @@ export const MATH_TASK: MathTaskType[] = [
     id: 1,
     taskType: "mathTaskWithResult",
     result: 8,
+    correctAnswer: 2,
     variants: [
       {
         id: 1,

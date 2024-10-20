@@ -62,14 +62,12 @@ export default function MathTaskWithResult({
   return (
     <ThemedView
       style={{
-        height: "100%",
         alignItems: "center",
       }}
     >
       <ThemedView
         style={{
           padding: 16,
-          height: 100,
           display: "flex",
           marginVertical: GAP,
           alignItems: "center",

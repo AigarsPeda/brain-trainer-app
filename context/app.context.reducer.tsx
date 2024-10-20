@@ -14,6 +14,7 @@ export type TaskVariantType = {
 export type MathTaskType = {
   id: number;
   result: number;
+  correctAnswer: number;
   taskType: MathTypeType;
   variants: TaskVariantType[];
 };
