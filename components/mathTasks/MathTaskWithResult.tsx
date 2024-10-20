@@ -45,7 +45,7 @@ export default function MathTaskWithResult({
     const foundAnnswer = getAnnswersOfTask(annswers, variant);
 
     if (!foundAnnswer) {
-      return "#030712";
+      return "#6b7280";
     }
 
     if (!foundAnnswer.isCorrect && !isLevelChecked) {
@@ -67,8 +67,9 @@ export default function MathTaskWithResult({
     >
       <ThemedView
         style={{
-          padding: 16,
+          paddingTop: 30,
           display: "flex",
+          paddingBottom: 10,
           marginVertical: GAP,
           alignItems: "center",
           justifyContent: "center",
@@ -76,8 +77,8 @@ export default function MathTaskWithResult({
       >
         <ThemedText
           style={{
-            fontSize: 52,
-            lineHeight: 52,
+            fontSize: 60,
+            lineHeight: 60,
           }}
         >
           {task.result}
@@ -93,9 +94,9 @@ export default function MathTaskWithResult({
               style={[
                 styles.singleItem,
                 {
+                  borderWidth: 3,
                   display: "flex",
-                  borderRadius: 8,
-                  borderWidth: 2.5,
+                  borderRadius: 16,
                   paddingVertical: 42,
                   borderStyle: "solid",
                   alignItems: "center",

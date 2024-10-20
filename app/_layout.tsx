@@ -42,17 +42,18 @@ export default function RootLayout() {
               const { level } = opt.route.params as { level: string };
               return {
                 headerShown: true,
-                title: level ?? "Spēle",
+                // title: level ?? "Spēle",
+                title: "",
                 headerBackTitle: "Atpakaļ",
                 headerTintColor: colorScheme === "dark" ? "white" : "black",
-                headerBackground: () => (
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: "#D81E5B",
-                    }}
-                  />
-                ),
+                // headerBackground: () => (
+                //   <View
+                //     style={{
+                //       flex: 1,
+                //       backgroundColor: "#D81E5B",
+                //     }}
+                //   />
+                // ),
               };
             }}
           />

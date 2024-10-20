@@ -92,7 +92,7 @@ export default function GameScreen() {
           style={{
             padding: 16,
             display: "flex",
-            borderRadius: 8,
+            borderRadius: 16,
             marginBottom: 36,
             alignItems: "center",
             justifyContent: "center",
