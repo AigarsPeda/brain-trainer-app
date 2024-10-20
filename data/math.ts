@@ -13,12 +13,6 @@ export const MATH_TASK: MathTaskType[] = [
         isCorrect: true,
       },
       {
-        id: 2,
-        equation: "5 + 2",
-        result: 7,
-        isCorrect: false,
-      },
-      {
         id: 3,
         equation: "10 - 2",
         result: 8,
@@ -28,6 +22,12 @@ export const MATH_TASK: MathTaskType[] = [
         id: 4,
         equation: "6 + 3",
         result: 9,
+        isCorrect: false,
+      },
+      {
+        id: 2,
+        equation: "5 + 2",
+        result: 7,
         isCorrect: false,
       },
     ],

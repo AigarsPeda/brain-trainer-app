@@ -30,6 +30,9 @@ type AppContextStateType = {
   mathTasks: MathTaskType[];
   resultsObj: {
     [level: string]: {
+      isLevelLocked: boolean;
+      isLevelChecked: boolean;
+      isLevelCompleted: boolean;
       [taskNumber: number]: TaskAnnswerType[];
     };
   };

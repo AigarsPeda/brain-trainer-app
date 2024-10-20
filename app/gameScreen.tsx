@@ -26,7 +26,7 @@ export default function GameScreen() {
     level: string;
   }>();
 
-  const annswers = state.resultsObj?.[level]?.[taskNumber] ?? [];
+  const levelObj = state.resultsObj?.[level];
 
   const setAnnswer = (
     taskNumber: number,
@@ -61,7 +61,8 @@ export default function GameScreen() {
               key={i}
               task={task}
               level={level}
-              annswers={annswers}
+              isLevelChecked={levelObj?.isLevelChecked}
+              annswers={levelObj?.[taskNumber]}
               handlePress={(annswer) => {
                 setAnnswer(taskNumber, task, annswer);
               }}

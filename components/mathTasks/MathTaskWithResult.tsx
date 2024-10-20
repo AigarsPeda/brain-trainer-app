@@ -18,6 +18,7 @@ const childWidth = (WIDOW_WIDTH_WITH_MARGIN - TOTAL_GAP_SIZE) / ITEM_PER_ROW;
 interface MathTaskWithResultProps {
   level: string;
   task: MathTaskType;
+  isLevelChecked: boolean;
   annswers: TaskAnnswerType[];
   handlePress: (variant: TaskVariantType) => void;
 }
@@ -27,13 +28,35 @@ export default function MathTaskWithResult({
   level,
   annswers,
   handlePress,
+  isLevelChecked,
 }: MathTaskWithResultProps) {
   const getAnnswersOfTask = (
-    annswer: TaskAnnswerType[] | undefined,
-    task: MathTaskType
+    annswers: TaskAnnswerType[] | undefined,
+    variant: TaskVariantType
   ) => {
-    const foudTask = annswer?.find((r) => r.annswerId === task.id);
+    const foudTask = annswers?.find((r) => r.annswerId === variant.id);
     return foudTask;
+  };
+
+  const getBorderColor = (
+    annswers: TaskAnnswerType[] | undefined,
+    variant: TaskVariantType
+  ) => {
+    const foundAnnswer = getAnnswersOfTask(annswers, variant);
+
+    if (!foundAnnswer) {
+      return "#030712";
+    }
+
+    if (!foundAnnswer.isCorrect && !isLevelChecked) {
+      return "#42F2F7";
+    }
+
+    if (!foundAnnswer.isCorrect && isLevelChecked) {
+      return "#D81E5B";
+    }
+
+    return "#09E85E";
   };
 
   return (
@@ -64,8 +87,7 @@ export default function MathTaskWithResult({
       </ThemedView>
       <ThemedView style={styles.itemsWrap}>
         {task.variants.map((variant, i) => {
-          const foundAnnswer = getAnnswersOfTask(annswers, task);
-          console.log("foundAnnswer", foundAnnswer);
+          const borderColor = getBorderColor(annswers, variant);
 
           return (
             <Pressable
@@ -82,8 +104,7 @@ export default function MathTaskWithResult({
                   paddingHorizontal: 16,
                   marginVertical: GAP / 2,
                   justifyContent: "center",
-                  borderColor: foundAnnswer?.isCorrect ? "#00ff00" : "#ff0000",
-                  // borderColor: task.correckt ? "#00ff00" : "#ff0000",
+                  borderColor: borderColor,
                 },
               ]}
               onPress={() => handlePress(variant)}
