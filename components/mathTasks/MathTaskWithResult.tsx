@@ -32,10 +32,28 @@ export default function MathTaskWithResult({
       style={{
         height: "100%",
         alignItems: "center",
-        justifyContent: "center",
+        // justifyContent: "center",
       }}
     >
-      <ThemedText type="title">{task.result}</ThemedText>
+      <ThemedView
+        style={{
+          padding: 16,
+          height: 100,
+          display: "flex",
+          marginVertical: GAP,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ThemedText
+          style={{
+            fontSize: 42,
+            lineHeight: 42,
+          }}
+        >
+          {task.result}
+        </ThemedText>
+      </ThemedView>
       <ThemedView style={styles.itemsWrap}>
         {task.tasks.map((task) => {
           return (
@@ -43,21 +61,27 @@ export default function MathTaskWithResult({
               style={[
                 styles.singleItem,
                 {
-                  padding: 16,
                   display: "flex",
                   borderRadius: 8,
                   borderWidth: 1.5,
+                  paddingVertical: 32,
                   borderStyle: "solid",
                   alignItems: "center",
+                  paddingHorizontal: 16,
                   marginVertical: GAP / 2,
                   justifyContent: "center",
-                  borderColor: task.correckt ? "#00ff00" : "#ff0000",
+
+                  // borderColor: task.correckt ? "#00ff00" : "#ff0000",
                 },
               ]}
             >
-              <ThemedText>
-                {task.task} {task.result}{" "}
-                {task.correckt ? "Correct" : "Incorrect"}
+              <ThemedText
+                style={{
+                  fontSize: 24,
+                }}
+              >
+                {task.task}
+                {/* {task.correckt ? "Correct" : "Incorrect"} */}
               </ThemedText>
             </ThemedView>
           );
