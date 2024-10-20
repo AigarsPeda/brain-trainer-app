@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import {
+import type {
   MathTaskType,
   TaskAnnswerType,
   TaskVariantType,

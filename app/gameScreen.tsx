@@ -1,7 +1,10 @@
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { MathTaskType, TaskVariantType } from "@/context/app.context.reducer";
+import type {
+  MathTaskType,
+  TaskVariantType,
+} from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams } from "expo-router";
 import { Dimensions, Pressable } from "react-native";
