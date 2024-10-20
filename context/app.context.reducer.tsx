@@ -1,26 +1,53 @@
-import { TaskInfoType } from "@/data/common";
-import { AVAILABLE_LEVEL_COUNT } from "@/data/math";
+import type { TaskInfoType } from "@/data/common";
+import { AVAILABLE_LEVEL_COUNT, MATH_TASK } from "@/data/math";
 import { createContext } from "react";
 
-type AppContextState = {
-  name: string;
-  taskInfos: TaskInfoType[];
+export type MathTypeType = "mathTaskWithResult";
+
+export type TaskVariantType = {
+  id: number;
+  result: number;
+  equation: string;
+  isCorrect: boolean;
 };
 
-export type AppContextActionType = SetNameAction;
+export type MathTaskType = {
+  id: number;
+  result: number;
+  taskType: MathTypeType;
+  variants: TaskVariantType[];
+};
 
-interface SetNameAction {
-  type: "SET_NAME";
-  payload: string;
-}
+export type TaskAnnswerType = {
+  result: number;
+  annswerId: number;
+  isCorrect: boolean;
+};
+
+type AppContextStateType = {
+  name: string;
+  taskInfos: TaskInfoType[];
+  mathTasks: MathTaskType[];
+  resultsObj: {
+    [level: string]: {
+      [taskNumber: number]: TaskAnnswerType[];
+    };
+  };
+};
+
+export type AppContextActionType =
+  | SetNameActionType
+  | SetResultForTaskActionType;
 
 export type AppContextType = {
-  state: AppContextState;
+  state: AppContextStateType;
   dispatch: React.Dispatch<AppContextActionType>;
 };
 
-export const initialState: AppContextState = {
+export const initialState: AppContextStateType = {
   name: "Aigars",
+  resultsObj: {},
+  mathTasks: MATH_TASK,
   taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({
     id: index + 1,
     title: `Task ${index + 1}`,
@@ -35,13 +62,57 @@ export const initialContext: AppContextType = {
 
 export const AppContext = createContext<AppContextType>(initialContext);
 
+interface SetNameActionType {
+  type: "SET_NAME";
+  payload: string;
+}
+
+interface SetResultForTaskActionType {
+  type: "SET_RESULT_FOR_TASK";
+  payload: {
+    level: string;
+    taskNumber: number;
+    answer: TaskAnnswerType;
+  };
+}
+
 export const appReducer = (
-  state: AppContextState,
+  state: AppContextStateType,
   action: AppContextActionType
-): AppContextState => {
+): AppContextStateType => {
   switch (action.type) {
     case "SET_NAME":
       return { ...state, name: action.payload };
+
+    case "SET_RESULT_FOR_TASK":
+      console.log("action.payload", action.payload);
+      console.log("state.resultsObj", state.resultsObj);
+
+      const levelResults =
+        state.resultsObj?.[action.payload.level]?.[action.payload.taskNumber] ??
+        [];
+      console.log("levelResults", levelResults);
+
+      const indexOfTask = levelResults.findIndex(
+        (r) => r?.annswerId === action.payload.answer.annswerId
+      );
+
+      if (indexOfTask !== -1) {
+        levelResults.splice(indexOfTask, 1);
+      } else {
+        levelResults.push(action.payload.answer);
+      }
+
+      return {
+        ...state,
+        resultsObj: {
+          ...state.resultsObj,
+          [action.payload.level]: {
+            ...state.resultsObj[action.payload.taskNumber],
+            [action.payload.taskNumber]: levelResults,
+          },
+        },
+      };
 
     default:
       return state;

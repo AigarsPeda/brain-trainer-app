@@ -1,7 +1,12 @@
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import { ThemedView } from "@/components/ThemedView";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  MathTaskType,
+  TaskAnnswerType,
+  TaskVariantType,
+} from "@/context/app.context.reducer";
+import useAppContext from "@/hooks/useAppContext";
+import { useLocalSearchParams } from "expo-router";
 
 // const ios = "ca-app-pub-5238286944896076/6557213296";
 // const android = "ca-app-pub-5238286944896076/2318585385";
@@ -13,42 +18,34 @@ import { SafeAreaView } from "react-native-safe-area-context";
 //   keywords: ["games", "kids", "fun", "education", "learning"],
 // });
 
-const MATH_TASK = [
-  {
-    taskType: "mathTaskWithResult",
-    result: 8,
-    tasks: [
-      {
-        task: "4 + 4",
-        result: 8,
-        correckt: true,
-      },
-      {
-        task: "5 + 2",
-        result: 7,
-        correckt: false,
-      },
-      {
-        task: "10 - 2",
-        result: 8,
-        correckt: true,
-      },
-      {
-        task: "6 + 3",
-        result: 9,
-        correckt: false,
-      },
-    ],
-  },
-];
-
 export default function GameScreen() {
-  const router = useRouter();
+  // const router = useRouter();
+  const taskNumber = 0;
+  const { state, dispatch } = useAppContext();
   const { level } = useLocalSearchParams<{
     level: string;
   }>();
 
-  console.log("local", typeof level, level);
+  const annswers = state.resultsObj?.[level]?.[taskNumber] ?? [];
+
+  const setAnnswer = (
+    taskNumber: number,
+    task: MathTaskType,
+    annswer: TaskVariantType
+  ) => {
+    dispatch({
+      type: "SET_RESULT_FOR_TASK",
+      payload: {
+        level,
+        taskNumber,
+        answer: {
+          annswerId: annswer.id,
+          result: annswer.result,
+          isCorrect: task.result === annswer.result,
+        },
+      },
+    });
+  };
 
   return (
     <ThemedView
@@ -57,9 +54,19 @@ export default function GameScreen() {
         justifyContent: "center",
       }}
     >
-      {MATH_TASK.map((task) => {
+      {state.mathTasks.map((task, i) => {
         if (task.taskType === "mathTaskWithResult") {
-          return <MathTaskWithResult level={level} task={task} />;
+          return (
+            <MathTaskWithResult
+              key={i}
+              task={task}
+              level={level}
+              annswers={annswers}
+              handlePress={(annswer) => {
+                setAnnswer(taskNumber, task, annswer);
+              }}
+            />
+          );
         }
       })}
     </ThemedView>

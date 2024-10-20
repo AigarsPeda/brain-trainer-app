@@ -37,19 +37,23 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(home)" options={{ headerShown: false }} />
           <Stack.Screen
-            name="gameScreen"
-            options={{
-              headerShown: true,
-              title: "Game Screen",
-              headerBackTitle: "Atpakaļ",
-              headerBackground: () => (
-                <View
-                  style={{
-                    backgroundColor: "tomato",
-                    flex: 1,
-                  }}
-                />
-              ),
+            name="GameScreen"
+            options={(opt) => {
+              const { level } = opt.route.params as { level: string };
+              return {
+                headerShown: true,
+                title: level ?? "Spēle",
+                headerBackTitle: "Atpakaļ",
+                headerTintColor: colorScheme === "dark" ? "white" : "black",
+                headerBackground: () => (
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: "#D81E5B",
+                    }}
+                  />
+                ),
+              };
             }}
           />
 

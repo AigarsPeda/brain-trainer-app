@@ -1,6 +1,11 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Dimensions, StyleSheet } from "react-native";
+import {
+  MathTaskType,
+  TaskAnnswerType,
+  TaskVariantType,
+} from "@/context/app.context.reducer";
+import { Dimensions, Pressable, StyleSheet } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -12,27 +17,30 @@ const childWidth = (WIDOW_WIDTH_WITH_MARGIN - TOTAL_GAP_SIZE) / ITEM_PER_ROW;
 
 interface MathTaskWithResultProps {
   level: string;
-  task: {
-    result: number;
-    taskType: string;
-    tasks: {
-      task: string;
-      result: number;
-      correckt: boolean;
-    }[];
-  };
+  task: MathTaskType;
+  annswers: TaskAnnswerType[];
+  handlePress: (variant: TaskVariantType) => void;
 }
 
 export default function MathTaskWithResult({
-  level,
   task,
+  level,
+  annswers,
+  handlePress,
 }: MathTaskWithResultProps) {
+  const getAnnswersOfTask = (
+    annswer: TaskAnnswerType[] | undefined,
+    task: MathTaskType
+  ) => {
+    const foudTask = annswer?.find((r) => r.annswerId === task.id);
+    return foudTask;
+  };
+
   return (
     <ThemedView
       style={{
         height: "100%",
         alignItems: "center",
-        // justifyContent: "center",
       }}
     >
       <ThemedView
@@ -55,9 +63,13 @@ export default function MathTaskWithResult({
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.itemsWrap}>
-        {task.tasks.map((task) => {
+        {task.variants.map((variant, i) => {
+          const foundAnnswer = getAnnswersOfTask(annswers, task);
+          console.log("foundAnnswer", foundAnnswer);
+
           return (
-            <ThemedView
+            <Pressable
+              key={`${variant.id}-${i}`}
               style={[
                 styles.singleItem,
                 {
@@ -70,20 +82,20 @@ export default function MathTaskWithResult({
                   paddingHorizontal: 16,
                   marginVertical: GAP / 2,
                   justifyContent: "center",
-
+                  borderColor: foundAnnswer?.isCorrect ? "#00ff00" : "#ff0000",
                   // borderColor: task.correckt ? "#00ff00" : "#ff0000",
                 },
               ]}
+              onPress={() => handlePress(variant)}
             >
               <ThemedText
                 style={{
                   fontSize: 24,
                 }}
               >
-                {task.task}
-                {/* {task.correckt ? "Correct" : "Incorrect"} */}
+                {variant.equation}
               </ThemedText>
-            </ThemedView>
+            </Pressable>
           );
         })}
       </ThemedView>
