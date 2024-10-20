@@ -1,5 +1,6 @@
 import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
+import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import type { TaskInfoType } from "@/data/common";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import createArray from "@/util/createArray";
@@ -31,7 +32,7 @@ type ListItemProps = {
 
 const ListItem: FC<ListItemProps> = memo(
   ({ item, bgColor, skewAngle, position, viewableItems, handleClick }) => {
-    const color = useThemeColor({}, "cardBgColor");
+    // const color = useThemeColor({}, "cardBgColor");
 
     const theme = useColorScheme() ?? "light";
 
@@ -66,7 +67,7 @@ const ListItem: FC<ListItemProps> = memo(
 
     const getBgColor = (index: number) => {
       return {
-        bgColor: color[index % color.length],
+        bgColor: GAME_CARD_COLORS_LIGHT[index % GAME_CARD_COLORS_LIGHT.length],
       };
     };
 

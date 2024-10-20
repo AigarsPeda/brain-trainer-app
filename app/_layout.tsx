@@ -9,6 +9,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { View } from "react-native";
 import "react-native-reanimated";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -38,10 +39,17 @@ export default function RootLayout() {
           <Stack.Screen
             name="gameScreen"
             options={{
-              title: "Game Screen",
               headerShown: true,
-              // headerTitleStyle: { fontFamily: "SpaceMono" },
-              headerBackTitle: "Back",
+              title: "Game Screen",
+              headerBackTitle: "Atpakaļ",
+              headerBackground: () => (
+                <View
+                  style={{
+                    backgroundColor: "tomato",
+                    flex: 1,
+                  }}
+                />
+              ),
             }}
           />
 

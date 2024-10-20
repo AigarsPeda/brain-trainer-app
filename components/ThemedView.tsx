@@ -18,5 +18,11 @@ export function ThemedView({
     "background"
   );
 
+  if (Array.isArray(backgroundColor)) {
+    throw new Error(
+      "ThemedView does not support array background colors. Use ThemedLinearGradient instead."
+    );
+  }
+
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }

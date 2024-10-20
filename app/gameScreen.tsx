@@ -51,19 +51,17 @@ export default function GameScreen() {
   console.log("local", typeof level, level);
 
   return (
-    <SafeAreaView>
-      <ThemedView
-        style={{
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {MATH_TASK.map((task) => {
-          if (task.taskType === "mathTaskWithResult") {
-            return <MathTaskWithResult level={level} task={task} />;
-          }
-        })}
-      </ThemedView>
-    </SafeAreaView>
+    <ThemedView
+      style={{
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {MATH_TASK.map((task) => {
+        if (task.taskType === "mathTaskWithResult") {
+          return <MathTaskWithResult level={level} task={task} />;
+        }
+      })}
+    </ThemedView>
   );
 }

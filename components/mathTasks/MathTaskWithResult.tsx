@@ -23,22 +23,17 @@ export default function MathTaskWithResult({
       style={{
         justifyContent: "center",
         alignItems: "center",
+        height: "100%",
       }}
     >
-      <ThemedText
+      {/* <ThemedText
         style={{
           fontSize: 20,
         }}
       >
         "Math Task With Result" {level}
-      </ThemedText>
-      <ThemedText
-        style={{
-          fontSize: 20,
-        }}
-      >
-        {task.result}
-      </ThemedText>
+      </ThemedText> */}
+      <ThemedText type="title">{task.result}</ThemedText>
       {task.tasks.map((task) => {
         return (
           <ThemedText
