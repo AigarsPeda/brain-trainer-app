@@ -78,8 +78,8 @@ export default function MathTaskWithResult({
       >
         <ThemedText
           style={{
-            fontSize: 42,
-            lineHeight: 42,
+            fontSize: 52,
+            lineHeight: 52,
           }}
         >
           {task.result}
@@ -97,8 +97,8 @@ export default function MathTaskWithResult({
                 {
                   display: "flex",
                   borderRadius: 8,
-                  borderWidth: 1.5,
-                  paddingVertical: 32,
+                  borderWidth: 2.5,
+                  paddingVertical: 42,
                   borderStyle: "solid",
                   alignItems: "center",
                   paddingHorizontal: 16,
