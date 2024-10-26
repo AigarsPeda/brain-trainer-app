@@ -11,6 +11,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -20,6 +21,8 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  const backgroundColor = useThemeColor({}, "background");
 
   useEffect(() => {
     if (loaded) {
@@ -46,14 +49,14 @@ export default function RootLayout() {
                 title: "",
                 headerBackTitle: "Atpakaļ",
                 headerTintColor: colorScheme === "dark" ? "white" : "black",
-                // headerBackground: () => (
-                //   <View
-                //     style={{
-                //       flex: 1,
-                //       backgroundColor: "#D81E5B",
-                //     }}
-                //   />
-                // ),
+                headerBackground: () => (
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor,
+                    }}
+                  />
+                ),
               };
             }}
           />

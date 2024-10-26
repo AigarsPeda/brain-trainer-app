@@ -62,12 +62,33 @@ export default function MathTaskWithResult({
   return (
     <ThemedView
       style={{
+        paddingVertical: 16,
         alignItems: "center",
+        paddingHorizontal: 16,
       }}
     >
       <ThemedView
         style={{
-          paddingTop: 30,
+          width: "100%",
+          display: "flex",
+          flexDirection: "row",
+          gap: 6,
+        }}
+      >
+        <ThemedText>Izvēlies</ThemedText>
+        <ThemedText
+          style={{
+            color: "#D81E5B",
+            fontSize: 20,
+          }}
+        >
+          visas
+        </ThemedText>
+        <ThemedText>pareizās atbildes</ThemedText>
+      </ThemedView>
+      <ThemedView
+        style={{
+          paddingTop: 20,
           display: "flex",
           paddingBottom: 10,
           marginVertical: GAP,
@@ -76,6 +97,7 @@ export default function MathTaskWithResult({
         }}
       >
         <ThemedText
+          type="subtitle"
           style={{
             fontSize: 60,
             lineHeight: 60,
@@ -97,7 +119,7 @@ export default function MathTaskWithResult({
                   borderWidth: 3,
                   display: "flex",
                   borderRadius: 16,
-                  paddingVertical: 42,
+                  // paddingVertical: 60,
                   borderStyle: "solid",
                   alignItems: "center",
                   paddingHorizontal: 16,
@@ -136,5 +158,6 @@ const styles = StyleSheet.create({
     marginHorizontal: GAP / 2,
     minWidth: childWidth,
     maxWidth: childWidth,
+    height: childWidth / 1.5,
   },
 });
