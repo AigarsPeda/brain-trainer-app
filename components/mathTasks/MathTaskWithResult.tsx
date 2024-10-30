@@ -5,6 +5,7 @@ import type {
   TaskAnnswerType,
   TaskVariantType,
 } from "@/context/app.context.reducer";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { Dimensions, Pressable, StyleSheet } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -30,6 +31,7 @@ export default function MathTaskWithResult({
   handlePress,
   isLevelChecked,
 }: MathTaskWithResultProps) {
+  const theme = useThemeColor();
   const getAnnswersOfTask = (
     annswers: TaskAnnswerType[] | undefined,
     variant: TaskVariantType
@@ -45,18 +47,18 @@ export default function MathTaskWithResult({
     const foundAnnswer = getAnnswersOfTask(annswers, variant);
 
     if (!foundAnnswer) {
-      return "#6b7280";
+      return theme.notAnsweredBorder;
     }
 
     if (!foundAnnswer.isCorrect && !isLevelChecked) {
-      return "#42F2F7";
+      return theme.clickedAnswer;
     }
 
     if (!foundAnnswer.isCorrect && isLevelChecked) {
-      return "#D81E5B";
+      return theme.incorrectAnswer;
     }
 
-    return "#09E85E";
+    return theme.correctAnswer;
   };
 
   return (

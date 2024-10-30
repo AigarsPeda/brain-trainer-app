@@ -7,12 +7,12 @@ const tintColorDark = "#fff";
 const tintColorLight = "#4338ca";
 
 const GAME_CARD_COLORS_DARK = ["#D81E5B", "#9D69A3", "#C6D8D3", "#FDF0D5"];
-export const GAME_CARD_COLORS_LIGHT = ["#D81E5B", "#9D69A3", "#C6D8D3", "#FDF0D5"];
-
-
-
-
-
+export const GAME_CARD_COLORS_LIGHT = [
+  "#D81E5B",
+  "#9D69A3",
+  "#C6D8D3",
+  "#FDF0D5",
+];
 
 export const Colors = {
   light: {
@@ -22,7 +22,10 @@ export const Colors = {
     tint: tintColorLight,
     tabIconDefault: "#687076",
     tabIconSelected: tintColorLight,
-
+    notAnsweredBorder: "#d1d5db",
+    incorrectAnswer: "#D81E5B",
+    clickedAnswer: "#374151",
+    correctAnswer: "#09E85E",
   },
   dark: {
     icon: "#9BA1A6",
@@ -31,5 +34,9 @@ export const Colors = {
     tint: tintColorDark,
     tabIconDefault: "#9BA1A6",
     tabIconSelected: tintColorDark,
+    notAnsweredBorder: "#d1d5db",
+    incorrectAnswer: "#D81E5B",
+    clickedAnswer: "#374151",
+    correctAnswer: "#09E85E",
   },
 };
