@@ -92,7 +92,7 @@ export default function GameScreen() {
           style={{
             padding: 16,
             display: "flex",
-            borderRadius: 16,
+            borderRadius: 10,
             marginBottom: 36,
             alignItems: "center",
             justifyContent: "center",
@@ -106,6 +106,8 @@ export default function GameScreen() {
           <ThemedText
             style={{
               color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
+              fontSize: 20,
+              fontWeight: "bold",
             }}
           >
             Pārbaudīt

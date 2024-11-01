@@ -120,8 +120,7 @@ export default function MathTaskWithResult({
                 {
                   borderWidth: 3,
                   display: "flex",
-                  borderRadius: 16,
-                  // paddingVertical: 60,
+                  borderRadius: 10,
                   borderStyle: "solid",
                   alignItems: "center",
                   paddingHorizontal: 16,
