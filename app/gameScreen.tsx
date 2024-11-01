@@ -2,8 +2,8 @@ import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type {
-  MathTaskType,
-  TaskVariantType,
+  MultiAnswerMathTaskType,
+  TaskOptionType,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams } from "expo-router";
@@ -31,22 +31,16 @@ export default function GameScreen() {
   }>();
 
   const levelObj = state.resultsObj?.[level];
-  const isAtLeastOneTaskAnswered = levelObj?.[taskNumber]?.length > 0;
+  const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
 
-  const setAnnswer = (
-    taskNumber: number,
-    task: MathTaskType,
-    annswer: TaskVariantType
-  ) => {
+  const setAnnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
       type: "SET_RESULT_FOR_TASK",
       payload: {
         level,
-        taskNumber,
         answer: {
-          annswerId: annswer.id,
-          result: annswer.result,
-          isCorrect: task.result === annswer.result,
+          optionId,
+          isCorrect,
         },
       },
     });
@@ -62,17 +56,17 @@ export default function GameScreen() {
       }}
     >
       <ThemedView>
-        {state.mathTasks.map((task, i) => {
+        {state.multiAnswerMathTasks.map((task, i) => {
           if (task.taskType === "mathTaskWithResult") {
             return (
               <MathTaskWithResult
                 key={i}
                 task={task}
                 level={level}
-                annswers={levelObj?.[taskNumber]}
-                isLevelChecked={levelObj?.isLevelChecked}
-                handlePress={(annswer) => {
-                  setAnnswer(taskNumber, task, annswer);
+                annswers={levelObj?.answers}
+                isLevelChecked={false}
+                handlePress={(optionId, isCorrect) => {
+                  setAnnswer(optionId, isCorrect);
                 }}
               />
             );

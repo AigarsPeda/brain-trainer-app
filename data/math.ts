@@ -1,12 +1,12 @@
-import type { MathTaskType } from "@/context/app.context.reducer";
+import type { MultiAnswerMathTaskType } from "@/context/app.context.reducer";
 
-export const MATH_TASK: MathTaskType[] = [
+export const MULTI_ANSWER_MATH_TASK: MultiAnswerMathTaskType[] = [
   {
     id: 1,
     taskType: "mathTaskWithResult",
     result: 8,
     correctAnswer: 2,
-    variants: [
+    options: [
       {
         id: 1,
         equation: "4 + 4",

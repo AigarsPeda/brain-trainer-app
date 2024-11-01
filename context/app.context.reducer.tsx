@@ -1,40 +1,41 @@
 import type { TaskInfoType } from "@/data/common";
-import { AVAILABLE_LEVEL_COUNT, MATH_TASK } from "@/data/math";
+import { AVAILABLE_LEVEL_COUNT, MULTI_ANSWER_MATH_TASK } from "@/data/math";
 import { createContext } from "react";
 
 export type MathTypeType = "mathTaskWithResult";
 
-export type TaskVariantType = {
+export type TaskOptionType = {
   id: number;
   result: number;
   equation: string;
   isCorrect: boolean;
 };
 
-export type MathTaskType = {
+// Level -> Multiple tasks -> One task -> Multiple answers
+
+export type MultiAnswerMathTaskType = {
   id: number;
   result: number;
   correctAnswer: number;
   taskType: MathTypeType;
-  variants: TaskVariantType[];
+  options: TaskOptionType[];
 };
 
-export type TaskAnnswerType = {
-  result: number;
-  annswerId: number;
+export type TaskAnswerType = {
+  optionId: number;
   isCorrect: boolean;
 };
 
 type AppContextStateType = {
   name: string;
   taskInfos: TaskInfoType[];
-  mathTasks: MathTaskType[];
+  multiAnswerMathTasks: MultiAnswerMathTaskType[];
   resultsObj: {
     [level: string]: {
       isLevelLocked: boolean;
       isLevelChecked: boolean;
       isLevelCompleted: boolean;
-      [taskNumber: number]: TaskAnnswerType[];
+      answers: TaskAnswerType[];
     };
   };
 };
@@ -51,7 +52,7 @@ export type AppContextType = {
 export const initialState: AppContextStateType = {
   name: "Aigars",
   resultsObj: {},
-  mathTasks: MATH_TASK,
+  multiAnswerMathTasks: MULTI_ANSWER_MATH_TASK,
   taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({
     id: index + 1,
     title: `Task ${index + 1}`,
@@ -75,8 +76,10 @@ interface SetResultForTaskActionType {
   type: "SET_RESULT_FOR_TASK";
   payload: {
     level: string;
-    taskNumber: number;
-    answer: TaskAnnswerType;
+    answer: {
+      optionId: number;
+      isCorrect: boolean;
+    };
   };
 }
 
@@ -89,31 +92,20 @@ export const appReducer = (
       return { ...state, name: action.payload };
 
     case "SET_RESULT_FOR_TASK":
-      console.log("action.payload", action.payload);
-      console.log("state.resultsObj", state.resultsObj);
+      const answers = state.resultsObj[action.payload.level]?.answers || [];
 
-      const levelResults =
-        state.resultsObj?.[action.payload.level]?.[action.payload.taskNumber] ??
-        [];
-      console.log("levelResults", levelResults);
-
-      const indexOfTask = levelResults.findIndex(
-        (r) => r?.annswerId === action.payload.answer.annswerId
-      );
-
-      if (indexOfTask !== -1) {
-        levelResults.splice(indexOfTask, 1);
-      } else {
-        levelResults.push(action.payload.answer);
-      }
+      answers.push({
+        optionId: action.payload.answer.optionId,
+        isCorrect: action.payload.answer.isCorrect,
+      });
 
       return {
         ...state,
         resultsObj: {
           ...state.resultsObj,
           [action.payload.level]: {
-            ...state.resultsObj[action.payload.taskNumber],
-            [action.payload.taskNumber]: levelResults,
+            ...state.resultsObj[action.payload.level],
+            answers,
           },
         },
       };

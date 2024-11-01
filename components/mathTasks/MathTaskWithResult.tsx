@@ -1,9 +1,9 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type {
-  MathTaskType,
-  TaskAnnswerType,
-  TaskVariantType,
+  MultiAnswerMathTaskType,
+  TaskAnswerType,
+  TaskOptionType,
 } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Dimensions, Pressable, StyleSheet } from "react-native";
@@ -18,10 +18,10 @@ const childWidth = (WIDOW_WIDTH_WITH_MARGIN - TOTAL_GAP_SIZE) / ITEM_PER_ROW;
 
 interface MathTaskWithResultProps {
   level: string;
-  task: MathTaskType;
   isLevelChecked: boolean;
-  annswers: TaskAnnswerType[];
-  handlePress: (variant: TaskVariantType) => void;
+  annswers: TaskAnswerType[];
+  task: MultiAnswerMathTaskType;
+  handlePress: (optionId: number, isCorrect: boolean) => void;
 }
 
 export default function MathTaskWithResult({
@@ -32,19 +32,20 @@ export default function MathTaskWithResult({
   isLevelChecked,
 }: MathTaskWithResultProps) {
   const theme = useThemeColor();
+
   const getAnnswersOfTask = (
-    annswers: TaskAnnswerType[] | undefined,
-    variant: TaskVariantType
+    annswers: TaskAnswerType[] | undefined,
+    option: TaskOptionType
   ) => {
-    const foudTask = annswers?.find((r) => r.annswerId === variant.id);
+    const foudTask = annswers?.find((r) => r.optionId === option.id);
     return foudTask;
   };
 
   const getBorderColor = (
-    annswers: TaskAnnswerType[] | undefined,
-    variant: TaskVariantType
+    annswers: TaskAnswerType[] | undefined,
+    option: TaskOptionType
   ) => {
-    const foundAnnswer = getAnnswersOfTask(annswers, variant);
+    const foundAnnswer = getAnnswersOfTask(annswers, option);
 
     if (!foundAnnswer) {
       return theme.notAnsweredBorder;
@@ -109,12 +110,12 @@ export default function MathTaskWithResult({
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.itemsWrap}>
-        {task.variants.map((variant, i) => {
-          const borderColor = getBorderColor(annswers, variant);
+        {task.options.map((option, i) => {
+          const borderColor = getBorderColor(annswers, option);
 
           return (
             <Pressable
-              key={`${variant.id}-${i}`}
+              key={`${option.id}-${i}`}
               style={[
                 styles.singleItem,
                 {
@@ -129,14 +130,14 @@ export default function MathTaskWithResult({
                   borderColor: borderColor,
                 },
               ]}
-              onPress={() => handlePress(variant)}
+              onPress={() => handlePress(option.id, option.isCorrect)}
             >
               <ThemedText
                 style={{
                   fontSize: 24,
                 }}
               >
-                {variant.equation}
+                {option.equation}
               </ThemedText>
             </Pressable>
           );
