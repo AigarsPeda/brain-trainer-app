@@ -92,25 +92,33 @@ export const appReducer = (
       return { ...state, name: action.payload };
 
     case "SET_RESULT_FOR_TASK":
-      const answers = state.resultsObj[action.payload.level]?.answers || [];
+      const { level, answer } = action.payload;
+      const currentLevelResults = state.resultsObj[level] || { answers: [] };
 
-      answers.push({
-        optionId: action.payload.answer.optionId,
-        isCorrect: action.payload.answer.isCorrect,
-      });
+      const updatedAnswers = currentLevelResults.answers.some(
+        (r) => r.optionId === answer.optionId
+      )
+        ? currentLevelResults.answers.filter(
+            (r) => r.optionId !== answer.optionId
+          )
+        : [
+            ...currentLevelResults.answers,
+            { optionId: answer.optionId, isCorrect: answer.isCorrect },
+          ];
 
       return {
         ...state,
         resultsObj: {
           ...state.resultsObj,
-          [action.payload.level]: {
-            ...state.resultsObj[action.payload.level],
-            answers,
+          [level]: {
+            ...currentLevelResults,
+            answers: updatedAnswers,
           },
         },
       };
 
     default:
+      console.log("ACTION NOT FOUND", action);
       return state;
   }
 };

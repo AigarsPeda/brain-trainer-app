@@ -24,7 +24,7 @@ const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 
 export default function GameScreen() {
   // const router = useRouter();
-  const taskNumber = 0;
+  // const taskNumber = 0;
   const { state, dispatch } = useAppContext();
   const { level } = useLocalSearchParams<{
     level: string;
