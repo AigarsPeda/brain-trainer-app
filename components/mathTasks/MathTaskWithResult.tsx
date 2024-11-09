@@ -6,7 +6,7 @@ import type {
   TaskOptionType,
 } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Dimensions, Pressable, StyleSheet } from "react-native";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -119,7 +119,7 @@ export default function MathTaskWithResult({
               style={[
                 styles.singleItem,
                 {
-                  borderWidth: 3,
+                  borderWidth: 3.5,
                   display: "flex",
                   borderRadius: 10,
                   borderStyle: "solid",
@@ -128,6 +128,7 @@ export default function MathTaskWithResult({
                   marginVertical: GAP / 2,
                   justifyContent: "center",
                   borderColor: borderColor,
+                  position: "relative",
                 },
               ]}
               onPress={() => handlePress(option.id, option.isCorrect)}

@@ -121,7 +121,7 @@ const ListItem: FC<ListItemProps> = memo(
               <ThemedText
                 style={{
                   fontSize: 20,
-                  color: theme === "light" ? "#1C274C" : "#1C274C",
+                  fontWeight: "bold",
                 }}
               >
                 {item?.id}

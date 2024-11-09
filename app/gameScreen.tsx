@@ -1,4 +1,5 @@
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
+import Progressbar from "@/components/Progressbar";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type {
@@ -23,8 +24,6 @@ const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 // });
 
 export default function GameScreen() {
-  // const router = useRouter();
-  // const taskNumber = 0;
   const { state, dispatch } = useAppContext();
   const { level } = useLocalSearchParams<{
     level: string;
@@ -49,64 +48,75 @@ export default function GameScreen() {
   return (
     <ThemedView
       style={{
-        flex: 1,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
+        paddingTop: 10,
       }}
     >
-      <ThemedView>
-        {state.multiAnswerMathTasks.map((task, i) => {
-          if (task.taskType === "mathTaskWithResult") {
-            return (
-              <MathTaskWithResult
-                key={i}
-                task={task}
-                level={level}
-                annswers={levelObj?.answers}
-                isLevelChecked={false}
-                handlePress={(optionId, isCorrect) => {
-                  setAnnswer(optionId, isCorrect);
-                }}
-              />
-            );
-          }
-        })}
-      </ThemedView>
+      <Progressbar currentLevelStep={0} />
       <ThemedView
         style={{
           display: "flex",
-          marginBottom: 26,
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "space-between",
+          paddingTop: 10,
+          height: "100%",
         }}
       >
-        <Pressable
-          disabled={!isAtLeastOneTaskAnswered}
+        <ThemedView>
+          {state.multiAnswerMathTasks.map((task, i) => {
+            if (task.taskType === "mathTaskWithResult") {
+              return (
+                <MathTaskWithResult
+                  key={i}
+                  task={task}
+                  level={level}
+                  annswers={levelObj?.answers}
+                  isLevelChecked={false}
+                  handlePress={(optionId, isCorrect) => {
+                    setAnnswer(optionId, isCorrect);
+                  }}
+                />
+              );
+            }
+          })}
+        </ThemedView>
+        <ThemedView
           style={{
-            padding: 16,
             display: "flex",
-            borderRadius: 10,
-            marginBottom: 36,
+            marginBottom: 26,
             alignItems: "center",
             justifyContent: "center",
-            width: WIDOW_WIDTH_WITH_MARGIN,
-            backgroundColor: !isAtLeastOneTaskAnswered ? "#ccc" : "#D81E5B",
-          }}
-          onPress={() => {
-            console.log("Back to home");
           }}
         >
-          <ThemedText
+          <Pressable
+            disabled={!isAtLeastOneTaskAnswered}
             style={{
-              color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
-              fontSize: 20,
-              fontWeight: "bold",
+              padding: 16,
+              display: "flex",
+              borderRadius: 10,
+              marginBottom: 36,
+              alignItems: "center",
+              justifyContent: "center",
+              width: WIDOW_WIDTH_WITH_MARGIN,
+              backgroundColor: !isAtLeastOneTaskAnswered ? "#ccc" : "#D81E5B",
+            }}
+            onPress={() => {
+              console.log("Back to home");
             }}
           >
-            Pārbaudīt
-          </ThemedText>
-        </Pressable>
+            <ThemedText
+              style={{
+                color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
+                fontSize: 20,
+                // fontWeight: "bold",
+              }}
+            >
+              Pārbaudīt
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
       </ThemedView>
     </ThemedView>
   );
