@@ -7,6 +7,7 @@ import type {
 } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Dimensions, Pressable, StyleSheet, View } from "react-native";
+import { ScaleButton } from "../ScaleButton";
 
 const { width } = Dimensions.get("window");
 
@@ -51,15 +52,19 @@ export default function MathTaskWithResult({
       return theme.notAnsweredBorder;
     }
 
+    if (foundAnnswer.isCorrect && !isLevelChecked) {
+      return theme.clickedAnswer;
+    }
+
     if (!foundAnnswer.isCorrect && !isLevelChecked) {
       return theme.clickedAnswer;
     }
 
-    if (!foundAnnswer.isCorrect && isLevelChecked) {
-      return theme.incorrectAnswer;
+    if (foundAnnswer.isCorrect && isLevelChecked) {
+      return theme.correctAnswer;
     }
 
-    return theme.correctAnswer;
+    return theme.incorrectAnswer;
   };
 
   return (
@@ -82,7 +87,7 @@ export default function MathTaskWithResult({
         <ThemedText
           style={{
             color: "#D81E5B",
-            fontSize: 20,
+            fontSize: 17,
           }}
         >
           visas
@@ -114,7 +119,7 @@ export default function MathTaskWithResult({
           const borderColor = getBorderColor(annswers, option);
 
           return (
-            <Pressable
+            <ScaleButton
               key={`${option.id}-${i}`}
               style={[
                 styles.singleItem,
@@ -124,7 +129,6 @@ export default function MathTaskWithResult({
                   borderRadius: 10,
                   borderStyle: "solid",
                   alignItems: "center",
-                  paddingHorizontal: 16,
                   marginVertical: GAP / 2,
                   justifyContent: "center",
                   borderColor: borderColor,
@@ -140,7 +144,7 @@ export default function MathTaskWithResult({
               >
                 {option.equation}
               </ThemedText>
-            </Pressable>
+            </ScaleButton>
           );
         })}
       </ThemedView>

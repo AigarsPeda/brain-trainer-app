@@ -2,10 +2,9 @@ import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import type { TaskInfoType } from "@/data/common";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import createArray from "@/util/createArray";
 import * as Haptics from "expo-haptics";
-import { type FC, memo, useRef } from "react";
+import { type FC, memo } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -32,8 +31,6 @@ type ListItemProps = {
 
 const ListItem: FC<ListItemProps> = memo(
   ({ item, bgColor, skewAngle, position, viewableItems, handleClick }) => {
-    // const color = useThemeColor({}, "cardBgColor");
-
     const theme = useColorScheme() ?? "light";
 
     const rStyle = useAnimatedStyle(() => {
@@ -104,7 +101,7 @@ const ListItem: FC<ListItemProps> = memo(
           >
             <Pressable
               onPressIn={() => {
-                scale.value = 0.85;
+                scale.value = 0.9;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               }}
               onPressOut={() => {

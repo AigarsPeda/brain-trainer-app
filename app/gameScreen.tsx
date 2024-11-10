@@ -1,5 +1,6 @@
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import Progressbar from "@/components/Progressbar";
+import { ScaleButton } from "@/components/ScaleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type {
@@ -90,9 +91,10 @@ export default function GameScreen() {
             justifyContent: "center",
           }}
         >
-          <Pressable
+          <ScaleButton
             disabled={!isAtLeastOneTaskAnswered}
             style={{
+              height: 60,
               padding: 16,
               display: "flex",
               borderRadius: 10,
@@ -108,14 +110,13 @@ export default function GameScreen() {
           >
             <ThemedText
               style={{
-                color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
                 fontSize: 20,
-                // fontWeight: "bold",
+                color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
               }}
             >
               Pārbaudīt
             </ThemedText>
-          </Pressable>
+          </ScaleButton>
         </ThemedView>
       </ThemedView>
     </ThemedView>
