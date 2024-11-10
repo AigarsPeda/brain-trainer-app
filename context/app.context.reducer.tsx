@@ -47,6 +47,7 @@ type AppContextStateType = {
 
 export type AppContextActionType =
   | SetNameActionType
+  | CreateNextLevelActionType
   | SetResultForTaskActionType
   | SetIsCheckedForTaskActionType;
 
@@ -98,6 +99,13 @@ interface SetIsCheckedForTaskActionType {
   };
 }
 
+interface CreateNextLevelActionType {
+  type: "CREATE_NEXT_LEVEL";
+  payload: {
+    level: string;
+  };
+}
+
 export const appReducer = (
   state: AppContextStateType,
   action: AppContextActionType
@@ -121,14 +129,8 @@ export const appReducer = (
             {
               optionId: answer.optionId,
               isCorrect: answer.isCorrect,
-              // isChecked: false,
             },
           ];
-
-      const updatedTask = {
-        ...currentTask,
-        answers: updatedAnswers,
-      };
 
       return {
         ...state,
@@ -167,6 +169,28 @@ export const appReducer = (
             tasks: {
               ...state.resultsObj[level]?.tasks,
               [taskId]: updatedTask,
+            },
+          },
+        },
+      };
+    }
+
+    case "CREATE_NEXT_LEVEL": {
+      const { level } = action.payload;
+      const taskId = Object.keys(state.resultsObj[level]?.tasks || {}).length;
+
+      return {
+        ...state,
+        resultsObj: {
+          ...state.resultsObj,
+          [level]: {
+            ...state.resultsObj[level],
+            tasks: {
+              ...state.resultsObj[level]?.tasks,
+              [taskId]: {
+                isTaskChecked: false,
+                answers: [],
+              },
             },
           },
         },

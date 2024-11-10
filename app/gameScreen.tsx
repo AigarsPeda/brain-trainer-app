@@ -30,6 +30,7 @@ export default function GameScreen() {
   const levelTasksArray = Object.values(levelTasks || {});
   const taskId = levelTasksArray.length;
   const levelObj = state.resultsObj?.[level]?.tasks[taskId];
+  const isTaskChecked = levelObj?.isTaskChecked;
 
   const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
 
@@ -75,7 +76,7 @@ export default function GameScreen() {
                   task={task}
                   level={level}
                   annswers={levelObj?.answers}
-                  isLevelChecked={levelObj?.isTaskChecked}
+                  isLevelChecked={isTaskChecked}
                   handlePress={(optionId, isCorrect, taskId) => {
                     setAnnswer(optionId, isCorrect, taskId);
                   }}
@@ -121,7 +122,7 @@ export default function GameScreen() {
                 color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
               }}
             >
-              Pārbaudīt
+              {isTaskChecked ? "Nākamais uzdevums" : "Pārbaudīt"}
             </ThemedText>
           </ScaleButton>
         </ThemedView>
