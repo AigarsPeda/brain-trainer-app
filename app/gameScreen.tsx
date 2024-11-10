@@ -3,13 +3,9 @@ import Progressbar from "@/components/Progressbar";
 import { ScaleButton } from "@/components/ScaleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import type {
-  MultiAnswerMathTaskType,
-  TaskOptionType,
-} from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams } from "expo-router";
-import { Dimensions, Pressable } from "react-native";
+import { Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 const WIDOW_WIDTH_WITH_MARGIN = width - 32;
@@ -30,14 +26,19 @@ export default function GameScreen() {
     level: string;
   }>();
 
-  const levelObj = state.resultsObj?.[level];
+  const levelTasks = state.resultsObj?.[level]?.tasks;
+  const levelTasksArray = Object.values(levelTasks || {});
+  const taskId = levelTasksArray.length;
+  const levelObj = state.resultsObj?.[level]?.tasks[taskId];
+
   const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
 
-  const setAnnswer = (optionId: number, isCorrect: boolean) => {
+  const setAnnswer = (optionId: number, isCorrect: boolean, taskId: number) => {
     dispatch({
       type: "SET_RESULT_FOR_TASK",
       payload: {
         level,
+        taskId,
         answer: {
           optionId,
           isCorrect,
@@ -58,11 +59,11 @@ export default function GameScreen() {
       <Progressbar currentLevelStep={0} />
       <ThemedView
         style={{
+          paddingTop: 10,
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingTop: 10,
-          height: "100%",
         }}
       >
         <ThemedView>
@@ -74,9 +75,9 @@ export default function GameScreen() {
                   task={task}
                   level={level}
                   annswers={levelObj?.answers}
-                  isLevelChecked={false}
-                  handlePress={(optionId, isCorrect) => {
-                    setAnnswer(optionId, isCorrect);
+                  isLevelChecked={levelObj?.isTaskChecked}
+                  handlePress={(optionId, isCorrect, taskId) => {
+                    setAnnswer(optionId, isCorrect, taskId);
                   }}
                 />
               );
@@ -105,7 +106,13 @@ export default function GameScreen() {
               backgroundColor: !isAtLeastOneTaskAnswered ? "#ccc" : "#D81E5B",
             }}
             onPress={() => {
-              console.log("Back to home");
+              dispatch({
+                type: "SET_IS_CHECKED_FOR_TASK",
+                payload: {
+                  level,
+                  taskId,
+                },
+              });
             }}
           >
             <ThemedText

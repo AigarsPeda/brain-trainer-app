@@ -30,19 +30,25 @@ type AppContextStateType = {
   name: string;
   taskInfos: TaskInfoType[];
   multiAnswerMathTasks: MultiAnswerMathTaskType[];
+
   resultsObj: {
     [level: string]: {
       isLevelLocked: boolean;
-      isLevelChecked: boolean;
       isLevelCompleted: boolean;
-      answers: TaskAnswerType[];
+      tasks: {
+        [taskId: number]: {
+          isTaskChecked: boolean;
+          answers: TaskAnswerType[];
+        };
+      };
     };
   };
 };
 
 export type AppContextActionType =
   | SetNameActionType
-  | SetResultForTaskActionType;
+  | SetResultForTaskActionType
+  | SetIsCheckedForTaskActionType;
 
 export type AppContextType = {
   state: AppContextStateType;
@@ -76,10 +82,19 @@ interface SetResultForTaskActionType {
   type: "SET_RESULT_FOR_TASK";
   payload: {
     level: string;
+    taskId: number;
     answer: {
       optionId: number;
       isCorrect: boolean;
     };
+  };
+}
+
+interface SetIsCheckedForTaskActionType {
+  type: "SET_IS_CHECKED_FOR_TASK";
+  payload: {
+    level: string;
+    taskId: number;
   };
 }
 
@@ -91,34 +106,76 @@ export const appReducer = (
     case "SET_NAME":
       return { ...state, name: action.payload };
 
-    case "SET_RESULT_FOR_TASK":
-      const { level, answer } = action.payload;
-      const currentLevelResults = state.resultsObj[level] || { answers: [] };
+    case "SET_RESULT_FOR_TASK": {
+      const { level, answer, taskId } = action.payload;
 
-      const updatedAnswers = currentLevelResults.answers.some(
+      const currentTask = state.resultsObj[level]?.tasks[taskId] || {};
+      const currentTaskAnswers = currentTask.answers || [];
+
+      const updatedAnswers = currentTaskAnswers.some(
         (r) => r.optionId === answer.optionId
       )
-        ? currentLevelResults.answers.filter(
-            (r) => r.optionId !== answer.optionId
-          )
+        ? currentTaskAnswers.filter((r) => r.optionId !== answer.optionId)
         : [
-            ...currentLevelResults.answers,
-            { optionId: answer.optionId, isCorrect: answer.isCorrect },
+            ...currentTaskAnswers,
+            {
+              optionId: answer.optionId,
+              isCorrect: answer.isCorrect,
+              // isChecked: false,
+            },
           ];
+
+      const updatedTask = {
+        ...currentTask,
+        answers: updatedAnswers,
+      };
 
       return {
         ...state,
         resultsObj: {
           ...state.resultsObj,
           [level]: {
-            ...currentLevelResults,
-            answers: updatedAnswers,
+            ...state.resultsObj[level],
+            tasks: {
+              ...state.resultsObj[level]?.tasks,
+              [taskId]: {
+                ...state.resultsObj[level]?.tasks[taskId],
+                answers: updatedAnswers,
+              },
+            },
           },
         },
       };
+    }
 
-    default:
+    case "SET_IS_CHECKED_FOR_TASK": {
+      const { level, taskId } = action.payload;
+
+      const currentTask = state.resultsObj[level]?.tasks[taskId] || {};
+
+      const updatedTask = {
+        ...currentTask,
+        isTaskChecked: true,
+      };
+
+      return {
+        ...state,
+        resultsObj: {
+          ...state.resultsObj,
+          [level]: {
+            ...state.resultsObj[level],
+            tasks: {
+              ...state.resultsObj[level]?.tasks,
+              [taskId]: updatedTask,
+            },
+          },
+        },
+      };
+    }
+
+    default: {
       console.log("ACTION NOT FOUND", action);
       return state;
+    }
   }
 };
