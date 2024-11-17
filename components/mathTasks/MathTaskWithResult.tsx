@@ -22,7 +22,7 @@ interface MathTaskWithResultProps {
   isLevelChecked: boolean;
   annswers: TaskAnswerType[];
   task: MultiAnswerMathTaskType;
-  handlePress: (optionId: number, isCorrect: boolean, taskId: number) => void;
+  handlePress: (optionId: number, isCorrect: boolean) => void;
 }
 
 export default function MathTaskWithResult({
@@ -135,7 +135,7 @@ export default function MathTaskWithResult({
                   position: "relative",
                 },
               ]}
-              onPress={() => handlePress(option.id, option.isCorrect, task.id)}
+              onPress={() => handlePress(option.id, option.isCorrect)}
             >
               <ThemedText
                 style={{

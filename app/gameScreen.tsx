@@ -26,20 +26,18 @@ export default function GameScreen() {
     level: string;
   }>();
 
-  const levelTasks = state.resultsObj?.[level]?.tasks;
-  const levelTasksArray = Object.values(levelTasks || {});
-  const taskId = levelTasksArray.length;
-  const levelObj = state.resultsObj?.[level]?.tasks[taskId];
-  const isTaskChecked = levelObj?.isTaskChecked;
+  console.log("level", level);
 
+  const currentTaskInLevel = state.currentTaskInLevel;
+  const levelObj = state.resultsObj?.[level]?.tasks[currentTaskInLevel];
+  const isTaskChecked = levelObj?.isTaskChecked;
   const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
 
-  const setAnnswer = (optionId: number, isCorrect: boolean, taskId: number) => {
+  const setAnnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
       type: "SET_RESULT_FOR_TASK",
       payload: {
         level,
-        taskId,
         answer: {
           optionId,
           isCorrect,
@@ -68,7 +66,7 @@ export default function GameScreen() {
         }}
       >
         <ThemedView>
-          {state.multiAnswerMathTasks.map((task, i) => {
+          {state.allTasks.map((task, i) => {
             if (task.taskType === "mathTaskWithResult") {
               return (
                 <MathTaskWithResult
@@ -77,8 +75,8 @@ export default function GameScreen() {
                   level={level}
                   annswers={levelObj?.answers}
                   isLevelChecked={isTaskChecked}
-                  handlePress={(optionId, isCorrect, taskId) => {
-                    setAnnswer(optionId, isCorrect, taskId);
+                  handlePress={(optionId, isCorrect) => {
+                    setAnnswer(optionId, isCorrect);
                   }}
                 />
               );
@@ -111,7 +109,7 @@ export default function GameScreen() {
                 type: "SET_IS_CHECKED_FOR_TASK",
                 payload: {
                   level,
-                  taskId,
+                  currentTaskNumber: currentTaskInLevel,
                 },
               });
             }}

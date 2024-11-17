@@ -42,7 +42,7 @@ export default function RootLayout() {
           <Stack.Screen
             name="GameScreen"
             options={(opt) => {
-              const { level } = opt.route.params as { level: string };
+              // const { level } = opt.route.params as { level: string };
               return {
                 headerShown: true,
                 // title: level ?? "Spēle",

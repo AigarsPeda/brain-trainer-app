@@ -29,14 +29,15 @@ export type TaskAnswerType = {
 type AppContextStateType = {
   name: string;
   taskInfos: TaskInfoType[];
-  multiAnswerMathTasks: MultiAnswerMathTaskType[];
-
+  allTasks: MultiAnswerMathTaskType[];
+  currentLevel: number;
+  currentTaskInLevel: number;
   resultsObj: {
     [level: string]: {
       isLevelLocked: boolean;
       isLevelCompleted: boolean;
       tasks: {
-        [taskId: number]: {
+        [taskNumber: number]: {
           isTaskChecked: boolean;
           answers: TaskAnswerType[];
         };
@@ -59,7 +60,9 @@ export type AppContextType = {
 export const initialState: AppContextStateType = {
   name: "Aigars",
   resultsObj: {},
-  multiAnswerMathTasks: MULTI_ANSWER_MATH_TASK,
+  currentLevel: 1,
+  currentTaskInLevel: 0,
+  allTasks: MULTI_ANSWER_MATH_TASK,
   taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({
     id: index + 1,
     title: `Task ${index + 1}`,
@@ -83,7 +86,6 @@ interface SetResultForTaskActionType {
   type: "SET_RESULT_FOR_TASK";
   payload: {
     level: string;
-    taskId: number;
     answer: {
       optionId: number;
       isCorrect: boolean;
@@ -95,7 +97,7 @@ interface SetIsCheckedForTaskActionType {
   type: "SET_IS_CHECKED_FOR_TASK";
   payload: {
     level: string;
-    taskId: number;
+    currentTaskNumber: number;
   };
 }
 
@@ -115,22 +117,16 @@ export const appReducer = (
       return { ...state, name: action.payload };
 
     case "SET_RESULT_FOR_TASK": {
-      const { level, answer, taskId } = action.payload;
+      const { level, answer } = action.payload;
 
-      const currentTask = state.resultsObj[level]?.tasks[taskId] || {};
-      const currentTaskAnswers = currentTask.answers || [];
+      const levelTasks = state.resultsObj[level]?.tasks || {};
+      const currentTask = levelTasks[state.currentTaskInLevel] || {};
 
-      const updatedAnswers = currentTaskAnswers.some(
+      const updatedAnswers = currentTask?.answers?.some(
         (r) => r.optionId === answer.optionId
       )
-        ? currentTaskAnswers.filter((r) => r.optionId !== answer.optionId)
-        : [
-            ...currentTaskAnswers,
-            {
-              optionId: answer.optionId,
-              isCorrect: answer.isCorrect,
-            },
-          ];
+        ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
+        : [...(currentTask.answers || []), answer];
 
       return {
         ...state,
@@ -140,8 +136,8 @@ export const appReducer = (
             ...state.resultsObj[level],
             tasks: {
               ...state.resultsObj[level]?.tasks,
-              [taskId]: {
-                ...state.resultsObj[level]?.tasks[taskId],
+              [state.currentTaskInLevel]: {
+                ...state.resultsObj[level]?.tasks[state.currentTaskInLevel],
                 answers: updatedAnswers,
               },
             },
@@ -151,9 +147,10 @@ export const appReducer = (
     }
 
     case "SET_IS_CHECKED_FOR_TASK": {
-      const { level, taskId } = action.payload;
+      const { level, currentTaskNumber } = action.payload;
 
-      const currentTask = state.resultsObj[level]?.tasks[taskId] || {};
+      const currentTask =
+        state.resultsObj[level]?.tasks[currentTaskNumber] || {};
 
       const updatedTask = {
         ...currentTask,
@@ -168,7 +165,7 @@ export const appReducer = (
             ...state.resultsObj[level],
             tasks: {
               ...state.resultsObj[level]?.tasks,
-              [taskId]: updatedTask,
+              [currentTaskNumber]: updatedTask,
             },
           },
         },
@@ -177,17 +174,18 @@ export const appReducer = (
 
     case "CREATE_NEXT_LEVEL": {
       const { level } = action.payload;
-      const taskId = Object.keys(state.resultsObj[level]?.tasks || {}).length;
+      const nextLevelNumber = state.currentTaskInLevel + 1;
 
       return {
         ...state,
+        currentTaskInLevel: nextLevelNumber,
         resultsObj: {
           ...state.resultsObj,
           [level]: {
             ...state.resultsObj[level],
             tasks: {
               ...state.resultsObj[level]?.tasks,
-              [taskId]: {
+              [nextLevelNumber]: {
                 isTaskChecked: false,
                 answers: [],
               },
