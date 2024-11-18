@@ -49,17 +49,17 @@ export default function GameScreen() {
   return (
     <ThemedView
       style={{
+        paddingTop: 10,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingTop: 10,
       }}
     >
       <Progressbar currentLevelStep={0} />
       <ThemedView
         style={{
           paddingTop: 10,
-          height: "100%",
+          height: "90%",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",

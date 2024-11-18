@@ -1,13 +1,13 @@
+import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
-import { Button, Pressable, StyleSheet, ViewToken } from "react-native";
+import { Pressable, StyleSheet, ViewToken } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
-import { ThemedText } from "./ThemedText";
-import * as Haptics from "expo-haptics";
 import { TaskInfoType } from "../data/common";
+import { ThemedText } from "./ThemedText";
 
 type LastListItemProps = {
   bgColor?: string;

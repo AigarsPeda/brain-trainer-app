@@ -32,6 +32,7 @@ type ListItemProps = {
 const ListItem: FC<ListItemProps> = memo(
   ({ item, bgColor, skewAngle, position, viewableItems, handleClick }) => {
     const theme = useColorScheme() ?? "light";
+    const scale = useSharedValue(1);
 
     const rStyle = useAnimatedStyle(() => {
       const isVisible = Boolean(
@@ -48,16 +49,13 @@ const ListItem: FC<ListItemProps> = memo(
           },
         ],
       };
-    }, [viewableItems.value, item.id]);
+    });
 
-    const scale = useSharedValue(1);
-
-    // Apply skewAngle only when scrolling
     const pressableStyle = useAnimatedStyle(() => {
       return {
         transform: [
           { scale: withSpring(scale.value) },
-          { skewX: `${skewAngle}deg` }, // Skew only during scrolling
+          { skewX: `${skewAngle}deg` },
         ],
       };
     });
@@ -133,19 +131,17 @@ const ListItem: FC<ListItemProps> = memo(
                 justifyContent: "center",
               }}
             >
-              {createArray(item.stars).map((_, index) => {
-                return (
-                  <StarIcon
-                    key={index}
-                    fill={theme === "light" ? "#1C274C" : "#e8ae4a"}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      marginHorizontal: 2,
-                    }}
-                  />
-                );
-              })}
+              {createArray(item.stars).map((_, index) => (
+                <StarIcon
+                  key={index}
+                  fill={theme === "light" ? "#1C274C" : "#e8ae4a"}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    marginHorizontal: 2,
+                  }}
+                />
+              ))}
             </View>
           </View>
         </Animated.View>
@@ -173,18 +169,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    // Adjusting shadow properties to make it more visible
     shadowOffset: {
       width: 4,
-      height: 10, // Increase the vertical shadow offset
+      height: 10,
     },
-    shadowOpacity: 0.5, // Increased opacity to make the shadow darker and more visible
-    shadowRadius: 8, // Increased blur radius for a softer but more noticeable shadow
-    elevation: 7, // Increased elevation for Android to enhance shadow visibility
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 7,
   },
 });
 
 export default ListItem;
-function useEffect(arg0: () => void, arg1: number[]) {
-  throw new Error("Function not implemented.");
-}
