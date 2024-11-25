@@ -61,7 +61,7 @@ export type AppContextType = {
 export const initialState: AppContextStateType = {
   name: "Aigars",
   resultsObj: {},
-  currentLevel: 1,
+  currentLevel: 0,
   currentTaskInLevel: 0,
   allTasks: MULTI_ANSWER_MATH_TASK,
   taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({

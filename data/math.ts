@@ -6,7 +6,7 @@ export const MULTI_ANSWER_MATH_TASK: MultiAnswerMathTaskType[] = [
     taskType: "mathTaskWithResult",
     result: 8,
     correctAnswer: 2,
-    level: 1,
+    level: 0,
     options: [
       {
         id: 1,
@@ -39,7 +39,7 @@ export const MULTI_ANSWER_MATH_TASK: MultiAnswerMathTaskType[] = [
     taskType: "mathTaskWithResult",
     result: 3,
     correctAnswer: 2,
-    level: 1,
+    level: 0,
     options: [
       {
         id: 1,

@@ -46,9 +46,10 @@ export default function HomeScreen() {
         paddingTop={0}
         paddingBottom={150}
         data={state.taskInfos}
-        renderItem={({ item, index, viewableItems }) =>
-          renderItem({ item, index, viewableItems })
-        }
+        renderItem={({ item, index, viewableItems }) => {
+          const isDisabled = index > state.currentLevel;
+          return renderItem({ item, index, viewableItems, isDisabled });
+        }}
       />
     </ThemedView>
   );
@@ -57,10 +58,12 @@ export default function HomeScreen() {
 const renderItem = ({
   item,
   index,
+  isDisabled,
   viewableItems,
 }: {
   index: number;
   item: TaskInfoType;
+  isDisabled: boolean;
   viewableItems: SharedValue<ViewToken[]>;
 }) => {
   const isPositive = index % 6 <= 3;
@@ -73,10 +76,11 @@ const renderItem = ({
     <ListItem
       item={item}
       position={number}
+      isDisabled={isDisabled}
       skewAngle={number === 3 ? 0 : skewAngle}
       viewableItems={viewableItems}
       handleClick={() => {
-        router.push({ pathname: "/GameScreen", params: { level: item.id } });
+        router.push({ pathname: "/GameScreen", params: { level: index } });
       }}
     />
   );

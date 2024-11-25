@@ -25,12 +25,21 @@ type ListItemProps = {
   position: number;
   skewAngle: number;
   item: TaskInfoType;
+  isDisabled: boolean;
   handleClick: () => void;
   viewableItems: SharedValue<ViewToken[]>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, bgColor, skewAngle, position, viewableItems, handleClick }) => {
+  ({
+    item,
+    bgColor,
+    skewAngle,
+    position,
+    isDisabled,
+    viewableItems,
+    handleClick,
+  }) => {
     const theme = useColorScheme() ?? "light";
     const scale = useSharedValue(1);
 
@@ -60,13 +69,19 @@ const ListItem: FC<ListItemProps> = memo(
       };
     });
 
-    const getBgColor = (index: number) => {
+    const getBgColor = (index: number, isDisabled: boolean) => {
+      if (isDisabled) {
+        return {
+          bgColor: "gray",
+        };
+      }
+
       return {
         bgColor: GAME_CARD_COLORS_LIGHT[index % GAME_CARD_COLORS_LIGHT.length],
       };
     };
 
-    const backgroundColor = bgColor ?? getBgColor(item.id).bgColor;
+    const backgroundColor = bgColor ?? getBgColor(item.id, isDisabled).bgColor;
 
     return (
       <Animated.View
