@@ -32,6 +32,9 @@ export default function GameScreen() {
   const levelObj = state.resultsObj?.[level]?.tasks[currentTaskInLevel];
   const isTaskChecked = levelObj?.isTaskChecked;
   const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
+  const levelTasks = state.allTasks.filter(
+    (task) => task.level === Number(level)
+  );
 
   const setAnnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
@@ -46,6 +49,14 @@ export default function GameScreen() {
     });
   };
 
+  if (!levelTasks || levelTasks.length === 0) {
+    return (
+      <ThemedView>
+        <ThemedText>Nav uzdevumu</ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView
       style={{
@@ -55,7 +66,7 @@ export default function GameScreen() {
         justifyContent: "space-between",
       }}
     >
-      <Progressbar currentLevelStep={0} />
+      <Progressbar currentLevelStep={currentTaskInLevel} />
       <ThemedView
         style={{
           paddingTop: 10,
@@ -66,8 +77,11 @@ export default function GameScreen() {
         }}
       >
         <ThemedView>
-          {state.allTasks.map((task, i) => {
-            if (task.taskType === "mathTaskWithResult") {
+          {levelTasks.map((task, i) => {
+            if (
+              i === currentTaskInLevel &&
+              task.taskType === "mathTaskWithResult"
+            ) {
               return (
                 <MathTaskWithResult
                   key={i}

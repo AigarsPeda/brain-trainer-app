@@ -15,6 +15,7 @@ export type TaskOptionType = {
 
 export type MultiAnswerMathTaskType = {
   id: number;
+  level: number;
   result: number;
   correctAnswer: number;
   taskType: MathTypeType;
@@ -34,8 +35,8 @@ type AppContextStateType = {
   currentTaskInLevel: number;
   resultsObj: {
     [level: string]: {
-      isLevelLocked: boolean;
-      isLevelCompleted: boolean;
+      // isLevelLocked: boolean; // All levels are larger than level is locked
+      // isLevelCompleted: boolean;
       tasks: {
         [taskNumber: number]: {
           isTaskChecked: boolean;
