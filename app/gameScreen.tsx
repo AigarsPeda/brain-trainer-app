@@ -3,6 +3,7 @@ import Progressbar from "@/components/Progressbar";
 import { ScaleButton } from "@/components/ScaleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { ALL_TASKS } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams } from "expo-router";
 import { Dimensions } from "react-native";
@@ -26,15 +27,11 @@ export default function GameScreen() {
     level: string;
   }>();
 
-  console.log("level", level);
-
   const currentTaskInLevel = state.currentTaskInLevel;
   const levelObj = state.resultsObj?.[level]?.tasks[currentTaskInLevel];
   const isTaskChecked = levelObj?.isTaskChecked;
   const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
-  const levelTasks = state.allTasks.filter(
-    (task) => task.level === Number(level)
-  );
+  const levelTasks = ALL_TASKS[level];
 
   const setAnnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
@@ -120,7 +117,7 @@ export default function GameScreen() {
             }}
             onPress={() => {
               dispatch({
-                type: "SET_IS_CHECKED_FOR_TASK",
+                type: "CHECK_ANSWERS",
                 payload: {
                   level,
                   currentTaskNumber: currentTaskInLevel,

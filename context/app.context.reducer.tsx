@@ -1,5 +1,5 @@
 import type { TaskInfoType } from "@/data/common";
-import { AVAILABLE_LEVEL_COUNT, MULTI_ANSWER_MATH_TASK } from "@/data/math";
+import { FIRST_LEVEL } from "@/data/math";
 import { createContext } from "react";
 
 export type MathTypeType = "mathTaskWithResult";
@@ -30,7 +30,7 @@ export type TaskAnswerType = {
 type AppContextStateType = {
   name: string;
   taskInfos: TaskInfoType[];
-  allTasks: MultiAnswerMathTaskType[];
+  // allTasks: MultiAnswerMathTaskType[];
   currentLevel: number;
   currentTaskInLevel: number;
   resultsObj: {
@@ -58,17 +58,26 @@ export type AppContextType = {
   dispatch: React.Dispatch<AppContextActionType>;
 };
 
+export const ALL_TASKS: {
+  [level: string]: MultiAnswerMathTaskType[];
+} = {
+  0: FIRST_LEVEL,
+};
+
 export const initialState: AppContextStateType = {
   name: "Aigars",
   resultsObj: {},
   currentLevel: 0,
   currentTaskInLevel: 0,
-  allTasks: MULTI_ANSWER_MATH_TASK,
-  taskInfos: Array.from({ length: AVAILABLE_LEVEL_COUNT }, (_, index) => ({
-    id: index + 1,
-    title: `Task ${index + 1}`,
-    stars: 5,
-  })),
+  // allTasks: FIRST_LEVEL,
+  taskInfos: Array.from(
+    { length: Object.keys(ALL_TASKS).length },
+    (_, index) => ({
+      id: index + 1,
+      title: `Task ${index + 1}`,
+      stars: 5,
+    })
+  ),
 };
 
 export const initialContext: AppContextType = {
@@ -95,7 +104,7 @@ interface SetResultForTaskActionType {
 }
 
 interface SetIsCheckedForTaskActionType {
-  type: "SET_IS_CHECKED_FOR_TASK";
+  type: "CHECK_ANSWERS";
   payload: {
     level: string;
     currentTaskNumber: number;
@@ -147,7 +156,7 @@ export const appReducer = (
       };
     }
 
-    case "SET_IS_CHECKED_FOR_TASK": {
+    case "CHECK_ANSWERS": {
       const { level, currentTaskNumber } = action.payload;
 
       const currentTask =

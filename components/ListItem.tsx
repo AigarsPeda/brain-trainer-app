@@ -40,7 +40,7 @@ const ListItem: FC<ListItemProps> = memo(
     viewableItems,
     handleClick,
   }) => {
-    const theme = useColorScheme() ?? "light";
+    const theme = useColorScheme();
     const scale = useSharedValue(1);
 
     const rStyle = useAnimatedStyle(() => {
