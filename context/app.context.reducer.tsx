@@ -33,6 +33,7 @@ type AppContextStateType = {
   name: string;
   currentLevel: number;
   results: ResultType[];
+  availableLevels: number;
   taskInfos: TaskInfoType[];
   currentTaskInLevel: number;
 };
@@ -71,6 +72,7 @@ export const initialState: AppContextStateType = {
   results: [],
   currentLevel: 1,
   currentTaskInLevel: 1,
+  availableLevels: Object.keys(ALL_TASKS).length,
   taskInfos: Array.from(
     { length: Object.keys(ALL_TASKS).length },
     (_, index) => ({

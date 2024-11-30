@@ -23,18 +23,21 @@ const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 // });
 
 export default function GameScreen() {
-  const { state, dispatch } = useAppContext();
+  const {
+    state: { results, availableLevels, currentTaskInLevel },
+    dispatch,
+  } = useAppContext();
   const { level } = useLocalSearchParams<{
     level: string;
   }>();
 
-  const currentTaskInLevel = state.currentTaskInLevel;
+  // const currentTaskInLevel = state.currentTaskInLevel;
 
   const levelTasks = ALL_TASKS[level];
   const currentTask = levelTasks?.find(
     (t) => t.taskNumberInLevel === currentTaskInLevel
   );
-  const levelAnnswer = state.results?.find((r) => r.level === level)?.tasks[
+  const levelAnnswer = results?.find((r) => r.level === level)?.tasks[
     currentTaskInLevel
   ];
 
@@ -137,6 +140,7 @@ export default function GameScreen() {
                     currentTaskNumber: currentTaskInLevel,
                   },
                 });
+
                 return;
               }
 
@@ -144,10 +148,16 @@ export default function GameScreen() {
                 dispatch({
                   type: "GET_NEXT_LEVEL",
                 });
+
+                const currentLevel = Number(level);
+                const nextLevel = currentLevel + 1;
+                const isLastAvailableLevel = availableLevels === currentLevel;
+
                 router.replace({
                   pathname: "/GameScreen",
-                  params: { level: Number(level) + 1 },
+                  params: { level: isLastAvailableLevel ? 1 : nextLevel },
                 });
+
                 return;
               }
 
