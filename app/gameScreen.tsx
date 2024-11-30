@@ -27,11 +27,15 @@ export default function GameScreen() {
     level: string;
   }>();
 
-  const currentTaskInLevel = state.currentTaskInLevel;
-  const levelObj = state.resultsObj?.[level]?.tasks[currentTaskInLevel];
-  const isTaskChecked = levelObj?.isTaskChecked;
-  const isAtLeastOneTaskAnswered = levelObj?.answers?.length > 0;
   const levelTasks = ALL_TASKS[level];
+  const currentTask = levelTasks?.[state.currentTaskInLevel];
+  const currentTaskInLevel = state.currentTaskInLevel;
+  const levelAnnswer = state.resultsObj?.[level]?.tasks[currentTaskInLevel];
+  const isTaskChecked = levelAnnswer?.isTaskChecked;
+  const isAtLeastOneTaskAnswered = levelAnnswer?.answers?.length > 0;
+
+  console.log("levelAnnswer", levelAnnswer);
+  // levelAnnswer {"answers": [{"isCorrect": true, "optionId": 1}, {"isCorrect": false, "optionId": 2}], "isTaskChecked": true}
 
   const setAnnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
@@ -74,25 +78,24 @@ export default function GameScreen() {
         }}
       >
         <ThemedView>
-          {levelTasks.map((task, i) => {
-            if (
-              i === currentTaskInLevel &&
-              task.taskType === "mathTaskWithResult"
-            ) {
-              return (
-                <MathTaskWithResult
-                  key={i}
-                  task={task}
-                  level={level}
-                  annswers={levelObj?.answers}
-                  isLevelChecked={isTaskChecked}
-                  handlePress={(optionId, isCorrect) => {
-                    setAnnswer(optionId, isCorrect);
-                  }}
-                />
-              );
+          {(() => {
+            switch (currentTask?.taskType) {
+              case "mathTaskWithResult":
+                return (
+                  <MathTaskWithResult
+                    level={level}
+                    task={currentTask}
+                    isLevelChecked={isTaskChecked}
+                    annswers={levelAnnswer?.answers}
+                    handlePress={(optionId, isCorrect) => {
+                      setAnnswer(optionId, isCorrect);
+                    }}
+                  />
+                );
+              default:
+                return null;
             }
-          })}
+          })()}
         </ThemedView>
         <ThemedView
           style={{

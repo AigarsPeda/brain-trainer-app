@@ -69,7 +69,6 @@ export const initialState: AppContextStateType = {
   resultsObj: {},
   currentLevel: 0,
   currentTaskInLevel: 0,
-  // allTasks: FIRST_LEVEL,
   taskInfos: Array.from(
     { length: Object.keys(ALL_TASKS).length },
     (_, index) => ({
