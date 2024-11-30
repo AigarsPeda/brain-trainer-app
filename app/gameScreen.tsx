@@ -56,6 +56,7 @@ export default function GameScreen() {
   };
 
   if (!levelTasks || levelTasks.length === 0) {
+    console.error("No tasks found for level", level);
     return (
       <ThemedView>
         <ThemedText>Nav uzdevumu</ThemedText>
