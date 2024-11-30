@@ -7,6 +7,7 @@ import { ALL_TASKS } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams } from "expo-router";
 import { Dimensions } from "react-native";
+import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const WIDOW_WIDTH_WITH_MARGIN = width - 32;
@@ -60,6 +61,8 @@ export default function GameScreen() {
       </ThemedView>
     );
   }
+
+  // router.push({ pathname: "/GameScreen", params: { level: index } });
 
   return (
     <ThemedView
@@ -121,12 +124,22 @@ export default function GameScreen() {
               backgroundColor: !isAtLeastOneTaskAnswered ? "#ccc" : "#D81E5B",
             }}
             onPress={() => {
+              if (!isTaskChecked) {
+                dispatch({
+                  type: "CHECK_ANSWERS",
+                  payload: {
+                    level,
+                    currentTaskNumber: currentTaskInLevel,
+                  },
+                });
+                return;
+              }
+
               dispatch({
-                type: "CHECK_ANSWERS",
-                payload: {
-                  level,
-                  currentTaskNumber: currentTaskInLevel,
-                },
+                type: "GET_NEXT_TASK_IN_LEVEL",
+                // payload: {
+                //   level,
+                // },
               });
             }}
           >

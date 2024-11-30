@@ -110,10 +110,7 @@ interface SetIsCheckedForTaskActionType {
 }
 
 interface CreateNextLevelActionType {
-  type: "GET_NEXT_LEVEL";
-  payload: {
-    level: string;
-  };
+  type: "GET_NEXT_TASK_IN_LEVEL";
 }
 
 export const appReducer = (
@@ -153,7 +150,7 @@ export const appReducer = (
         (r) => r.optionId === answer.optionId
       )
         ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
-        : [...(currentTask.answers || []), answer];
+        : [...(currentTask?.answers || []), answer];
 
       return {
         ...state,
@@ -172,32 +169,6 @@ export const appReducer = (
             : r
         ),
       };
-
-      // const levelTasks = state.resultsObj[level]?.tasks || {};
-      // const currentTask = levelTasks[state.currentTaskInLevel] || {};
-
-      // const updatedAnswers = currentTask?.answers?.some(
-      //   (r) => r.optionId === answer.optionId
-      // )
-      //   ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
-      //   : [...(currentTask.answers || []), answer];
-
-      // return {
-      //   ...state,
-      //   resultsObj: {
-      //     ...state.resultsObj,
-      //     [level]: {
-      //       ...state.resultsObj[level],
-      //       tasks: {
-      //         ...state.resultsObj[level]?.tasks,
-      //         [state.currentTaskInLevel]: {
-      //           ...state.resultsObj[level]?.tasks[state.currentTaskInLevel],
-      //           answers: updatedAnswers,
-      //         },
-      //       },
-      //     },
-      //   },
-      // };
     }
 
     case "CHECK_ANSWERS": {
@@ -227,8 +198,8 @@ export const appReducer = (
       };
     }
 
-    case "GET_NEXT_LEVEL": {
-      const { level } = action.payload;
+    case "GET_NEXT_TASK_IN_LEVEL": {
+      // const { level } = action.payload;
       const nextLevelNumber = state.currentTaskInLevel + 1;
 
       return {
@@ -237,7 +208,7 @@ export const appReducer = (
         results: [
           ...state.results,
           {
-            level,
+            level: state.currentLevel.toString(),
             tasks: {
               [nextLevelNumber]: {
                 isTaskChecked: false,
