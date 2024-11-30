@@ -27,15 +27,16 @@ export default function GameScreen() {
     level: string;
   }>();
 
-  const levelTasks = ALL_TASKS[level];
-  const currentTask = levelTasks?.[state.currentTaskInLevel];
   const currentTaskInLevel = state.currentTaskInLevel;
-  const levelAnnswer = state.resultsObj?.[level]?.tasks[currentTaskInLevel];
-  const isTaskChecked = levelAnnswer?.isTaskChecked;
-  const isAtLeastOneTaskAnswered = levelAnnswer?.answers?.length > 0;
 
-  console.log("levelAnnswer", levelAnnswer);
-  // levelAnnswer {"answers": [{"isCorrect": true, "optionId": 1}, {"isCorrect": false, "optionId": 2}], "isTaskChecked": true}
+  const levelTasks = ALL_TASKS[level];
+  const currentTask = levelTasks?.[currentTaskInLevel];
+  const levelAnnswer = state.results?.find((r) => r.level === level)?.tasks[
+    currentTaskInLevel
+  ];
+
+  const isTaskChecked = levelAnnswer?.isTaskChecked || false;
+  const isAtLeastOneTaskAnswered = (levelAnnswer?.answers?.length ?? 0) > 0;
 
   const setAnnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
@@ -83,10 +84,9 @@ export default function GameScreen() {
               case "mathTaskWithResult":
                 return (
                   <MathTaskWithResult
-                    level={level}
                     task={currentTask}
                     isLevelChecked={isTaskChecked}
-                    annswers={levelAnnswer?.answers}
+                    answers={levelAnnswer?.answers}
                     handlePress={(optionId, isCorrect) => {
                       setAnnswer(optionId, isCorrect);
                     }}

@@ -18,35 +18,33 @@ const TOTAL_GAP_SIZE = (ITEM_PER_ROW - 1) * GAP;
 const childWidth = (WIDOW_WIDTH_WITH_MARGIN - TOTAL_GAP_SIZE) / ITEM_PER_ROW;
 
 interface MathTaskWithResultProps {
-  level: string;
   isLevelChecked: boolean;
-  annswers: TaskAnswerType[];
+  answers: TaskAnswerType[] | undefined;
   task: MultiAnswerMathTaskType;
   handlePress: (optionId: number, isCorrect: boolean) => void;
 }
 
 export default function MathTaskWithResult({
   task,
-  level,
-  annswers,
+  answers,
   handlePress,
   isLevelChecked,
 }: MathTaskWithResultProps) {
   const theme = useThemeColor();
 
   const getAnnswersOfTask = (
-    annswers: TaskAnswerType[] | undefined,
+    answers: TaskAnswerType[] | undefined,
     option: TaskOptionType
   ) => {
-    const foudTask = annswers?.find((r) => r.optionId === option.id);
+    const foudTask = answers?.find((r) => r.optionId === option.id);
     return foudTask;
   };
 
   const getBorderColor = (
-    annswers: TaskAnswerType[] | undefined,
-    option: TaskOptionType
+    option: TaskOptionType,
+    answers: TaskAnswerType[] | undefined
   ) => {
-    const foundAnnswer = getAnnswersOfTask(annswers, option);
+    const foundAnnswer = getAnnswersOfTask(answers, option);
 
     if (!foundAnnswer) {
       return theme.notAnsweredBorder;
@@ -116,7 +114,7 @@ export default function MathTaskWithResult({
       </ThemedView>
       <ThemedView style={styles.itemsWrap}>
         {task.options.map((option, i) => {
-          const borderColor = getBorderColor(annswers, option);
+          const borderColor = getBorderColor(option, answers);
 
           return (
             <ScaleButton

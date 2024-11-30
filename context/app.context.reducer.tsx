@@ -29,22 +29,10 @@ export type TaskAnswerType = {
 
 type AppContextStateType = {
   name: string;
-  taskInfos: TaskInfoType[];
-  // allTasks: MultiAnswerMathTaskType[];
   currentLevel: number;
+  results: ResultType[];
+  taskInfos: TaskInfoType[];
   currentTaskInLevel: number;
-  resultsObj: {
-    [level: string]: {
-      // isLevelLocked: boolean; // All levels are larger than level is locked
-      // isLevelCompleted: boolean;
-      tasks: {
-        [taskNumber: number]: {
-          isTaskChecked: boolean;
-          answers: TaskAnswerType[];
-        };
-      };
-    };
-  };
 };
 
 export type AppContextActionType =
@@ -64,9 +52,36 @@ export const ALL_TASKS: {
   0: FIRST_LEVEL,
 };
 
+type ResultType = {
+  level: string;
+  tasks: {
+    [taskNumber: string]: {
+      isTaskChecked: boolean;
+      answers: TaskAnswerType[];
+    };
+  };
+};
+
+// const results = [{
+//   level: 0,
+//   tasks: {
+//     0: {
+//       isTaskChecked: true,
+//       answers: [
+//         { optionId: 1, isCorrect: true },
+//         { optionId: 2, isCorrect: false },
+//       ],
+//     },
+//     1: {
+//       isTaskChecked: false,
+//       answers: [],
+//     },
+//   },
+// }]
+
 export const initialState: AppContextStateType = {
   name: "Aigars",
-  resultsObj: {},
+  results: [],
   currentLevel: 0,
   currentTaskInLevel: 0,
   taskInfos: Array.from(
@@ -127,9 +142,28 @@ export const appReducer = (
 
     case "SET_RESULT_FOR_TASK": {
       const { level, answer } = action.payload;
+      const foundAnnswer = state.results.find((r) => r.level === level);
 
-      const levelTasks = state.resultsObj[level]?.tasks || {};
-      const currentTask = levelTasks[state.currentTaskInLevel] || {};
+      if (!foundAnnswer) {
+        return {
+          ...state,
+          results: [
+            ...state.results,
+            {
+              level,
+              tasks: {
+                [state.currentTaskInLevel]: {
+                  isTaskChecked: false,
+                  answers: [answer],
+                },
+              },
+            },
+          ],
+        };
+      }
+
+      const levelAnnswers = foundAnnswer.tasks;
+      const currentTask = levelAnnswers[state.currentTaskInLevel];
 
       const updatedAnswers = currentTask?.answers?.some(
         (r) => r.optionId === answer.optionId
@@ -139,27 +173,54 @@ export const appReducer = (
 
       return {
         ...state,
-        resultsObj: {
-          ...state.resultsObj,
-          [level]: {
-            ...state.resultsObj[level],
-            tasks: {
-              ...state.resultsObj[level]?.tasks,
-              [state.currentTaskInLevel]: {
-                ...state.resultsObj[level]?.tasks[state.currentTaskInLevel],
-                answers: updatedAnswers,
-              },
-            },
-          },
-        },
+        results: state.results.map((r) =>
+          r.level === level
+            ? {
+                ...r,
+                tasks: {
+                  ...r.tasks,
+                  [state.currentTaskInLevel]: {
+                    ...r.tasks[state.currentTaskInLevel],
+                    answers: updatedAnswers,
+                  },
+                },
+              }
+            : r
+        ),
       };
+
+      // const levelTasks = state.resultsObj[level]?.tasks || {};
+      // const currentTask = levelTasks[state.currentTaskInLevel] || {};
+
+      // const updatedAnswers = currentTask?.answers?.some(
+      //   (r) => r.optionId === answer.optionId
+      // )
+      //   ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
+      //   : [...(currentTask.answers || []), answer];
+
+      // return {
+      //   ...state,
+      //   resultsObj: {
+      //     ...state.resultsObj,
+      //     [level]: {
+      //       ...state.resultsObj[level],
+      //       tasks: {
+      //         ...state.resultsObj[level]?.tasks,
+      //         [state.currentTaskInLevel]: {
+      //           ...state.resultsObj[level]?.tasks[state.currentTaskInLevel],
+      //           answers: updatedAnswers,
+      //         },
+      //       },
+      //     },
+      //   },
+      // };
     }
 
     case "CHECK_ANSWERS": {
       const { level, currentTaskNumber } = action.payload;
-
-      const currentTask =
-        state.resultsObj[level]?.tasks[currentTaskNumber] || {};
+      const foundAnnswer = state.results.find((r) => r.level === level);
+      const levelAnnswers = foundAnnswer?.tasks || {};
+      const currentTask = levelAnnswers[currentTaskNumber] || {};
 
       const updatedTask = {
         ...currentTask,
@@ -168,40 +229,63 @@ export const appReducer = (
 
       return {
         ...state,
-        resultsObj: {
-          ...state.resultsObj,
-          [level]: {
-            ...state.resultsObj[level],
-            tasks: {
-              ...state.resultsObj[level]?.tasks,
-              [currentTaskNumber]: updatedTask,
-            },
-          },
-        },
+        results: state.results.map((r) =>
+          r.level === level
+            ? {
+                ...r,
+                tasks: {
+                  ...r.tasks,
+                  [currentTaskNumber]: updatedTask,
+                },
+              }
+            : r
+        ),
       };
+
+      // const currentTask =
+      //   state.resultsObj[level]?.tasks[currentTaskNumber] || {};
+
+      // const updatedTask = {
+      //   ...currentTask,
+      //   isTaskChecked: true,
+      // };
+
+      // return {
+      //   ...state,
+      //   resultsObj: {
+      //     ...state.resultsObj,
+      //     [level]: {
+      //       ...state.resultsObj[level],
+      //       tasks: {
+      //         ...state.resultsObj[level]?.tasks,
+      //         [currentTaskNumber]: updatedTask,
+      //       },
+      //     },
+      //   },
+      // };
     }
 
     case "CREATE_NEXT_LEVEL": {
       const { level } = action.payload;
       const nextLevelNumber = state.currentTaskInLevel + 1;
 
-      return {
-        ...state,
-        currentTaskInLevel: nextLevelNumber,
-        resultsObj: {
-          ...state.resultsObj,
-          [level]: {
-            ...state.resultsObj[level],
-            tasks: {
-              ...state.resultsObj[level]?.tasks,
-              [nextLevelNumber]: {
-                isTaskChecked: false,
-                answers: [],
-              },
-            },
-          },
-        },
-      };
+      // return {
+      //   ...state,
+      //   currentTaskInLevel: nextLevelNumber,
+      //   resultsObj: {
+      //     ...state.resultsObj,
+      //     [level]: {
+      //       ...state.resultsObj[level],
+      //       tasks: {
+      //         ...state.resultsObj[level]?.tasks,
+      //         [nextLevelNumber]: {
+      //           isTaskChecked: false,
+      //           answers: [],
+      //         },
+      //       },
+      //     },
+      //   },
+      // };
     }
 
     default: {
