@@ -1,4 +1,3 @@
-import { LEVEL_SETTINGS } from "@/hardcoded";
 import { useEffect, useRef, type FC } from "react";
 import { Animated, View } from "react-native";
 import { Dimensions } from "react-native";

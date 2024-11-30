@@ -38,6 +38,7 @@ export default function GameScreen() {
     currentTaskInLevel
   ];
 
+  const maxLevelStep = levelTasks?.length || 0;
   const isTaskChecked = levelAnnswer?.isTaskChecked || false;
   const isAtLeastOneTaskAnswered = (levelAnnswer?.answers?.length ?? 0) > 0;
 
@@ -74,7 +75,7 @@ export default function GameScreen() {
       }}
     >
       <Progressbar
-        maxLevelStep={levelTasks.length}
+        maxLevelStep={maxLevelStep}
         currentLevelStep={currentTaskInLevel}
       />
       <ThemedView
@@ -138,7 +139,15 @@ export default function GameScreen() {
                 return;
               }
 
-              // TODO: If all tasks are checked, navigate to the next level
+              console.log("maxLevelStep", maxLevelStep);
+              console.log("currentTaskInLevel", currentTaskInLevel);
+
+              if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
+                // TODO: If all tasks are checked, navigate to the next level
+                alert("Paldies par spēli!");
+                return;
+              }
+
               dispatch({
                 type: "GET_NEXT_TASK_IN_LEVEL",
               });
