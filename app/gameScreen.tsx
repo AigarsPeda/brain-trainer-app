@@ -140,9 +140,6 @@ export default function GameScreen() {
                 return;
               }
 
-              console.log("maxLevelStep", maxLevelStep);
-              console.log("currentTaskInLevel", currentTaskInLevel);
-
               if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
                 dispatch({
                   type: "GET_NEXT_LEVEL",
