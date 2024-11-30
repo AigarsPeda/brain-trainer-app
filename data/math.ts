@@ -79,6 +79,7 @@ export const FIRST_LEVEL: MultiAnswerMathTaskType[] = [
     result: 8,
     correctAnswer: 2,
     level: 0,
+    taskNumberInLevel: 0,
     options: [
       {
         id: 1,
@@ -112,6 +113,7 @@ export const FIRST_LEVEL: MultiAnswerMathTaskType[] = [
     result: 3,
     correctAnswer: 2,
     level: 0,
+    taskNumberInLevel: 1,
     options: [
       {
         id: 1,

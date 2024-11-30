@@ -19,6 +19,7 @@ export type MultiAnswerMathTaskType = {
   result: number;
   correctAnswer: number;
   taskType: MathTypeType;
+  taskNumberInLevel: number;
   options: TaskOptionType[];
 };
 
@@ -61,23 +62,6 @@ type ResultType = {
     };
   };
 };
-
-// const results = [{
-//   level: 0,
-//   tasks: {
-//     0: {
-//       isTaskChecked: true,
-//       answers: [
-//         { optionId: 1, isCorrect: true },
-//         { optionId: 2, isCorrect: false },
-//       ],
-//     },
-//     1: {
-//       isTaskChecked: false,
-//       answers: [],
-//     },
-//   },
-// }]
 
 export const initialState: AppContextStateType = {
   name: "Aigars",
@@ -126,7 +110,7 @@ interface SetIsCheckedForTaskActionType {
 }
 
 interface CreateNextLevelActionType {
-  type: "CREATE_NEXT_LEVEL";
+  type: "GET_NEXT_LEVEL";
   payload: {
     level: string;
   };
@@ -241,51 +225,28 @@ export const appReducer = (
             : r
         ),
       };
-
-      // const currentTask =
-      //   state.resultsObj[level]?.tasks[currentTaskNumber] || {};
-
-      // const updatedTask = {
-      //   ...currentTask,
-      //   isTaskChecked: true,
-      // };
-
-      // return {
-      //   ...state,
-      //   resultsObj: {
-      //     ...state.resultsObj,
-      //     [level]: {
-      //       ...state.resultsObj[level],
-      //       tasks: {
-      //         ...state.resultsObj[level]?.tasks,
-      //         [currentTaskNumber]: updatedTask,
-      //       },
-      //     },
-      //   },
-      // };
     }
 
-    case "CREATE_NEXT_LEVEL": {
+    case "GET_NEXT_LEVEL": {
       const { level } = action.payload;
       const nextLevelNumber = state.currentTaskInLevel + 1;
 
-      // return {
-      //   ...state,
-      //   currentTaskInLevel: nextLevelNumber,
-      //   resultsObj: {
-      //     ...state.resultsObj,
-      //     [level]: {
-      //       ...state.resultsObj[level],
-      //       tasks: {
-      //         ...state.resultsObj[level]?.tasks,
-      //         [nextLevelNumber]: {
-      //           isTaskChecked: false,
-      //           answers: [],
-      //         },
-      //       },
-      //     },
-      //   },
-      // };
+      return {
+        ...state,
+        currentTaskInLevel: nextLevelNumber,
+        results: [
+          ...state.results,
+          {
+            level,
+            tasks: {
+              [nextLevelNumber]: {
+                isTaskChecked: false,
+                answers: [],
+              },
+            },
+          },
+        ],
+      };
     }
 
     default: {

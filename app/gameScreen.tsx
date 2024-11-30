@@ -30,7 +30,9 @@ export default function GameScreen() {
   const currentTaskInLevel = state.currentTaskInLevel;
 
   const levelTasks = ALL_TASKS[level];
-  const currentTask = levelTasks?.[currentTaskInLevel];
+  const currentTask = levelTasks?.find(
+    (t) => t.taskNumberInLevel === currentTaskInLevel
+  );
   const levelAnnswer = state.results?.find((r) => r.level === level)?.tasks[
     currentTaskInLevel
   ];
