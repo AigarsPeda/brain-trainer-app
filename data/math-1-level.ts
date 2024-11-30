@@ -1,6 +1,6 @@
 import type { MultiAnswerMathTaskType } from "@/context/app.context.reducer";
 
-export const FIRST_LEVEL: MultiAnswerMathTaskType[] = [
+export const LEVEL_1: MultiAnswerMathTaskType[] = [
   {
     id: 1,
     taskType: "mathTaskWithResult",

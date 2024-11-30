@@ -144,8 +144,13 @@ export default function GameScreen() {
               console.log("currentTaskInLevel", currentTaskInLevel);
 
               if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
-                // TODO: If all tasks are checked, navigate to the next level
-                alert("Paldies par spēli!");
+                dispatch({
+                  type: "GET_NEXT_LEVEL",
+                });
+                router.replace({
+                  pathname: "/GameScreen",
+                  params: { level: Number(level) + 1 },
+                });
                 return;
               }
 

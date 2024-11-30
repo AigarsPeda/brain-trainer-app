@@ -1,5 +1,6 @@
 import type { TaskInfoType } from "@/data/common";
-import { FIRST_LEVEL } from "@/data/math";
+import { LEVEL_1 } from "@/data/math-1-level";
+import { LEVEL_2 } from "@/data/math-2-level";
 import { createContext } from "react";
 
 export type MathTypeType = "mathTaskWithResult";
@@ -37,6 +38,7 @@ type AppContextStateType = {
 };
 
 export type AppContextActionType =
+  | GetNextLevel
   | SetNameActionType
   | CreateNextLevelActionType
   | SetResultForTaskActionType
@@ -50,7 +52,8 @@ export type AppContextType = {
 export const ALL_TASKS: {
   [level: string]: MultiAnswerMathTaskType[];
 } = {
-  1: FIRST_LEVEL,
+  1: LEVEL_1,
+  2: LEVEL_2,
 };
 
 type ResultType = {
@@ -111,6 +114,10 @@ interface SetIsCheckedForTaskActionType {
 
 interface CreateNextLevelActionType {
   type: "GET_NEXT_TASK_IN_LEVEL";
+}
+
+interface GetNextLevel {
+  type: "GET_NEXT_LEVEL";
 }
 
 export const appReducer = (
@@ -217,6 +224,21 @@ export const appReducer = (
             },
           },
         ],
+      };
+    }
+
+    case "GET_NEXT_LEVEL": {
+      const nextLevel =
+        Object.keys(ALL_TASKS).findIndex(
+          (l) => l === state.currentLevel.toString()
+        ) + 1 || 0;
+
+      console.log("nextLevel", nextLevel);
+
+      return {
+        ...state,
+        currentLevel: nextLevel,
+        currentTaskInLevel: 1,
       };
     }
 
