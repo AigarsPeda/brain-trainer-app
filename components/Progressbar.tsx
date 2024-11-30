@@ -9,10 +9,14 @@ const WIDTH = width - 25;
 const INITIAL_PROGRESSBAR_WIDTH = WIDTH * 0.05; // 5% of total width
 
 interface ProgressbarProps {
+  maxLevelStep: number;
   currentLevelStep: number;
 }
 
-const Progressbar: FC<ProgressbarProps> = ({ currentLevelStep }) => {
+const Progressbar: FC<ProgressbarProps> = ({
+  maxLevelStep,
+  currentLevelStep,
+}) => {
   //   const { colors } = useColors();
   const progressBarWidth = useRef(
     new Animated.Value(INITIAL_PROGRESSBAR_WIDTH)
@@ -23,7 +27,7 @@ const Progressbar: FC<ProgressbarProps> = ({ currentLevelStep }) => {
       return;
     }
 
-    const newWidth = (WIDTH / LEVEL_SETTINGS.levelParts) * currentLevelStep;
+    const newWidth = (WIDTH / maxLevelStep) * currentLevelStep;
 
     // Animate to the new width
     Animated.timing(progressBarWidth, {

@@ -73,7 +73,10 @@ export default function GameScreen() {
         justifyContent: "space-between",
       }}
     >
-      <Progressbar currentLevelStep={currentTaskInLevel} />
+      <Progressbar
+        maxLevelStep={levelTasks.length}
+        currentLevelStep={currentTaskInLevel}
+      />
       <ThemedView
         style={{
           paddingTop: 10,
@@ -135,11 +138,9 @@ export default function GameScreen() {
                 return;
               }
 
+              // TODO: If all tasks are checked, navigate to the next level
               dispatch({
                 type: "GET_NEXT_TASK_IN_LEVEL",
-                // payload: {
-                //   level,
-                // },
               });
             }}
           >
