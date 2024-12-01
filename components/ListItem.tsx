@@ -2,6 +2,7 @@ import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
+import { SETTINGS } from "@/hardcoded";
 import createArray from "@/util/createArray";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
@@ -19,6 +20,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+
+const DARK_STAR_COLOR = "#e8ae4a";
+const LIGHT_STAR_COLOR = "#1C274C";
+const { STATS_PER_LEVEL } = SETTINGS;
 
 type ListItemProps = {
   bgColor?: string;
@@ -139,17 +144,25 @@ const ListItem: FC<ListItemProps> = memo(
                 justifyContent: "center",
               }}
             >
-              {createArray(item.stars).map((_, index) => (
-                <StarIcon
-                  key={index}
-                  fill={theme === "light" ? "#1C274C" : "#e8ae4a"}
-                  style={{
-                    width: 20,
-                    height: 20,
-                    marginHorizontal: 2,
-                  }}
-                />
-              ))}
+              {createArray(STATS_PER_LEVEL).map((_, index) => {
+                const color =
+                  theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR;
+
+                const isFilled = index < item.stars && item.stars > 0;
+
+                return (
+                  <StarIcon
+                    key={index}
+                    stroke={color}
+                    fill={isFilled ? color : "transparent"}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      marginHorizontal: 2,
+                    }}
+                  />
+                );
+              })}
             </View>
           </View>
         </Animated.View>

@@ -191,9 +191,9 @@ export const appReducer = (
 
     case "CHECK_ANSWERS": {
       const { level, currentTaskNumber } = action.payload;
-      const foundAnnswer = state.results.find((r) => r.level === level);
-      const levelAnnswers = foundAnnswer?.tasks || {};
-      const currentTask = levelAnnswers[currentTaskNumber] || {};
+      const foundAnswer = state.results.find((r) => r.level === level);
+      const levelAnswers = foundAnswer?.tasks || {};
+      const currentTask = levelAnswers[currentTaskNumber] || {};
 
       const updatedTask = {
         ...currentTask,
@@ -244,10 +244,27 @@ export const appReducer = (
           (l) => l === state.currentLevel.toString()
         ) + 1 || 0;
 
+      const updatedTaskInfos = state.taskInfos.map((t) =>
+        t.id === state.currentLevel
+          ? {
+              ...t,
+              stars: 3, // TODO: calculate stars
+              isLevelCompleted: true,
+            }
+          : t
+      );
+
+      // set next level to isLevelDisabled to false
+      updatedTaskInfos[nextLevel] = {
+        ...updatedTaskInfos[nextLevel],
+        isLevelDisabled: false,
+      };
+
       return {
         ...state,
         currentTaskInLevel: 1,
         currentLevel: nextLevel,
+        taskInfos: updatedTaskInfos,
       };
     }
 
