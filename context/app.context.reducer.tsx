@@ -3,6 +3,8 @@ import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { createContext } from "react";
 
+// Level -> Multiple tasks -> One task -> Multiple answers
+
 export type MathTypeType = "mathTaskWithResult";
 
 export type TaskOptionType = {
@@ -11,8 +13,6 @@ export type TaskOptionType = {
   equation: string;
   isCorrect: boolean;
 };
-
-// Level -> Multiple tasks -> One task -> Multiple answers
 
 export type MultiAnswerMathTaskType = {
   id: number;
@@ -34,6 +34,11 @@ type AppContextStateType = {
   currentLevel: number;
   results: ResultType[];
   availableLevels: number;
+  completedLevels: {
+    level: number;
+    stars: number;
+    isCompleted: boolean;
+  }[];
   taskInfos: TaskInfoType[];
   currentTaskInLevel: number;
 };
@@ -71,6 +76,7 @@ export const initialState: AppContextStateType = {
   name: "Aigars",
   results: [],
   currentLevel: 1,
+  completedLevels: [],
   currentTaskInLevel: 1,
   availableLevels: Object.keys(ALL_TASKS).length,
   taskInfos: Array.from(
@@ -235,12 +241,18 @@ export const appReducer = (
           (l) => l === state.currentLevel.toString()
         ) + 1 || 0;
 
-      console.log("nextLevel", nextLevel);
-
       return {
         ...state,
-        currentLevel: nextLevel,
         currentTaskInLevel: 1,
+        currentLevel: nextLevel,
+        completedLevels: [
+          ...state.completedLevels,
+          {
+            stars: 5,
+            isCompleted: true,
+            level: state.currentLevel,
+          },
+        ],
       };
     }
 

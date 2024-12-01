@@ -113,6 +113,7 @@ const ListItem: FC<ListItemProps> = memo(
             }}
           >
             <Pressable
+              disabled={isDisabled}
               onPressIn={() => {
                 scale.value = 0.9;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

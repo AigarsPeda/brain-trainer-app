@@ -14,6 +14,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
   const { state } = useAppContext();
   const { isRewarded, loaded, rewarded } = useGoogleAd();
+  // state.completedLevels.reduce((acc, level) => Math.max(acc, level), 0);
+
+  // find largest level number in state.completedLevels
+  const maxLevel = state.completedLevels.reduce(
+    (acc, level) => Math.max(acc, level.level),
+    0
+  );
+
+  console.log("maxLevel", maxLevel);
 
   return (
     <ThemedView>
@@ -47,7 +56,7 @@ export default function HomeScreen() {
         paddingBottom={150}
         data={state.taskInfos}
         renderItem={({ item, index, viewableItems }) => {
-          const isDisabled = index > state.currentLevel;
+          const isDisabled = index > maxLevel;
           return renderItem({ item, index, viewableItems, isDisabled });
         }}
       />

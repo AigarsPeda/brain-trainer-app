@@ -72,10 +72,9 @@ export default function GameScreen() {
   return (
     <ThemedView
       style={{
-        paddingTop: 10,
+        flex: 1,
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
       }}
     >
       <Progressbar
@@ -85,7 +84,7 @@ export default function GameScreen() {
       <ThemedView
         style={{
           paddingTop: 10,
-          height: "90%",
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
