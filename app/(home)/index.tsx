@@ -3,7 +3,7 @@ import HeartIcon from "@/components/icons/HeartIcon";
 import ListItem from "@/components/ListItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import type { TaskInfoType } from "@/data/common";
+import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { router } from "expo-router";
@@ -17,12 +17,12 @@ export default function HomeScreen() {
   // state.completedLevels.reduce((acc, level) => Math.max(acc, level), 0);
 
   // find largest level number in state.completedLevels
-  const maxLevel = state.completedLevels.reduce(
-    (acc, level) => Math.max(acc, level.level),
-    0
-  );
+  // const maxLevel = state.completedLevels.reduce(
+  //   (acc, level) => Math.max(acc, level.level),
+  //   0
+  // );
 
-  console.log("maxLevel", maxLevel);
+  // console.log("maxLevel", maxLevel);
 
   return (
     <ThemedView>
@@ -56,8 +56,7 @@ export default function HomeScreen() {
         paddingBottom={150}
         data={state.taskInfos}
         renderItem={({ item, index, viewableItems }) => {
-          const isDisabled = index > maxLevel;
-          return renderItem({ item, index, viewableItems, isDisabled });
+          return renderItem({ item, index, viewableItems });
         }}
       />
     </ThemedView>
@@ -67,12 +66,10 @@ export default function HomeScreen() {
 const renderItem = ({
   item,
   index,
-  isDisabled,
   viewableItems,
 }: {
   index: number;
   item: TaskInfoType;
-  isDisabled: boolean;
   viewableItems: SharedValue<ViewToken[]>;
 }) => {
   const isPositive = index % 6 <= 3;
@@ -85,7 +82,7 @@ const renderItem = ({
     <ListItem
       item={item}
       position={number}
-      isDisabled={isDisabled}
+      // isDisabled={isDisabled}
       skewAngle={number === 3 ? 0 : skewAngle}
       viewableItems={viewableItems}
       handleClick={() => {

@@ -1,4 +1,3 @@
-import type { TaskInfoType } from "@/data/common";
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { createContext } from "react";
@@ -12,6 +11,14 @@ export type TaskOptionType = {
   result: number;
   equation: string;
   isCorrect: boolean;
+};
+
+export type TaskInfoType = {
+  id: number;
+  title: string;
+  stars: number;
+  isLevelDisabled: boolean;
+  isLevelCompleted: boolean;
 };
 
 export type MultiAnswerMathTaskType = {
@@ -34,11 +41,6 @@ type AppContextStateType = {
   currentLevel: number;
   results: ResultType[];
   availableLevels: number;
-  completedLevels: {
-    level: number;
-    stars: number;
-    isCompleted: boolean;
-  }[];
   taskInfos: TaskInfoType[];
   currentTaskInLevel: number;
 };
@@ -76,15 +78,16 @@ export const initialState: AppContextStateType = {
   name: "Aigars",
   results: [],
   currentLevel: 1,
-  completedLevels: [],
   currentTaskInLevel: 1,
   availableLevels: Object.keys(ALL_TASKS).length,
   taskInfos: Array.from(
     { length: Object.keys(ALL_TASKS).length },
     (_, index) => ({
+      stars: 0,
       id: index + 1,
+      isLevelCompleted: false,
       title: `Task ${index + 1}`,
-      stars: 5,
+      isLevelDisabled: index !== 0,
     })
   ),
 };
@@ -138,9 +141,9 @@ export const appReducer = (
 
     case "SET_RESULT_FOR_TASK": {
       const { level, answer } = action.payload;
-      const foundAnnswer = state.results.find((r) => r.level === level);
+      const foundAnswer = state.results.find((r) => r.level === level);
 
-      if (!foundAnnswer) {
+      if (!foundAnswer) {
         return {
           ...state,
           results: [
@@ -158,8 +161,8 @@ export const appReducer = (
         };
       }
 
-      const levelAnnswers = foundAnnswer.tasks;
-      const currentTask = levelAnnswers[state.currentTaskInLevel];
+      const levelAnswers = foundAnswer.tasks;
+      const currentTask = levelAnswers[state.currentTaskInLevel];
 
       const updatedAnswers = currentTask?.answers?.some(
         (r) => r.optionId === answer.optionId
@@ -245,14 +248,6 @@ export const appReducer = (
         ...state,
         currentTaskInLevel: 1,
         currentLevel: nextLevel,
-        completedLevels: [
-          ...state.completedLevels,
-          {
-            stars: 5,
-            isCompleted: true,
-            level: state.currentLevel,
-          },
-        ],
       };
     }
 

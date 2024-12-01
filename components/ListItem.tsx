@@ -1,7 +1,7 @@
 import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
-import type { TaskInfoType } from "@/data/common";
+import { TaskInfoType } from "@/context/app.context.reducer";
 import createArray from "@/util/createArray";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
@@ -25,21 +25,12 @@ type ListItemProps = {
   position: number;
   skewAngle: number;
   item: TaskInfoType;
-  isDisabled: boolean;
   handleClick: () => void;
   viewableItems: SharedValue<ViewToken[]>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({
-    item,
-    bgColor,
-    skewAngle,
-    position,
-    isDisabled,
-    viewableItems,
-    handleClick,
-  }) => {
+  ({ item, bgColor, position, skewAngle, handleClick, viewableItems }) => {
     const theme = useColorScheme();
     const scale = useSharedValue(1);
 
@@ -81,7 +72,8 @@ const ListItem: FC<ListItemProps> = memo(
       };
     };
 
-    const backgroundColor = bgColor ?? getBgColor(item.id, isDisabled).bgColor;
+    const backgroundColor =
+      bgColor ?? getBgColor(item.id, item.isLevelDisabled).bgColor;
 
     return (
       <Animated.View
@@ -113,7 +105,7 @@ const ListItem: FC<ListItemProps> = memo(
             }}
           >
             <Pressable
-              disabled={isDisabled}
+              disabled={item.isLevelDisabled}
               onPressIn={() => {
                 scale.value = 0.9;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
