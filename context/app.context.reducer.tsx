@@ -1,3 +1,4 @@
+import { calculateStars } from "@/app/utils/utils";
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { createContext } from "react";
@@ -14,9 +15,9 @@ export type TaskOptionType = {
 };
 
 export type TaskInfoType = {
-  id: number;
   title: string;
   stars: number;
+  levelNumber: number;
   isLevelDisabled: boolean;
   isLevelCompleted: boolean;
 };
@@ -84,7 +85,7 @@ export const initialState: AppContextStateType = {
     { length: Object.keys(ALL_TASKS).length },
     (_, index) => ({
       stars: 0,
-      id: index + 1,
+      levelNumber: index + 1,
       isLevelCompleted: false,
       title: `Task ${index + 1}`,
       isLevelDisabled: index !== 0,
@@ -129,6 +130,9 @@ interface CreateNextLevelActionType {
 
 interface GetNextLevel {
   type: "GET_NEXT_LEVEL";
+  payload: {
+    nextLevel: number;
+  };
 }
 
 export const appReducer = (
@@ -239,26 +243,38 @@ export const appReducer = (
     }
 
     case "GET_NEXT_LEVEL": {
-      const nextLevel =
-        Object.keys(ALL_TASKS).findIndex(
-          (l) => l === state.currentLevel.toString()
-        ) + 1 || 0;
+      const { nextLevel } = action.payload;
 
-      const updatedTaskInfos = state.taskInfos.map((t) =>
-        t.id === state.currentLevel
-          ? {
-              ...t,
-              stars: 3, // TODO: calculate stars
-              isLevelCompleted: true,
-            }
-          : t
+      // get all answers for the current level
+      const currentLevelAnswers = state.results.find(
+        (r) => r.level === state.currentLevel.toString()
       );
 
-      // set next level to isLevelDisabled to false
-      updatedTaskInfos[nextLevel] = {
-        ...updatedTaskInfos[nextLevel],
-        isLevelDisabled: false,
-      };
+      if (!currentLevelAnswers) {
+        return state;
+      }
+
+      const allLevelResult = Object.values(currentLevelAnswers?.tasks).reduce<
+        TaskAnswerType[]
+      >((acc, task) => {
+        return acc.concat(task.answers);
+      }, []);
+
+      const updatedTaskInfos = state.taskInfos.map((t) => {
+        if (t.levelNumber === state.currentLevel) {
+          return {
+            ...t,
+            stars: calculateStars(allLevelResult),
+            isLevelCompleted: true,
+          };
+        } else if (t.levelNumber === nextLevel) {
+          return {
+            ...t,
+            isLevelDisabled: false,
+          };
+        }
+        return t;
+      });
 
       return {
         ...state,

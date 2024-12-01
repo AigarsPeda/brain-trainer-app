@@ -16,22 +16,23 @@ export const LEVEL_2: MultiAnswerMathTaskType[] = [
         isCorrect: false,
       },
       {
+        id: 2,
+        equation: "6 + 6",
+        result: 9,
+        isCorrect: true,
+      },
+      {
         id: 3,
         equation: "10 - 2",
         result: 8,
         isCorrect: false,
       },
+
       {
         id: 4,
-        equation: "6 + 6",
-        result: 9,
-        isCorrect: false,
-      },
-      {
-        id: 2,
-        equation: "11 + 2",
+        equation: "10 + 2",
         result: 7,
-        isCorrect: false,
+        isCorrect: true,
       },
     ],
   },

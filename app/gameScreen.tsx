@@ -37,15 +37,15 @@ export default function GameScreen() {
   const currentTask = levelTasks?.find(
     (t) => t.taskNumberInLevel === currentTaskInLevel
   );
-  const levelAnnswer = results?.find((r) => r.level === level)?.tasks[
+  const levelAnswer = results?.find((r) => r.level === level)?.tasks[
     currentTaskInLevel
   ];
 
   const maxLevelStep = levelTasks?.length || 0;
-  const isTaskChecked = levelAnnswer?.isTaskChecked || false;
-  const isAtLeastOneTaskAnswered = (levelAnnswer?.answers?.length ?? 0) > 0;
+  const isTaskChecked = levelAnswer?.isTaskChecked || false;
+  const isAtLeastOneTaskAnswered = (levelAnswer?.answers?.length ?? 0) > 0;
 
-  const setAnnswer = (optionId: number, isCorrect: boolean) => {
+  const setAnswer = (optionId: number, isCorrect: boolean) => {
     dispatch({
       type: "SET_RESULT_FOR_TASK",
       payload: {
@@ -98,9 +98,9 @@ export default function GameScreen() {
                   <MathTaskWithResult
                     task={currentTask}
                     isLevelChecked={isTaskChecked}
-                    answers={levelAnnswer?.answers}
+                    answers={levelAnswer?.answers}
                     handlePress={(optionId, isCorrect) => {
-                      setAnnswer(optionId, isCorrect);
+                      setAnswer(optionId, isCorrect);
                     }}
                   />
                 );
@@ -144,12 +144,16 @@ export default function GameScreen() {
               }
 
               if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
-                dispatch({
-                  type: "GET_NEXT_LEVEL",
-                });
-
                 const currentLevel = Number(level);
                 const nextLevel = currentLevel + 1;
+
+                dispatch({
+                  type: "GET_NEXT_LEVEL",
+                  payload: {
+                    nextLevel,
+                  },
+                });
+
                 const isLastAvailableLevel = availableLevels === currentLevel;
 
                 router.replace({

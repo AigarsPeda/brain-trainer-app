@@ -43,7 +43,9 @@ const ListItem: FC<ListItemProps> = memo(
       const isVisible = Boolean(
         viewableItems.value
           .filter((viewable) => viewable.isViewable)
-          .find((viewableItem) => viewableItem.item.id === item.id)
+          .find(
+            (viewableItem) => viewableItem.item.levelNumber === item.levelNumber
+          )
       );
 
       return {
@@ -78,7 +80,7 @@ const ListItem: FC<ListItemProps> = memo(
     };
 
     const backgroundColor =
-      bgColor ?? getBgColor(item.id, item.isLevelDisabled).bgColor;
+      bgColor ?? getBgColor(item.levelNumber, item.isLevelDisabled).bgColor;
 
     return (
       <Animated.View
@@ -132,7 +134,7 @@ const ListItem: FC<ListItemProps> = memo(
                   fontWeight: "bold",
                 }}
               >
-                {item?.id}
+                {item?.levelNumber}
               </ThemedText>
             </Pressable>
             <View
