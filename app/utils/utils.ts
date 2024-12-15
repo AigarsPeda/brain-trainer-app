@@ -7,7 +7,9 @@ export const calculateStars = (taskResults: TaskAnswerType[]): number => {
 
   const totalAnswersCount = taskResults.length;
 
-  if (totalAnswersCount === 0) return 0;
+  if (totalAnswersCount === 0) {
+    return 0;
+  }
 
   const correctPercentage = (correctAnswersCount / totalAnswersCount) * 100;
 
@@ -27,5 +29,5 @@ export const calculateStars = (taskResults: TaskAnswerType[]): number => {
     return 2;
   }
 
-  return 0;
+  return 1;
 };
