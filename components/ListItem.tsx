@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import { SETTINGS } from "@/hardcoded";
-import createArray from "@/util/createArray";
+import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
 import {

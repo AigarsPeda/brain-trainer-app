@@ -1,6 +1,6 @@
 import { TaskAnswerType } from "@/context/app.context.reducer";
 
-export const calculateStars = (taskResults: TaskAnswerType[]): number => {
+const calculateStars = (taskResults: TaskAnswerType[]): number => {
   const correctAnswersCount = taskResults.filter(
     (answer) => answer.isCorrect
   ).length;
@@ -31,3 +31,5 @@ export const calculateStars = (taskResults: TaskAnswerType[]): number => {
 
   return 1;
 };
+
+export default calculateStars;

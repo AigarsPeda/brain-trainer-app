@@ -1,6 +1,6 @@
-import { calculateStars } from "@/app/utils/utils";
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
+import calculateStars from "@/utils/utils";
 import { createContext } from "react";
 
 // Level -> Multiple tasks -> One task -> Multiple answers
