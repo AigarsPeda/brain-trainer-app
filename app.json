@@ -14,7 +14,19 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aigarsp.braintrainerapp"
+      "bundleIdentifier": "com.aigarsp.braintrainerapp",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
+          }
+        ],
+        "GADApplicationIdentifier": "ca-app-pub-5238286944896076~6072715024"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,11 +49,17 @@
           "iosAppId": "ca-app-pub-5238286944896076~6072715024"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-av",
+        {
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "newArchEnabled": true,
+    "newArchEnabled": true
   }
 }
