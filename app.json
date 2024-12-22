@@ -16,15 +16,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.aigarsp.braintrainerapp",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
-        },
-        "SKAdNetworkItems": [
-          {
-            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
-          }
-        ],
         "GADApplicationIdentifier": "ca-app-pub-5238286944896076~6072715024"
       }
     },
@@ -49,13 +40,7 @@
           "iosAppId": "ca-app-pub-5238286944896076~6072715024"
         }
       ],
-      "expo-font",
-      [
-        "expo-av",
-        {
-          "microphonePermission": false
-        }
-      ]
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

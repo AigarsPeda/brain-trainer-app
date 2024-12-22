@@ -12,16 +12,6 @@ import { router } from "expo-router";
 const { width } = Dimensions.get("window");
 const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 
-// const ios = "ca-app-pub-5238286944896076/6557213296";
-// const android = "ca-app-pub-5238286944896076/2318585385";
-
-// const adDeviceId = Device.osName === "iOS" ? ios : android;
-// const adUnitId = __DEV__ ? TestIds.REWARDED : adDeviceId;
-
-// const rewarded = RewardedAd.createForAdRequest(adUnitId, {
-//   keywords: ["games", "kids", "fun", "education", "learning"],
-// });
-
 export default function GameScreen() {
   const {
     state: { results, availableLevels, currentTaskInLevel },
@@ -30,8 +20,6 @@ export default function GameScreen() {
   const { level } = useLocalSearchParams<{
     level: string;
   }>();
-
-  // const currentTaskInLevel = state.currentTaskInLevel;
 
   const levelTasks = ALL_TASKS[level];
   const currentTask = levelTasks?.find(

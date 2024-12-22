@@ -1,7 +1,7 @@
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
+import MobileAds, {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
@@ -21,8 +21,34 @@ const useGoogleAd = () => {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [isRewarded, setIsRewarded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [initializing, setInitializing] = useState(false);
 
   useEffect(() => {
+    const initializeAds = async () => {
+      try {
+        await MobileAds().initialize();
+        console.log("Google Mobile Ads initialized successfully");
+        setInitializing(true);
+      } catch (err) {
+        console.error("Failed to initialize Google Mobile Ads:", err);
+        setError("Failed to initialize ads");
+        setInitializing(false);
+      }
+    };
+
+    if (initializing) {
+      return;
+    }
+
+    initializeAds();
+  }, [initializing]);
+
+  useEffect(() => {
+    if (!initializing) {
+      return;
+    }
+
     const unsubscribeLoaded = rewarded.addAdEventListener(
       RewardedAdEventType.LOADED,
       () => {
@@ -62,6 +88,7 @@ const useGoogleAd = () => {
     loaded,
     isRewarded,
     rewarded,
+    error,
   };
 };
 

@@ -12,22 +12,10 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Audio } from "expo-av";
+import { MobileAds } from "react-native-google-mobile-ads";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-// Configure audio settings
-async function configureAudio() {
-  await Audio.setAudioModeAsync({
-    playsInSilentModeIOS: true,
-    allowsRecordingIOS: false,
-    staysActiveInBackground: false,
-    shouldDuckAndroid: false,
-  });
-}
-
-configureAudio();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

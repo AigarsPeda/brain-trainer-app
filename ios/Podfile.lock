@@ -1,9 +1,6 @@
 PODS:
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXAV (15.0.1):
-    - ExpoModulesCore
-    - ReactCommon/turbomodule/core
   - EXConstants (17.0.3):
     - ExpoModulesCore
   - Expo (52.0.21):
@@ -56,9 +53,9 @@ PODS:
   - FBLazyVector (0.76.5)
   - fmt (9.1.0)
   - glog (0.3.5)
-  - Google-Mobile-Ads-SDK (11.7.0):
+  - Google-Mobile-Ads-SDK (11.13.0):
     - GoogleUserMessagingPlatform (>= 1.1)
-  - GoogleUserMessagingPlatform (2.5.0)
+  - GoogleUserMessagingPlatform (2.7.0)
   - hermes-engine (0.76.5):
     - hermes-engine/Pre-built (= 0.76.5)
   - hermes-engine/Pre-built (0.76.5)
@@ -1651,11 +1648,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNGoogleMobileAds (14.2.3):
+  - RNGoogleMobileAds (14.7.2):
     - DoubleConversion
     - glog
-    - Google-Mobile-Ads-SDK (= 11.7.0)
-    - GoogleUserMessagingPlatform (= 2.5.0)
+    - Google-Mobile-Ads-SDK (= 11.13.0)
+    - GoogleUserMessagingPlatform (= 2.7.0)
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
@@ -1855,7 +1852,6 @@ PODS:
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
-  - EXAV (from `../node_modules/expo-av/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
@@ -1951,8 +1947,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
-  EXAV:
-    :path: "../node_modules/expo-av/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   Expo:
@@ -2120,7 +2114,6 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
-  EXAV: 9773c9799767c9925547b05e41a26a0240bb8ef2
   EXConstants: dd2fe64c6cdb1383b694c309a63028a8e9f2be6d
   Expo: 1544b630fdf4f47d8fe376c2e422f46cd3ed90d4
   ExpoAsset: 8138f2a9ec55ae1ad7c3871448379f7d97692d15
@@ -2138,8 +2131,8 @@ SPEC CHECKSUMS:
   FBLazyVector: 1bf99bb46c6af9a2712592e707347315f23947aa
   fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
-  Google-Mobile-Ads-SDK: 204b517c9765169144cf39763c7f5d23c57a9db0
-  GoogleUserMessagingPlatform: 6b4f48a370e77ce121d034c908cc6ee4fdafaf13
+  Google-Mobile-Ads-SDK: 14f57f2dc33532a24db288897e26494640810407
+  GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
   hermes-engine: 06a9c6900587420b90accc394199527c64259db4
   RCT-Folly: bf5c0376ffe4dd2cf438dcf86db385df9fdce648
   RCTDeprecation: fb7d408617e25d7f537940000d766d60149c5fea
@@ -2199,7 +2192,7 @@ SPEC CHECKSUMS:
   ReactCodegen: daa13d9e48c9bdb1daac4bd694b9dd54e06681df
   ReactCommon: a6b87a7591591f7a52d9c0fec3aa05e0620d5dd3
   RNGestureHandler: fc5ce5bf284640d3af6431c3a5c3bc121e98d045
-  RNGoogleMobileAds: ee3f8fa565da7a8b9392659c10a5af0a274666b1
+  RNGoogleMobileAds: fc241f8ae494fda089940c54585f25826f878304
   RNReanimated: 77242c6d67416988a2fd9f5cf574bb3e60016362
   RNScreens: 27587018b2e6082f5172b1ecf158c14a0e8842d6
   RNSVG: 536cd3c866c878faf72beaba166c8b02fe2b762b
