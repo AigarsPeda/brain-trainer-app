@@ -1,11 +1,7 @@
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import MobileAds, {
-  RewardedAd,
-  RewardedAdEventType,
-  TestIds,
-} from "react-native-google-mobile-ads";
+import MobileAds, { RewardedAd, RewardedAdEventType, TestIds } from "react-native-google-mobile-ads";
 
 const ios = "ca-app-pub-5238286944896076/6557213296";
 const android = "ca-app-pub-5238286944896076/2318585385";
@@ -17,7 +13,7 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
   keywords: ["games", "kids", "fun", "education", "learning"],
 });
 
-const useGoogleAd = () => {
+function useGoogleAd() {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [isRewarded, setIsRewarded] = useState(false);
@@ -25,7 +21,7 @@ const useGoogleAd = () => {
   const [initializing, setInitializing] = useState(false);
 
   useEffect(() => {
-    const initializeAds = async () => {
+    async function initializeAds() {
       try {
         await MobileAds().initialize();
         console.log("Google Mobile Ads initialized successfully");
@@ -35,7 +31,7 @@ const useGoogleAd = () => {
         setError("Failed to initialize ads");
         setInitializing(false);
       }
-    };
+    }
 
     if (initializing) {
       return;
@@ -49,24 +45,18 @@ const useGoogleAd = () => {
       return;
     }
 
-    const unsubscribeLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setLoaded(true);
-      }
-    );
-    const unsubscribeEarned = rewarded.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      (reward) => {
-        console.log("User earned reward of ", reward);
+    const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      setLoaded(true);
+    });
+    const unsubscribeEarned = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
+      console.log("User earned reward of ", reward);
 
-        if (reward.type === "coins") {
-          setIsRewarded(true);
-        }
-
-        // router.navigate("/");
+      if (reward.type === "coins") {
+        setIsRewarded(true);
       }
-    );
+
+      // router.navigate("/");
+    });
 
     // Start loading the rewarded ad straight away
     rewarded.load();
@@ -76,13 +66,13 @@ const useGoogleAd = () => {
       unsubscribeLoaded();
       unsubscribeEarned();
     };
-  }, []);
+  }, [initializing]);
 
   useEffect(() => {
     if (isRewarded) {
       router.navigate("/");
     }
-  }, [isRewarded]);
+  }, [isRewarded, router]);
 
   return {
     loaded,
@@ -90,6 +80,6 @@ const useGoogleAd = () => {
     rewarded,
     error,
   };
-};
+}
 
 export default useGoogleAd;

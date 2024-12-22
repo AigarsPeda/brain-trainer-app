@@ -1,0 +1,6 @@
+{
+    "tabWidth": 2,
+    "printWidth": 120,
+    "importOrder": ["^expo-dev-client$", "<THIRD_PARTY_MODULES>", "^[./]"],
+    "trailingComma": "es5"
+}
