@@ -48,14 +48,13 @@ function useGoogleAd() {
     const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
       setLoaded(true);
     });
+
     const unsubscribeEarned = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
       console.log("User earned reward of ", reward);
 
       if (reward.type === "coins") {
         setIsRewarded(true);
       }
-
-      // router.navigate("/");
     });
 
     // Start loading the rewarded ad straight away
@@ -75,10 +74,10 @@ function useGoogleAd() {
   }, [isRewarded, router]);
 
   return {
-    loaded,
-    isRewarded,
-    rewarded,
     error,
+    loaded,
+    rewarded,
+    isRewarded,
   };
 }
 

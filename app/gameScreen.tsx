@@ -5,29 +5,24 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ALL_TASKS } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Dimensions } from "react-native";
-import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 
 export default function GameScreen() {
   const {
-    state: { results, availableLevels, currentTaskInLevel },
     dispatch,
+    state: { results, availableLevels, currentTaskInLevel },
   } = useAppContext();
   const { level } = useLocalSearchParams<{
     level: string;
   }>();
 
   const levelTasks = ALL_TASKS[level];
-  const currentTask = levelTasks?.find(
-    (t) => t.taskNumberInLevel === currentTaskInLevel
-  );
-  const levelAnswer = results?.find((r) => r.level === level)?.tasks[
-    currentTaskInLevel
-  ];
+  const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
+  const levelAnswer = results?.find((r) => r.level === level)?.tasks[currentTaskInLevel];
 
   const maxLevelStep = levelTasks?.length || 0;
   const isTaskChecked = levelAnswer?.isTaskChecked || false;
@@ -65,10 +60,7 @@ export default function GameScreen() {
         alignItems: "center",
       }}
     >
-      <Progressbar
-        maxLevelStep={maxLevelStep}
-        currentLevelStep={currentTaskInLevel}
-      />
+      <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={currentTaskInLevel} />
       <ThemedView
         style={{
           paddingTop: 10,
