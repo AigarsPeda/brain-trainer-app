@@ -81,16 +81,13 @@ export const initialState: AppContextStateType = {
   currentLevel: 1,
   currentTaskInLevel: 1,
   availableLevels: Object.keys(ALL_TASKS).length,
-  taskInfos: Array.from(
-    { length: Object.keys(ALL_TASKS).length },
-    (_, index) => ({
-      stars: 0,
-      levelNumber: index + 1,
-      isLevelCompleted: false,
-      title: `Task ${index + 1}`,
-      isLevelDisabled: index !== 0,
-    })
-  ),
+  taskInfos: Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
+    stars: 0,
+    levelNumber: index + 1,
+    isLevelCompleted: false,
+    title: `Task ${index + 1}`,
+    isLevelDisabled: index !== 0,
+  })),
 };
 
 export const initialContext: AppContextType = {
@@ -135,10 +132,7 @@ interface GetNextLevel {
   };
 }
 
-export const appReducer = (
-  state: AppContextStateType,
-  action: AppContextActionType
-): AppContextStateType => {
+export const appReducer = (state: AppContextStateType, action: AppContextActionType): AppContextStateType => {
   switch (action.type) {
     case "SET_NAME":
       return { ...state, name: action.payload };
@@ -168,9 +162,7 @@ export const appReducer = (
       const levelAnswers = foundAnswer.tasks;
       const currentTask = levelAnswers[state.currentTaskInLevel];
 
-      const updatedAnswers = currentTask?.answers?.some(
-        (r) => r.optionId === answer.optionId
-      )
+      const updatedAnswers = currentTask?.answers?.some((r) => r.optionId === answer.optionId)
         ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
         : [...(currentTask?.answers || []), answer];
 
@@ -221,7 +213,6 @@ export const appReducer = (
     }
 
     case "GET_NEXT_TASK_IN_LEVEL": {
-      // const { level } = action.payload;
       const nextLevelNumber = state.currentTaskInLevel + 1;
 
       return {
@@ -246,17 +237,13 @@ export const appReducer = (
       const { nextLevel } = action.payload;
 
       // get all answers for the current level
-      const currentLevelAnswers = state.results.find(
-        (r) => r.level === state.currentLevel.toString()
-      );
+      const currentLevelAnswers = state.results.find((r) => r.level === state.currentLevel.toString());
 
       if (!currentLevelAnswers) {
         return state;
       }
 
-      const allLevelResult = Object.values(currentLevelAnswers?.tasks).reduce<
-        TaskAnswerType[]
-      >((acc, task) => {
+      const allLevelResult = Object.values(currentLevelAnswers?.tasks).reduce<TaskAnswerType[]>((acc, task) => {
         return acc.concat(task.answers);
       }, []);
 
