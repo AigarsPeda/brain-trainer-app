@@ -16,9 +16,8 @@ export default function GameScreen() {
     dispatch,
     state: { results, availableLevels, currentTaskInLevel },
   } = useAppContext();
-  const { level } = useLocalSearchParams<{
-    level: string;
-  }>();
+  const { level } = useLocalSearchParams<{ level: string }>();
+  // const segments = useSegments();
 
   const levelTasks = ALL_TASKS[level];
   const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
