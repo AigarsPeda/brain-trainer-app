@@ -1,10 +1,6 @@
 import { AppContextProvider } from "@/context/app.context";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -40,8 +36,31 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(home)" options={{ headerShown: false }} />
-          <Stack.Screen
+          {/* <Stack.Screen name="game" options={{ headerShown: false }} /> */}
+          {/* <Stack.Screen
             name="GameScreen"
+            options={(opt) => {
+              // const { level } = opt.route.params as { level: string };
+              return {
+                headerShown: true,
+                // title: level ?? "Spēle",
+                title: "",
+                headerBackTitle: "Atpakaļ",
+                headerTintColor: colorScheme === "dark" ? "white" : "black",
+                headerBackground: () => (
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor,
+                    }}
+                  />
+                ),
+              };
+            }}
+          /> */}
+
+          <Stack.Screen
+            name="game/[level]"
             options={(opt) => {
               // const { level } = opt.route.params as { level: string };
               return {

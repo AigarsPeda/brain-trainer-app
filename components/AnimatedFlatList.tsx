@@ -1,36 +1,15 @@
-import {
-  FlatList,
-  FlatListProps,
-  ListRenderItemInfo,
-  ViewToken,
-} from "react-native";
+import { FlatList, FlatListProps, ListRenderItemInfo, ViewToken } from "react-native";
 import { SharedValue, useSharedValue } from "react-native-reanimated";
 
-interface AnimatedFlatListProps<T>
-  extends Omit<FlatListProps<T>, "renderItem" | "onViewableItemsChanged"> {
-  renderItem: (props: {
-    item: T;
-    index: number;
-    viewableItems: SharedValue<ViewToken[]>;
-  }) => React.ReactElement | null;
-  onViewableItemsChanged?: (info: {
-    viewableItems: ViewToken[];
-    changed: ViewToken[];
-  }) => void;
+interface AnimatedFlatListProps<T> extends Omit<FlatListProps<T>, "renderItem" | "onViewableItemsChanged"> {
+  renderItem: (props: { item: T; index: number; viewableItems: SharedValue<ViewToken[]> }) => React.ReactElement | null;
+  onViewableItemsChanged?: (info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => void;
   paddingTop?: number;
   paddingBottom?: number;
 }
 
 function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
-  const {
-    data,
-    renderItem,
-    paddingTop,
-    paddingBottom,
-    contentContainerStyle,
-    onViewableItemsChanged,
-    ...rest
-  } = props;
+  const { data, renderItem, paddingTop, paddingBottom, contentContainerStyle, onViewableItemsChanged, ...rest } = props;
 
   const viewableItems = useSharedValue<ViewToken[]>([]);
 
@@ -47,10 +26,7 @@ function AnimatedFlatList<T>(props: AnimatedFlatListProps<T>) {
     }
   };
 
-  const renderAnimatedItem = ({
-    item,
-    index,
-  }: ListRenderItemInfo<T>): React.ReactElement | null => {
+  const renderAnimatedItem = ({ item, index }: ListRenderItemInfo<T>): React.ReactElement | null => {
     return renderItem({ item, index, viewableItems });
   };
 

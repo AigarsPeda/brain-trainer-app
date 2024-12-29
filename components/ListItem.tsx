@@ -6,13 +6,7 @@ import { SETTINGS } from "@/hardcoded";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  useColorScheme,
-  View,
-  ViewToken,
-} from "react-native";
+import { Pressable, StyleSheet, useColorScheme, View, ViewToken } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -34,144 +28,137 @@ type ListItemProps = {
   viewableItems: SharedValue<ViewToken[]>;
 };
 
-const ListItem: FC<ListItemProps> = memo(
-  ({ item, bgColor, position, skewAngle, handleClick, viewableItems }) => {
-    const theme = useColorScheme();
-    const scale = useSharedValue(1);
+const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, skewAngle, handleClick, viewableItems }) => {
+  const theme = useColorScheme();
+  const scale = useSharedValue(1);
 
-    const rStyle = useAnimatedStyle(() => {
-      const isVisible = Boolean(
-        viewableItems.value
-          .filter((viewable) => viewable.isViewable)
-          .find(
-            (viewableItem) => viewableItem.item.levelNumber === item.levelNumber
-          )
-      );
+  const rStyle = useAnimatedStyle(() => {
+    const isVisible = Boolean(
+      viewableItems.value
+        .filter((viewable) => viewable.isViewable)
+        .find((viewableItem) => viewableItem.item.levelNumber === item.levelNumber)
+    );
 
-      return {
-        opacity: withTiming(isVisible ? 1 : 0),
-        transform: [
-          {
-            scale: withTiming(isVisible ? 1 : 0.6),
-          },
-        ],
-      };
-    });
-
-    const pressableStyle = useAnimatedStyle(() => {
-      return {
-        transform: [
-          { scale: withSpring(scale.value) },
-          { skewX: `${skewAngle}deg` },
-        ],
-      };
-    });
-
-    const getBgColor = (index: number, isDisabled: boolean) => {
-      if (isDisabled) {
-        return {
-          bgColor: "gray",
-        };
-      }
-
-      return {
-        bgColor: GAME_CARD_COLORS_LIGHT[index % GAME_CARD_COLORS_LIGHT.length],
-      };
+    return {
+      opacity: withTiming(isVisible ? 1 : 0),
+      transform: [
+        {
+          scale: withTiming(isVisible ? 1 : 0.6),
+        },
+      ],
     };
+  });
 
-    const backgroundColor =
-      bgColor ?? getBgColor(item.levelNumber, item.isLevelDisabled).bgColor;
+  const pressableStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: withSpring(scale.value) }, { skewX: `${skewAngle}deg` }],
+    };
+  });
 
-    return (
+  const getBgColor = (index: number, isDisabled: boolean) => {
+    if (isDisabled) {
+      return {
+        bgColor: "gray",
+      };
+    }
+
+    return {
+      bgColor: GAME_CARD_COLORS_LIGHT[index % GAME_CARD_COLORS_LIGHT.length],
+    };
+  };
+
+  const backgroundColor = bgColor ?? getBgColor(item.levelNumber, item.isLevelDisabled).bgColor;
+
+  return (
+    <Animated.View
+      style={[
+        styles.listItem,
+        rStyle,
+        {
+          position: "relative",
+        },
+      ]}
+    >
       <Animated.View
         style={[
-          styles.listItem,
-          rStyle,
+          pressableStyle,
           {
-            position: "relative",
+            position: "absolute",
+            left: position * 72,
           },
         ]}
       >
-        <Animated.View
-          style={[
-            pressableStyle,
-            {
-              position: "absolute",
-              left: position * 72,
-            },
-          ]}
+        <View
+          style={{
+            padding: 10,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+          }}
         >
+          <Pressable
+            disabled={item.isLevelDisabled}
+            onPressIn={() => {
+              scale.value = 0.9;
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            onPressOut={() => {
+              scale.value = 1;
+              handleClick();
+            }}
+            style={[
+              styles.pressable,
+              {
+                backgroundColor,
+              },
+            ]}
+          >
+            <ThemedText
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+              }}
+            >
+              {item?.levelNumber}
+            </ThemedText>
+          </Pressable>
           <View
             style={{
-              padding: 10,
-              width: "100%",
-              height: "100%",
+              marginTop: 8,
               display: "flex",
+              flexDirection: "row",
               alignItems: "center",
-              flexDirection: "column",
+              justifyContent: "center",
             }}
           >
-            <Pressable
-              disabled={item.isLevelDisabled}
-              onPressIn={() => {
-                scale.value = 0.9;
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
-              onPressOut={() => {
-                scale.value = 1;
-                handleClick();
-              }}
-              style={[
-                styles.pressable,
-                {
-                  backgroundColor: backgroundColor,
-                },
-              ]}
-            >
-              <ThemedText
-                style={{
-                  fontSize: 20,
-                  fontWeight: "bold",
-                }}
-              >
-                {item?.levelNumber}
-              </ThemedText>
-            </Pressable>
-            <View
-              style={{
-                marginTop: 8,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {createArray(STATS_PER_LEVEL).map((_, index) => {
-                const color =
-                  theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR;
+            {createArray(STATS_PER_LEVEL).map((_, index) => {
+              const color = theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR;
 
-                const isFilled = index < item.stars && item.stars > 0;
+              const isFilled = index < item.stars && item.stars > 0;
 
-                return (
-                  <StarIcon
-                    key={index}
-                    stroke={color}
-                    fill={isFilled ? color : "transparent"}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      marginHorizontal: 2,
-                    }}
-                  />
-                );
-              })}
-            </View>
+              return (
+                <StarIcon
+                  key={index}
+                  stroke={color}
+                  fill={isFilled ? color : "transparent"}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    marginHorizontal: 2,
+                  }}
+                />
+              );
+            })}
           </View>
-        </Animated.View>
+        </View>
       </Animated.View>
-    );
-  }
-);
+    </Animated.View>
+  );
+});
+
+ListItem.displayName = "ListItem";
 
 const styles = StyleSheet.create({
   listItem: {

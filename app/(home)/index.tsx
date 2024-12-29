@@ -46,9 +46,7 @@ export default function HomeScreen() {
           justifyContent: "center",
         }}
       >
-        <ThemedText type="subtitle">
-          Is Ad loaded: {loaded ? "Yes" : "No"}
-        </ThemedText>
+        <ThemedText type="subtitle">Is Ad loaded: {loaded ? "Yes" : "No"}</ThemedText>
         <Button title="Show ad" onPress={() => rewarded.show()} />
       </ThemedView>
       <AnimatedFlatList
@@ -86,7 +84,7 @@ const renderItem = ({
       skewAngle={number === 3 ? 0 : skewAngle}
       viewableItems={viewableItems}
       handleClick={() => {
-        router.push({ pathname: "/GameScreen", params: { level: index + 1 } });
+        router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
       }}
     />
   );

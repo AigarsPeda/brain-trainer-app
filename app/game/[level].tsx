@@ -11,13 +11,20 @@ import { Dimensions } from "react-native";
 const { width } = Dimensions.get("window");
 const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 
-export default function GameScreen() {
+export default function GameLevelScreen() {
   const {
     dispatch,
     state: { results, availableLevels, currentTaskInLevel },
   } = useAppContext();
-  const { level } = useLocalSearchParams<{ level: string }>();
-  // const segments = useSegments();
+  const { level } = useLocalSearchParams<"/game/[level]">();
+
+  if (!level || isNaN(Number(level)) || Array.isArray(level)) {
+    return (
+      <ThemedView>
+        <ThemedText>Nav atrasts līmenis</ThemedText>
+      </ThemedView>
+    );
+  }
 
   const levelTasks = ALL_TASKS[level];
   const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
@@ -136,7 +143,7 @@ export default function GameScreen() {
                 const isLastAvailableLevel = availableLevels === currentLevel;
 
                 router.replace({
-                  pathname: "/GameScreen",
+                  pathname: "/",
                   params: { level: isLastAvailableLevel ? 1 : nextLevel },
                 });
 

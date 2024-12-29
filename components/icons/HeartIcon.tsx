@@ -1,12 +1,7 @@
 import Svg, { Path, SvgProps } from "react-native-svg";
+
 const HeartIcon = (props: SvgProps) => (
-  <Svg
-    fill="none"
-    viewBox="0 0 24 24"
-    width={props.width ?? 30}
-    height={props.height ?? 30}
-    {...props}
-  >
+  <Svg fill="none" viewBox="0 0 24 24" width={props.width ?? 30} height={props.height ?? 30} {...props}>
     <Path
       clipRule="evenodd"
       strokeLinecap="round"

@@ -12,14 +12,9 @@ interface ProgressbarProps {
   currentLevelStep: number;
 }
 
-const Progressbar: FC<ProgressbarProps> = ({
-  maxLevelStep,
-  currentLevelStep,
-}) => {
+const Progressbar: FC<ProgressbarProps> = ({ maxLevelStep, currentLevelStep }) => {
   //   const { colors } = useColors();
-  const progressBarWidth = useRef(
-    new Animated.Value(INITIAL_PROGRESSBAR_WIDTH)
-  ).current;
+  const progressBarWidth = useRef(new Animated.Value(INITIAL_PROGRESSBAR_WIDTH)).current;
 
   useEffect(() => {
     if (currentLevelStep === 0) {
@@ -34,7 +29,7 @@ const Progressbar: FC<ProgressbarProps> = ({
       toValue: newWidth,
       useNativeDriver: false,
     }).start();
-  }, [currentLevelStep]);
+  }, [currentLevelStep, maxLevelStep, progressBarWidth]);
 
   return (
     <View

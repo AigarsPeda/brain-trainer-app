@@ -1,13 +1,9 @@
+import { ScaleButton } from "@/components/ScaleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import type {
-  MultiAnswerMathTaskType,
-  TaskAnswerType,
-  TaskOptionType,
-} from "@/context/app.context.reducer";
+import type { MultiAnswerMathTaskType, TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Dimensions, Pressable, StyleSheet, View } from "react-native";
-import { ScaleButton } from "../ScaleButton";
+import { Dimensions, StyleSheet } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -24,41 +20,30 @@ interface MathTaskWithResultProps {
   handlePress: (optionId: number, isCorrect: boolean) => void;
 }
 
-export default function MathTaskWithResult({
-  task,
-  answers,
-  handlePress,
-  isLevelChecked,
-}: MathTaskWithResultProps) {
+export default function MathTaskWithResult({ task, answers, handlePress, isLevelChecked }: MathTaskWithResultProps) {
   const theme = useThemeColor();
 
-  const getAnnswersOfTask = (
-    answers: TaskAnswerType[] | undefined,
-    option: TaskOptionType
-  ) => {
-    const foudTask = answers?.find((r) => r.optionId === option.id);
-    return foudTask;
+  const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
+    const foundTask = answers?.find((r) => r.optionId === option.id);
+    return foundTask;
   };
 
-  const getBorderColor = (
-    option: TaskOptionType,
-    answers: TaskAnswerType[] | undefined
-  ) => {
-    const foundAnnswer = getAnnswersOfTask(answers, option);
+  const getBorderColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
+    const foundAnswer = getAnswersOfTask(answers, option);
 
-    if (!foundAnnswer) {
+    if (!foundAnswer) {
       return theme.notAnsweredBorder;
     }
 
-    if (foundAnnswer.isCorrect && !isLevelChecked) {
+    if (foundAnswer.isCorrect && !isLevelChecked) {
       return theme.clickedAnswer;
     }
 
-    if (!foundAnnswer.isCorrect && !isLevelChecked) {
+    if (!foundAnswer.isCorrect && !isLevelChecked) {
       return theme.clickedAnswer;
     }
 
-    if (foundAnnswer.isCorrect && isLevelChecked) {
+    if (foundAnswer.isCorrect && isLevelChecked) {
       return theme.correctAnswer;
     }
 
@@ -129,7 +114,7 @@ export default function MathTaskWithResult({
                   alignItems: "center",
                   marginVertical: GAP / 2,
                   justifyContent: "center",
-                  borderColor: borderColor,
+                  borderColor,
                   position: "relative",
                 },
               ]}

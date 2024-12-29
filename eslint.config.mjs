@@ -82,6 +82,7 @@ export default [
       // "func-style": ["error", "declaration"],
       // "no-func-assign": "error",
       curly: "error",
+      "react/prop-types": "off",
     },
   },
 ];

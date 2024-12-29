@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { ReactNode, useRef } from "react";
-import { Animated, Pressable, StyleSheet } from "react-native";
+import { Animated, Pressable, StyleSheet, ViewStyle } from "react-native";
 
 export const ScaleButton = ({
   style,
@@ -8,7 +8,7 @@ export const ScaleButton = ({
   children,
   disabled,
 }: {
-  style?: any;
+  style?: ViewStyle;
   disabled?: boolean;
   onPress?: () => void;
   children?: ReactNode;
