@@ -1,33 +1,41 @@
 import { AppContextProvider } from "@/context/app.context";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { MobileAds } from "react-native-google-mobile-ads";
+import {
+  useFonts,
+  SpaceMono_400Regular,
+  SpaceMono_400Regular_Italic,
+  SpaceMono_700Bold,
+  SpaceMono_700Bold_Italic,
+} from "@expo-google-fonts/space-mono";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+  const [fontsLoaded] = useFonts({
+    SpaceMono_400Regular,
+    SpaceMono_400Regular_Italic,
+    SpaceMono_700Bold,
+    SpaceMono_700Bold_Italic,
   });
 
   const backgroundColor = useThemeColor({}, "background");
 
   useEffect(() => {
-    if (loaded) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [fontsLoaded]);
 
-  if (!loaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
@@ -61,7 +69,7 @@ export default function RootLayout() {
 
           <Stack.Screen
             name="game/[level]"
-            options={(opt) => {
+            options={() => {
               // const { level } = opt.route.params as { level: string };
               return {
                 headerShown: true,

@@ -14,49 +14,42 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
   const { state } = useAppContext();
   const { isRewarded, loaded, rewarded } = useGoogleAd();
-  // state.completedLevels.reduce((acc, level) => Math.max(acc, level), 0);
-
-  // find largest level number in state.completedLevels
-  // const maxLevel = state.completedLevels.reduce(
-  //   (acc, level) => Math.max(acc, level.level),
-  //   0
-  // );
-
-  // console.log("maxLevel", maxLevel);
 
   return (
-    <ThemedView>
-      <SafeAreaView
-        style={{
-          gap: 8,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ThemedText type="title">{state.name}</ThemedText>
-        <HeartIcon stroke={"#ff0000"} />
-        <HeartIcon stroke={"#ff0000"} />
-        <HeartIcon stroke={"#ff0000"} />
+    <ThemedView style={{ flex: 1 }}>
+      <SafeAreaView>
+        <ThemedView
+          style={{
+            gap: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ThemedText type="title">{state.name}</ThemedText>
+          <HeartIcon stroke={"#ff0000"} />
+          <HeartIcon stroke={"#ff0000"} />
+          <HeartIcon stroke={"#ff0000"} />
+        </ThemedView>
+        <ThemedView
+          style={{
+            gap: 8,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ThemedText type="subtitle">Is Ad loaded: {loaded ? "Yes" : "No"}</ThemedText>
+          <Button title="Show ad" onPress={() => rewarded.show()} />
+        </ThemedView>
+        <AnimatedFlatList
+          paddingTop={0}
+          paddingBottom={150}
+          data={state.taskInfos}
+          renderItem={({ item, index, viewableItems }) => {
+            return renderItem({ item, index, viewableItems });
+          }}
+        />
       </SafeAreaView>
-      <ThemedView
-        style={{
-          gap: 8,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ThemedText type="subtitle">Is Ad loaded: {loaded ? "Yes" : "No"}</ThemedText>
-        <Button title="Show ad" onPress={() => rewarded.show()} />
-      </ThemedView>
-      <AnimatedFlatList
-        paddingTop={0}
-        paddingBottom={150}
-        data={state.taskInfos}
-        renderItem={({ item, index, viewableItems }) => {
-          return renderItem({ item, index, viewableItems });
-        }}
-      />
     </ThemedView>
   );
 }
