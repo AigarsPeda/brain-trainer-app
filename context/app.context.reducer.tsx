@@ -39,12 +39,10 @@ export type TaskAnswerType = {
 
 type AppContextStateType = {
   name: string;
-  // currentLevel: number;
   game: { currentLevel: number; currentTaskInLevel: number };
   results: ResultType[];
   availableLevels: number;
-  taskInfos: TaskInfoType[];
-  // currentTaskInLevel: number;
+  levels: TaskInfoType[];
 };
 
 export type AppContextActionType =
@@ -81,7 +79,7 @@ export const initialState: AppContextStateType = {
   results: [],
   game: { currentLevel: 1, currentTaskInLevel: 1 },
   availableLevels: Object.keys(ALL_TASKS).length,
-  taskInfos: Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
+  levels: Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
     stars: 0,
     levelNumber: index + 1,
     isLevelCompleted: false,
@@ -251,7 +249,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         return acc.concat(task.answers);
       }, []);
 
-      const updatedTaskInfos = state.taskInfos.map((t) => {
+      const updatedTaskInfos = state.levels.map((t) => {
         if (t.levelNumber === state.game.currentLevel) {
           return {
             ...t,
@@ -269,13 +267,11 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       return {
         ...state,
-        // currentTaskInLevel: 1,
-        // currentLevel: nextLevel,
         game: {
-          currentLevel: nextLevel,
           currentTaskInLevel: 1,
+          currentLevel: nextLevel,
         },
-        taskInfos: updatedTaskInfos,
+        levels: updatedTaskInfos,
       };
     }
 

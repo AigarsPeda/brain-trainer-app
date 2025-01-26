@@ -44,7 +44,7 @@ export default function HomeScreen() {
         <AnimatedFlatList
           paddingTop={0}
           paddingBottom={150}
-          data={state.taskInfos}
+          data={state.levels}
           renderItem={({ item, index, viewableItems }) => {
             return renderItem({ item, index, viewableItems });
           }}
