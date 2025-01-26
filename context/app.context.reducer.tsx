@@ -57,11 +57,14 @@ export type AppContextType = {
   dispatch: React.Dispatch<AppContextActionType>;
 };
 
-export const ALL_TASKS: {
-  [level: string]: MultiAnswerMathTaskType[];
-} = {
-  1: LEVEL_1,
-  2: LEVEL_2,
+export enum Levels {
+  LEVEL_1 = "1",
+  LEVEL_2 = "2",
+}
+
+export const ALL_TASKS: Record<Levels, MultiAnswerMathTaskType[]> = {
+  [Levels.LEVEL_1]: LEVEL_1,
+  [Levels.LEVEL_2]: LEVEL_2,
 };
 
 type ResultType = {
@@ -74,18 +77,26 @@ type ResultType = {
   };
 };
 
-export const initialState: AppContextStateType = {
-  name: "Aigars",
-  results: [],
-  game: { currentLevel: 1, currentTaskInLevel: 1 },
-  availableLevels: Object.keys(ALL_TASKS).length,
-  levels: Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
-    stars: 0,
+const INITIAL_LEVEL = 1;
+const INITIAL_TASK = 1;
+const DEFAULT_STARS = 0;
+
+const initializeLevels = (): TaskInfoType[] => {
+  return Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
+    stars: DEFAULT_STARS,
     levelNumber: index + 1,
     isLevelCompleted: false,
     title: `Task ${index + 1}`,
     isLevelLocked: index !== 0,
-  })),
+  }));
+};
+
+export const initialState: AppContextStateType = {
+  name: "Aigars",
+  results: [],
+  game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
+  availableLevels: Object.keys(ALL_TASKS).length,
+  levels: initializeLevels(),
 };
 
 export const initialContext: AppContextType = {
