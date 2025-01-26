@@ -39,11 +39,12 @@ export type TaskAnswerType = {
 
 type AppContextStateType = {
   name: string;
-  currentLevel: number;
+  // currentLevel: number;
+  game: { currentLevel: number; currentTaskInLevel: number };
   results: ResultType[];
   availableLevels: number;
   taskInfos: TaskInfoType[];
-  currentTaskInLevel: number;
+  // currentTaskInLevel: number;
 };
 
 export type AppContextActionType =
@@ -78,8 +79,7 @@ type ResultType = {
 export const initialState: AppContextStateType = {
   name: "Aigars",
   results: [],
-  currentLevel: 1,
-  currentTaskInLevel: 1,
+  game: { currentLevel: 1, currentTaskInLevel: 1 },
   availableLevels: Object.keys(ALL_TASKS).length,
   taskInfos: Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
     stars: 0,
@@ -149,7 +149,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
             {
               level,
               tasks: {
-                [state.currentTaskInLevel]: {
+                [state.game.currentTaskInLevel]: {
                   isTaskChecked: false,
                   answers: [answer],
                 },
@@ -160,7 +160,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       }
 
       const levelAnswers = foundAnswer.tasks;
-      const currentTask = levelAnswers[state.currentTaskInLevel];
+      const currentTask = levelAnswers[state.game.currentTaskInLevel];
 
       const updatedAnswers = currentTask?.answers?.some((r) => r.optionId === answer.optionId)
         ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
@@ -174,8 +174,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
                 ...r,
                 tasks: {
                   ...r.tasks,
-                  [state.currentTaskInLevel]: {
-                    ...r.tasks[state.currentTaskInLevel],
+                  [state.game.currentTaskInLevel]: {
+                    ...r.tasks[state.game.currentTaskInLevel],
                     answers: updatedAnswers,
                   },
                 },
@@ -213,15 +213,19 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
     }
 
     case "GET_NEXT_TASK_IN_LEVEL": {
-      const nextLevelNumber = state.currentTaskInLevel + 1;
+      const nextLevelNumber = state.game.currentTaskInLevel + 1;
 
       return {
         ...state,
-        currentTaskInLevel: nextLevelNumber,
+        // currentTaskInLevel: nextLevelNumber,
+        game: {
+          ...state.game,
+          currentTaskInLevel: nextLevelNumber,
+        },
         results: [
           ...state.results,
           {
-            level: state.currentLevel.toString(),
+            level: state.game.currentLevel.toString(),
             tasks: {
               [nextLevelNumber]: {
                 isTaskChecked: false,
@@ -237,7 +241,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       const { nextLevel } = action.payload;
 
       // get all answers for the current level
-      const currentLevelAnswers = state.results.find((r) => r.level === state.currentLevel.toString());
+      const currentLevelAnswers = state.results.find((r) => r.level === state.game.currentLevel.toString());
 
       if (!currentLevelAnswers) {
         return state;
@@ -248,7 +252,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       }, []);
 
       const updatedTaskInfos = state.taskInfos.map((t) => {
-        if (t.levelNumber === state.currentLevel) {
+        if (t.levelNumber === state.game.currentLevel) {
           return {
             ...t,
             stars: calculateStars(allLevelResult),
@@ -265,8 +269,12 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       return {
         ...state,
-        currentTaskInLevel: 1,
-        currentLevel: nextLevel,
+        // currentTaskInLevel: 1,
+        // currentLevel: nextLevel,
+        game: {
+          currentLevel: nextLevel,
+          currentTaskInLevel: 1,
+        },
         taskInfos: updatedTaskInfos,
       };
     }

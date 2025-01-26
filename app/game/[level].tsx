@@ -14,7 +14,11 @@ const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 export default function GameLevelScreen() {
   const {
     dispatch,
-    state: { results, availableLevels, currentTaskInLevel },
+    state: {
+      results,
+      availableLevels,
+      game: { currentTaskInLevel },
+    },
   } = useAppContext();
   const { level } = useLocalSearchParams<"/game/[level]">();
 
