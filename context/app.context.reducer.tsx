@@ -18,7 +18,7 @@ export type TaskInfoType = {
   title: string;
   stars: number;
   levelNumber: number;
-  isLevelDisabled: boolean;
+  isLevelLocked: boolean;
   isLevelCompleted: boolean;
 };
 
@@ -86,7 +86,7 @@ export const initialState: AppContextStateType = {
     levelNumber: index + 1,
     isLevelCompleted: false,
     title: `Task ${index + 1}`,
-    isLevelDisabled: index !== 0,
+    isLevelLocked: index !== 0,
   })),
 };
 
@@ -257,7 +257,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         } else if (t.levelNumber === nextLevel) {
           return {
             ...t,
-            isLevelDisabled: false,
+            isLevelLocked: false,
           };
         }
         return t;

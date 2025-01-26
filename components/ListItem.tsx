@@ -67,7 +67,7 @@ const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, skewAngle, 
     };
   };
 
-  const backgroundColor = bgColor ?? getBgColor(item.levelNumber, item.isLevelDisabled).bgColor;
+  const backgroundColor = bgColor ?? getBgColor(item.levelNumber, item.isLevelLocked).bgColor;
 
   return (
     <Animated.View
@@ -99,7 +99,7 @@ const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, skewAngle, 
           }}
         >
           <Pressable
-            disabled={item.isLevelDisabled}
+            disabled={item.isLevelLocked}
             onPressIn={() => {
               scale.value = 0.9;
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
