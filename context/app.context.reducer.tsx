@@ -57,14 +57,14 @@ export type AppContextType = {
   dispatch: React.Dispatch<AppContextActionType>;
 };
 
-export enum Levels {
+export enum LevelsEnum {
   LEVEL_1 = "1",
   LEVEL_2 = "2",
 }
 
-export const ALL_TASKS: Record<Levels, MultiAnswerMathTaskType[]> = {
-  [Levels.LEVEL_1]: LEVEL_1,
-  [Levels.LEVEL_2]: LEVEL_2,
+export const ALL_TASKS: Record<LevelsEnum, MultiAnswerMathTaskType[]> = {
+  [LevelsEnum.LEVEL_1]: LEVEL_1,
+  [LevelsEnum.LEVEL_2]: LEVEL_2,
 };
 
 type ResultType = {

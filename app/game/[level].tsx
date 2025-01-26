@@ -3,7 +3,7 @@ import Progressbar from "@/components/Progressbar";
 import { ScaleButton } from "@/components/ScaleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ALL_TASKS } from "@/context/app.context.reducer";
+import { ALL_TASKS, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { router, useLocalSearchParams } from "expo-router";
 import { Dimensions } from "react-native";
@@ -20,7 +20,7 @@ export default function GameLevelScreen() {
       game: { currentTaskInLevel },
     },
   } = useAppContext();
-  const { level } = useLocalSearchParams<"/game/[level]">();
+  const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
 
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {
     return (
