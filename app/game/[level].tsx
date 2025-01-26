@@ -47,6 +47,31 @@ export default function GameLevelScreen() {
     });
   };
 
+  const goToNextLevel = () => {
+    const currentLevel = Number(level);
+    const nextLevel = currentLevel + 1;
+
+    dispatch({
+      type: "GET_NEXT_LEVEL",
+      payload: {
+        nextLevel,
+      },
+    });
+
+    const isLastAvailableLevel = availableLevels === currentLevel;
+
+    router.replace({
+      pathname: isLastAvailableLevel ? "/" : "/game/[level]",
+      params: { level: isLastAvailableLevel ? 1 : nextLevel },
+    });
+  };
+
+  const getNextTaskInLevel = () => {
+    dispatch({
+      type: "GET_NEXT_TASK_IN_LEVEL",
+    });
+  };
+
   if (!levelTasks || levelTasks.length === 0) {
     console.error("No tasks found for level", level);
     return (
@@ -130,29 +155,11 @@ export default function GameLevelScreen() {
               }
 
               if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
-                const currentLevel = Number(level);
-                const nextLevel = currentLevel + 1;
-
-                dispatch({
-                  type: "GET_NEXT_LEVEL",
-                  payload: {
-                    nextLevel,
-                  },
-                });
-
-                const isLastAvailableLevel = availableLevels === currentLevel;
-
-                router.replace({
-                  pathname: "/",
-                  params: { level: isLastAvailableLevel ? 1 : nextLevel },
-                });
-
+                goToNextLevel();
                 return;
               }
 
-              dispatch({
-                type: "GET_NEXT_TASK_IN_LEVEL",
-              });
+              getNextTaskInLevel();
             }}
           >
             <ThemedText
