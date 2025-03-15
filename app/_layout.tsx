@@ -1,19 +1,19 @@
 import { AppContextProvider } from "@/context/app.context";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import {
+  SpaceMono_400Regular,
+  SpaceMono_400Regular_Italic,
+  SpaceMono_700Bold,
+  SpaceMono_700Bold_Italic,
+  useFonts,
+} from "@expo-google-fonts/space-mono";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import {
-  useFonts,
-  SpaceMono_400Regular,
-  SpaceMono_400Regular_Italic,
-  SpaceMono_700Bold,
-  SpaceMono_700Bold_Italic,
-} from "@expo-google-fonts/space-mono";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

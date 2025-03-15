@@ -1,18 +1,19 @@
 import { ExpoConfig } from "@expo/config";
 
 const config: ExpoConfig = {
-  name: "brain-trainer-app",
-  slug: "brain-trainer-app",
+  name: "brain",
+  slug: "brain",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/brain.png",
-  scheme: "myapp",
+  scheme: "brain",
+  backgroundColor: "#2c3e50",
   userInterfaceStyle: "automatic",
-  splash: {
-    image: "./assets/images/brain.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
-  },
+  //   splash: {
+  //     image: "./assets/images/brain-splash.png",
+  //     // resizeMode: "contain",
+  //     backgroundColor: "#2c3e50",
+  //   },
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.aigarsp.braintrainerapp",
@@ -23,7 +24,7 @@ const config: ExpoConfig = {
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/images/brain.png",
-      backgroundColor: "#ffffff",
+      //   backgroundColor: "#2c3e50",
     },
     package: "com.aigarsp.braintrainerapp",
   },
@@ -37,6 +38,18 @@ const config: ExpoConfig = {
       },
     ],
     "expo-font",
+    [
+      "expo-splash-screen",
+      {
+        backgroundColor: "#2c3e50",
+        image: "./assets/images/brain-splash.png",
+        // dark: {
+        //   image: "./assets/images/splash-icon-dark.png",
+        //   backgroundColor: "#2c3e50",
+        // },
+        imageWidth: 200,
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
