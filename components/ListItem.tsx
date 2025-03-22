@@ -74,86 +74,81 @@ const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, skewAngle, 
       style={[
         styles.listItem,
         rStyle,
-        {
-          position: "relative",
-        },
+        // {
+        //   position: "relative",
+        // },
       ]}
     >
-      <Animated.View
-        style={[
-          pressableStyle,
-          {
-            position: "absolute",
-            left: position * 72,
-          },
-        ]}
+      <View
+        style={{
+          position: "absolute",
+          left: position * 72,
+        }}
       >
-        <View
-          style={{
-            padding: 10,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <Pressable
-            disabled={item.isLevelLocked}
-            onPressIn={() => {
-              scale.value = 0.9;
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
-            onPressOut={() => {
-              scale.value = 1;
-              handleClick();
-            }}
-            style={[
-              styles.pressable,
-              {
-                backgroundColor,
-              },
-            ]}
-          >
-            <ThemedText
-              style={{
-                fontSize: 20,
-                fontWeight: "bold",
-              }}
-            >
-              {item?.levelNumber}
-            </ThemedText>
-          </Pressable>
+        <Animated.View style={pressableStyle}>
           <View
             style={{
-              marginTop: 8,
-              display: "flex",
-              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              flexDirection: "column",
             }}
           >
-            {createArray(STATS_PER_LEVEL).map((_, index) => {
-              const color = theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR;
-
-              const isFilled = index < item.stars && item.stars > 0;
-
-              return (
-                <StarIcon
-                  key={index}
-                  stroke={color}
-                  fill={isFilled ? color : "transparent"}
-                  style={{
-                    width: 20,
-                    height: 20,
-                    marginHorizontal: 2,
-                  }}
-                />
-              );
-            })}
+            <Pressable
+              disabled={item.isLevelLocked}
+              onPressIn={() => {
+                scale.value = 0.9;
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              onPressOut={() => {
+                scale.value = 1;
+                handleClick();
+              }}
+              style={[
+                styles.pressable,
+                {
+                  backgroundColor,
+                },
+              ]}
+            >
+              <ThemedText
+                style={{
+                  fontSize: 20,
+                  fontWeight: "bold",
+                }}
+              >
+                {item?.levelNumber}
+              </ThemedText>
+            </Pressable>
           </View>
+        </Animated.View>
+
+        <View
+          style={{
+            marginTop: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {createArray(STATS_PER_LEVEL).map((_, index) => {
+            const color = theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR;
+
+            const isFilled = index < item.stars && item.stars > 0;
+
+            return (
+              <StarIcon
+                key={index}
+                stroke={color}
+                fill={isFilled ? color : "transparent"}
+                style={{
+                  width: 20,
+                  height: 20,
+                  marginHorizontal: 2,
+                }}
+              />
+            );
+          })}
         </View>
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 });

@@ -73,9 +73,8 @@ const renderItem = ({
     <ListItem
       item={item}
       position={number}
-      // isDisabled={isDisabled}
-      skewAngle={number === 3 ? 0 : skewAngle}
       viewableItems={viewableItems}
+      skewAngle={number === 3 ? 0 : skewAngle}
       handleClick={() => {
         router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
       }}

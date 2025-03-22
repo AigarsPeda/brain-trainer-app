@@ -9,11 +9,6 @@ const config: ExpoConfig = {
   scheme: "brain",
   backgroundColor: "#2c3e50",
   userInterfaceStyle: "automatic",
-  //   splash: {
-  //     image: "./assets/images/brain-splash.png",
-  //     // resizeMode: "contain",
-  //     backgroundColor: "#2c3e50",
-  //   },
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.aigarsp.braintrainerapp",
@@ -24,7 +19,6 @@ const config: ExpoConfig = {
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/images/brain.png",
-      //   backgroundColor: "#2c3e50",
     },
     package: "com.aigarsp.braintrainerapp",
   },
@@ -43,10 +37,6 @@ const config: ExpoConfig = {
       {
         backgroundColor: "#2c3e50",
         image: "./assets/images/brain-splash.png",
-        // dark: {
-        //   image: "./assets/images/splash-icon-dark.png",
-        //   backgroundColor: "#2c3e50",
-        // },
         imageWidth: 200,
       },
     ],
