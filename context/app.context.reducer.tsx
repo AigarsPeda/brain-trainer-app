@@ -9,7 +9,6 @@ export type MathTypeType = "mathTaskWithResult";
 
 export type TaskOptionType = {
   id: number;
-  result: number;
   equation: string;
   isCorrect: boolean;
 };
@@ -26,7 +25,7 @@ export type MultiAnswerMathTaskType = {
   id: number;
   level: number;
   result: number;
-  correctAnswer: number;
+  // correctAnswer: number;
   taskType: MathTypeType;
   taskNumberInLevel: number;
   options: TaskOptionType[];

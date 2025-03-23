@@ -104,20 +104,32 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
           return (
             <ScaleButton
               key={`${option.id}-${i}`}
-              style={[
-                styles.singleItem,
-                {
-                  borderWidth: 3.5,
-                  display: "flex",
-                  borderRadius: 10,
-                  borderStyle: "solid",
-                  alignItems: "center",
-                  marginVertical: GAP / 2,
-                  justifyContent: "center",
-                  borderColor,
-                  position: "relative",
-                },
-              ]}
+              // style={[
+              //   styles.singleItem,
+              //   {
+              //     borderWidth: 3.5,
+              //     display: "flex",
+              //     borderRadius: 10,
+              //     borderStyle: "solid",
+              //     alignItems: "center",
+              //     marginVertical: GAP / 2,
+              //     justifyContent: "center",
+              //     borderColor,
+              //     position: "relative",
+              //   },
+              // ]}
+              style={{
+                ...styles.singleItem,
+                borderWidth: 3.5,
+                display: "flex",
+                borderRadius: 10,
+                borderStyle: "solid",
+                alignItems: "center",
+                marginVertical: GAP / 2,
+                justifyContent: "center",
+                borderColor,
+                position: "relative",
+              }}
               onPress={() => handlePress(option.id, option.isCorrect)}
             >
               <ThemedText
