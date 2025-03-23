@@ -1,9 +1,9 @@
+import { TaskInfoType } from "@/context/app.context.reducer";
 import * as Haptics from "expo-haptics";
 import { type FC, memo } from "react";
 import { Pressable, StyleSheet, ViewToken } from "react-native";
 import Animated, { SharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { ThemedText } from "./ThemedText";
-import { TaskInfoType } from "@/context/app.context.reducer";
 
 type LastListItemProps = {
   bgColor?: string;
