@@ -7,7 +7,6 @@ export const LEVEL_2: MultiAnswerMathTaskType[] = [
     taskNumberInLevel: 1,
     taskType: "mathTaskWithResult",
     result: 12,
-    // correctAnswer: 12,
     options: [
       {
         id: 1,
@@ -37,7 +36,6 @@ export const LEVEL_2: MultiAnswerMathTaskType[] = [
     taskNumberInLevel: 2,
     taskType: "mathTaskWithResult",
     result: 4,
-    // correctAnswer: 4,
     options: [
       {
         id: 1,
@@ -53,6 +51,35 @@ export const LEVEL_2: MultiAnswerMathTaskType[] = [
         id: 3,
         equation: "4 + 3",
         isCorrect: false,
+      },
+      {
+        id: 4,
+        equation: "5 + 2",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: 3,
+    level: 2,
+    taskNumberInLevel: 3,
+    taskType: "mathTaskWithResult",
+    result: 9,
+    options: [
+      {
+        id: 1,
+        equation: "4 + 2",
+        isCorrect: false,
+      },
+      {
+        id: 2,
+        equation: "9 - 2",
+        isCorrect: false,
+      },
+      {
+        id: 3,
+        equation: "6 + 3",
+        isCorrect: true,
       },
       {
         id: 4,
