@@ -1,13 +1,13 @@
 import { ExpoConfig } from "@expo/config";
 
 const config: ExpoConfig = {
-  name: "brain",
-  slug: "brain",
+  name: "Prāto",
+  slug: "prato_app",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/brain.png",
   scheme: "brain",
-  backgroundColor: "#2c3e50",
+  backgroundColor: "#E6E3E0",
   userInterfaceStyle: "automatic",
   ios: {
     supportsTablet: true,
@@ -35,7 +35,7 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#2c3e50",
+        backgroundColor: "#E6E3E0",
         image: "./assets/images/brain-splash.png",
         imageWidth: 200,
       },
