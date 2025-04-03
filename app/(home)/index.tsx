@@ -66,15 +66,12 @@ const renderItem = ({
   const isPositive = index % 6 <= 3;
   // move position from 0 to 3 and then back from 3 to 0 and do it again and again
   const number = isPositive ? index % 6 : 6 - (index % 6);
-  // skew angle for the item
-  const skewAngle = isPositive ? number * 5 : -number * 5;
 
   return (
     <ListItem
       item={item}
       position={number}
       viewableItems={viewableItems}
-      skewAngle={number === 3 ? 0 : skewAngle}
       handleClick={() => {
         router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
       }}
