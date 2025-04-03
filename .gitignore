@@ -28,3 +28,7 @@ ReactAndroid-temp.aar
 
 # iOS
 **/ios/.xcode.env.local
+
+
+ios
+android
