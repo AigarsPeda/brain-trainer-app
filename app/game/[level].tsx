@@ -34,6 +34,8 @@ export default function GameLevelScreen() {
   const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
   const levelAnswer = results?.find((r) => r.level === level)?.tasks[currentTaskInLevel];
 
+  console.log("levelAnswer", levelAnswer);
+
   const maxLevelStep = levelTasks?.length || 0;
   const isTaskChecked = levelAnswer?.isTaskChecked || false;
   const isAtLeastOneTaskAnswered = (levelAnswer?.answers?.length ?? 0) > 0;
@@ -71,6 +73,7 @@ export default function GameLevelScreen() {
   };
 
   const getNextTaskInLevel = () => {
+    console.log("getNextTaskInLevel", currentTaskInLevel);
     dispatch({
       type: "GET_NEXT_TASK_IN_LEVEL",
     });

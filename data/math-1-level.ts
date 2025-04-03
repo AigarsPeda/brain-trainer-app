@@ -93,7 +93,7 @@ export const LEVEL_1: MultiAnswerMathTaskType[] = [
     taskType: "mathTaskWithResult",
     result: 10,
     level: 1,
-    taskNumberInLevel: 3,
+    taskNumberInLevel: 4,
     options: [
       {
         id: 1,

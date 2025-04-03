@@ -225,7 +225,6 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       return {
         ...state,
-        // currentTaskInLevel: nextLevelNumber,
         game: {
           ...state.game,
           currentTaskInLevel: nextLevelNumber,
