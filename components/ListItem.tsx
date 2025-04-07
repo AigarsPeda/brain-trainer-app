@@ -139,7 +139,9 @@ const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, handleClick
             >
               {/* Inner square */}
               <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
-                <ThemedText style={styles.levelText}>{item?.levelNumber}</ThemedText>
+                <ThemedText type="subtitle" style={styles.levelText}>
+                  {item?.levelNumber}
+                </ThemedText>
               </View>
             </LinearGradient>
           </Pressable>
@@ -197,10 +199,7 @@ const styles = StyleSheet.create({
   },
   levelText: {
     fontSize: 32,
-    lineHeight: 40,
-    fontWeight: "bold",
     color: "#fff",
-    textAlign: "center",
   },
   starContainer: {
     marginTop: 12,

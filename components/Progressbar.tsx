@@ -4,7 +4,7 @@ import { Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-const WIDTH = width - 25;
+const WIDTH = width - 125;
 const INITIAL_PROGRESSBAR_WIDTH = WIDTH * 0.05; // 5% of total width
 
 interface ProgressbarProps {
@@ -34,19 +34,19 @@ const Progressbar: FC<ProgressbarProps> = ({ maxLevelStep, currentLevelStep }) =
   return (
     <View
       style={{
+        height: 10,
         width: WIDTH,
-        overflow: "hidden",
-        height: 8,
-        backgroundColor: "#f3f4f6",
         borderRadius: 8,
+        overflow: "hidden",
+        backgroundColor: "#f3f4f6",
       }}
     >
       <Animated.View
         style={{
-          width: progressBarWidth,
-          backgroundColor: "green",
-          height: 8,
+          height: 10,
           borderRadius: 8,
+          width: progressBarWidth,
+          backgroundColor: "#88C4C1",
         }}
       />
     </View>

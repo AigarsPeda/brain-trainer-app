@@ -26,28 +26,33 @@ export function ThemedText({ style, darkColor, lightColor, type = "default", ...
   );
 }
 
+// BalooBhai2_400Regular,
+// BalooBhai2_500Medium,
+// BalooBhai2_600SemiBold,
+// BalooBhai2_700Bold,
+// BalooBhai2_800ExtraBold,
+
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,
-    lineHeight: 24,
+    fontFamily: "BalooBhai2_400Regular",
   },
   defaultSemiBold: {
     fontSize: 16,
-    lineHeight: 24,
-    fontWeight: "600",
+    fontFamily: "BalooBhai2_500Medium",
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    lineHeight: 32,
+    fontFamily: "BalooBhai2_700Bold",
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "BalooBhai2_700Bold",
   },
   link: {
-    lineHeight: 30,
     fontSize: 16,
     color: "#0a7ea4",
+    fontFamily: "BalooBhai2_500Medium",
   },
 });

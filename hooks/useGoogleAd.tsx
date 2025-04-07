@@ -3,8 +3,8 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import MobileAds, { RewardedAd, RewardedAdEventType, TestIds } from "react-native-google-mobile-ads";
 
-const ios = "ca-app-pub-5238286944896076/6557213296";
-const android = "ca-app-pub-5238286944896076/2318585385";
+const ios = "ca-app-pub-5238286944896076~6398230265";
+const android = "ca-app-pub-5238286944896076/8832821918";
 
 const adDeviceId = Device.osName === "iOS" ? ios : android;
 const adUnitId = __DEV__ ? TestIds.REWARDED : adDeviceId;

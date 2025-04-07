@@ -13,7 +13,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: "com.aigarsp.braintrainerapp",
     infoPlist: {
-      GADApplicationIdentifier: "ca-app-pub-5238286944896076~6072715024",
+      GADApplicationIdentifier: "ca-app-pub-5238286944896076~6398230265",
     },
   },
   android: {
@@ -27,8 +27,8 @@ const config: ExpoConfig = {
     [
       "react-native-google-mobile-ads",
       {
-        androidAppId: "ca-app-pub-5238286944896076~6180701555",
-        iosAppId: "ca-app-pub-5238286944896076~6072715024",
+        androidAppId: "ca-app-pub-5238286944896076~1145903580",
+        iosAppId: "ca-app-pub-5238286944896076~6398230265",
       },
     ],
     "expo-font",

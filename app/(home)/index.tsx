@@ -1,8 +1,8 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
-import HeartIcon from "@/components/icons/HeartIcon";
 import ListItem from "@/components/ListItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { UserStatistics } from "@/components/UserStatistics";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
@@ -18,19 +18,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView>
-        <ThemedView
-          style={{
-            gap: 8,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ThemedText type="title">{state.name}</ThemedText>
-          <HeartIcon stroke={"#ff0000"} />
-          <HeartIcon stroke={"#ff0000"} />
-          <HeartIcon stroke={"#ff0000"} />
-        </ThemedView>
+        <UserStatistics />
         <ThemedView
           style={{
             gap: 8,
@@ -41,6 +29,7 @@ export default function HomeScreen() {
           <ThemedText type="subtitle">Is Ad loaded: {loaded ? "Yes" : "No"}</ThemedText>
           <Button title="Show ad" onPress={() => rewarded.show()} />
         </ThemedView>
+
         <AnimatedFlatList
           paddingTop={0}
           paddingBottom={150}

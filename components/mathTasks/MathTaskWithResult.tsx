@@ -88,10 +88,10 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
         }}
       >
         <ThemedText
-          type="subtitle"
+          type="title"
           style={{
             fontSize: 60,
-            lineHeight: 60,
+            // lineHeight: 60,
           }}
         >
           {task.result}
@@ -104,20 +104,6 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
           return (
             <ScaleButton
               key={`${option.id}-${i}`}
-              // style={[
-              //   styles.singleItem,
-              //   {
-              //     borderWidth: 3.5,
-              //     display: "flex",
-              //     borderRadius: 10,
-              //     borderStyle: "solid",
-              //     alignItems: "center",
-              //     marginVertical: GAP / 2,
-              //     justifyContent: "center",
-              //     borderColor,
-              //     position: "relative",
-              //   },
-              // ]}
               style={{
                 ...styles.singleItem,
                 borderWidth: 3.5,
@@ -134,7 +120,7 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
             >
               <ThemedText
                 style={{
-                  fontSize: 24,
+                  fontSize: 30,
                 }}
               >
                 {option.equation}

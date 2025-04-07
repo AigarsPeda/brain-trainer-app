@@ -25,7 +25,6 @@ export type MultiAnswerMathTaskType = {
   id: number;
   level: number;
   result: number;
-  // correctAnswer: number;
   taskType: MathTypeType;
   taskNumberInLevel: number;
   options: TaskOptionType[];
@@ -37,11 +36,14 @@ export type TaskAnswerType = {
 };
 
 type AppContextStateType = {
+  gems: number;
   name: string;
-  game: { currentLevel: number; currentTaskInLevel: number };
+  lives: number;
+  daysInARow: number;
   results: ResultType[];
-  availableLevels: number;
   levels: TaskInfoType[];
+  availableLevels: number;
+  game: { currentLevel: number; currentTaskInLevel: number };
 };
 
 export type AppContextActionType =
@@ -91,8 +93,11 @@ const initializeLevels = (): TaskInfoType[] => {
 };
 
 export const initialState: AppContextStateType = {
-  name: "Aigars",
+  gems: 0,
+  lives: 5,
   results: [],
+  daysInARow: 0,
+  name: "Aigars",
   game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
   availableLevels: Object.keys(ALL_TASKS).length,
   levels: initializeLevels(),
