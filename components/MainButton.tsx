@@ -47,33 +47,49 @@ export function MainButton({
   const shadowColors = (disabled ? ["#c1c3cd", "#a3a4b1"] : ["#e4b8c8", "#c28ba3"]) as [string, string];
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      {/* Shadow layer */}
-      <View style={[styles.shadowLayer, { backgroundColor: shadowColors[1] }]} />
+    <View style={styles.container}>
+      {/* Shadow stays still underneath */}
+      <View
+        style={[
+          styles.shadowLayer,
+          {
+            backgroundColor: shadowColors[1],
+          },
+        ]}
+      />
 
-      {/* Actual button */}
-      <TouchableOpacity
-        activeOpacity={0.9}
-        disabled={disabled}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={[styles.buttonWrapper, style]}
-      >
-        <LinearGradient
-          colors={gradientColors}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={[styles.button, disabled && { opacity: 1 }]}
+      {/* Button animates on press */}
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          disabled={disabled}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={[styles.buttonWrapper, style]}
         >
-          {children || <ThemedText style={[styles.text, textStyle]}>Continue</ThemedText>}
-        </LinearGradient>
-      </TouchableOpacity>
-    </Animated.View>
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={[styles.button, disabled && { opacity: 1 }]}
+          >
+            {children || <ThemedText style={[styles.text, textStyle]}>Continue</ThemedText>}
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    width: BUTTON_WIDTH,
+    height: 70, // slightly taller than button to allow for shadow offset
+    justifyContent: "flex-start",
+    alignItems: "center",
+    position: "relative",
+  },
   shadowLayer: {
     position: "absolute",
     top: 6,
@@ -81,10 +97,11 @@ const styles = StyleSheet.create({
     height: 60,
     width: BUTTON_WIDTH,
     borderRadius: 20,
-    zIndex: -1,
+    zIndex: 0,
   },
   buttonWrapper: {
     borderRadius: 20,
+    zIndex: 1, // ensure it's above the shadow
   },
   button: {
     height: 60,
