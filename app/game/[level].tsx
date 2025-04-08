@@ -1,19 +1,18 @@
 import Close from "@/assets/images/close.png";
 import Heart from "@/assets/images/heart.png";
+import { MainButton } from "@/components/MainButton";
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import Progressbar from "@/components/Progressbar";
-import { ScaleButton } from "@/components/ScaleButton";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ALL_TASKS, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
-const WIDOW_WIDTH_WITH_MARGIN = width - 32;
+// const { width } = Dimensions.get("window");
+// const WIDOW_WIDTH_WITH_MARGIN = width - 32;
 
 export default function GameLevelScreen() {
   const {
@@ -99,7 +98,7 @@ export default function GameLevelScreen() {
         flex: 1,
         alignItems: "center",
         paddingTop: insets.top + 16,
-        paddingBottom: insets.bottom + 16,
+        paddingBottom: insets.bottom + 25,
       }}
     >
       <ThemedView
@@ -162,19 +161,7 @@ export default function GameLevelScreen() {
             justifyContent: "center",
           }}
         >
-          <ScaleButton
-            disabled={!isAtLeastOneTaskAnswered}
-            style={{
-              height: 60,
-              padding: 16,
-              display: "flex",
-              borderRadius: 10,
-              marginBottom: 36,
-              alignItems: "center",
-              justifyContent: "center",
-              width: WIDOW_WIDTH_WITH_MARGIN,
-              backgroundColor: !isAtLeastOneTaskAnswered ? "#ccc" : "#D81E5B",
-            }}
+          <MainButton
             onPress={() => {
               if (!isTaskChecked) {
                 dispatch({
@@ -195,16 +182,18 @@ export default function GameLevelScreen() {
 
               getNextTaskInLevel();
             }}
+            disabled={!isAtLeastOneTaskAnswered}
           >
             <ThemedText
+              type="defaultSemiBold"
               style={{
                 fontSize: 20,
-                color: !isAtLeastOneTaskAnswered ? "#000" : "#fff",
+                color: isAtLeastOneTaskAnswered ? "#1f2937" : "#6b7280",
               }}
             >
               {isTaskChecked ? "Nākamais uzdevums" : "Pārbaudīt"}
             </ThemedText>
-          </ScaleButton>
+          </MainButton>
         </ThemedView>
       </ThemedView>
     </ThemedView>

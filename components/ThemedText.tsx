@@ -26,12 +26,6 @@ export function ThemedText({ style, darkColor, lightColor, type = "default", ...
   );
 }
 
-// BalooBhai2_400Regular,
-// BalooBhai2_500Medium,
-// BalooBhai2_600SemiBold,
-// BalooBhai2_700Bold,
-// BalooBhai2_800ExtraBold,
-
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,
