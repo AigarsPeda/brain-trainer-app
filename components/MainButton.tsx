@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TouchableOpacity, Animated, StyleSheet, Dimensions, ViewStyle, TextStyle, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
 
 const { width } = Dimensions.get("window");
 const BUTTON_WIDTH = width - 32;
@@ -9,41 +10,37 @@ const BUTTON_WIDTH = width - 32;
 interface MainButtonProps {
   style?: ViewStyle;
   disabled?: boolean;
-  textStyle?: TextStyle;
   onPress: () => void;
+  textStyle?: TextStyle;
   children?: React.ReactNode;
-
-  //   isAtLeastOneTaskAnswered?: boolean;
 }
 
-export function MainButton({
-  onPress,
-  disabled = false,
-  style,
-  textStyle,
-  children,
-  //   isAtLeastOneTaskAnswered = false,
-}: MainButtonProps) {
-  const [scale] = useState(new Animated.Value(1));
+export function MainButton({ onPress, style, textStyle, children, disabled = false }: MainButtonProps) {
+  const [translateY] = useState(new Animated.Value(0));
 
   const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.97,
-      useNativeDriver: true,
-    }).start();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 6, // slight downward movement
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      friction: 5,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const gradientColors = (disabled ? ["#f3f4f9", "#e4e6f3"] : ["#fbe9f2", "#f6d5ec"]) as [string, string];
-
   const shadowColors = (disabled ? ["#c1c3cd", "#a3a4b1"] : ["#e4b8c8", "#c28ba3"]) as [string, string];
 
   return (
@@ -59,7 +56,11 @@ export function MainButton({
       />
 
       {/* Button animates on press */}
-      <Animated.View style={{ transform: [{ scale }] }}>
+      <Animated.View
+        style={{
+          transform: [{ translateY }],
+        }}
+      >
         <TouchableOpacity
           activeOpacity={0.9}
           disabled={disabled}
