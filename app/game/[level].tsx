@@ -188,7 +188,7 @@ export default function GameLevelScreen() {
               type="defaultSemiBold"
               style={{
                 fontSize: 24,
-                color: isAtLeastOneTaskAnswered ? "#1f2937" : "#6b7280",
+                color: isAtLeastOneTaskAnswered ? "#1f2937" : "#9ca3af",
               }}
             >
               {isTaskChecked ? "Nākamais uzdevums" : "Pārbaudīt"}

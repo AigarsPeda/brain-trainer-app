@@ -2,7 +2,7 @@ import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type { MultiAnswerMathTaskType, TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
-import { StyleSheet } from "react-native";
+import { StyleSheet, useColorScheme } from "react-native";
 
 interface MathTaskWithResultProps {
   isLevelChecked: boolean;
@@ -12,6 +12,9 @@ interface MathTaskWithResultProps {
 }
 
 export default function MathTaskWithResult({ task, answers, handlePress, isLevelChecked }: MathTaskWithResultProps) {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
   const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
     const foundTask = answers?.find((r) => r.optionId === option.id);
     return foundTask;
@@ -22,35 +25,35 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
 
     if (!foundAnswer) {
       return {
-        background: ["#f3f4f6", "#e4e6f3"] as [string, string],
-        shadow: ["#e5e7eb", "#d1d5db"] as [string, string],
+        background: isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f6", "#e4e6f3"],
+        shadow: isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"],
       };
     }
 
     if (foundAnswer.isCorrect && !isLevelChecked) {
       return {
-        background: ["#c8e6c9", "#a5d6a7"] as [string, string],
-        shadow: ["#a5d6a7", "#81c784"] as [string, string],
+        background: isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"],
+        shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
       };
     }
 
     if (!foundAnswer.isCorrect && !isLevelChecked) {
       return {
-        background: ["#ef9a9a", "#e57373"] as [string, string],
-        shadow: ["#e57373", "#ef5350"] as [string, string],
+        background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
+        shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
       };
     }
 
     if (foundAnswer.isCorrect && isLevelChecked) {
       return {
-        background: ["#c8e6c9", "#a5d6a7"] as [string, string],
-        shadow: ["#a5d6a7", "#81c784"] as [string, string],
+        background: isDarkMode ? ["#2e7d32", "#388e3c"] : ["#c8e6c9", "#a5d6a7"],
+        shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
       };
     }
 
     return {
-      background: ["#ef9a9a", "#e57373"] as [string, string],
-      shadow: ["#e57373", "#ef5350"] as [string, string],
+      background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
+      shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
     };
   };
 
@@ -83,7 +86,7 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
       </ThemedView>
       <ThemedView
         style={{
-          paddingTop: 20,
+          paddingTop: 10,
           display: "flex",
           paddingBottom: 10,
           alignItems: "center",

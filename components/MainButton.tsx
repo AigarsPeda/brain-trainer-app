@@ -1,8 +1,17 @@
-import React, { useState } from "react";
-import { TouchableOpacity, Animated, StyleSheet, Dimensions, ViewStyle, TextStyle, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+  useColorScheme,
+} from "react-native";
 
 const { width } = Dimensions.get("window");
 const BUTTON_WIDTH = width - 32;
@@ -16,6 +25,8 @@ interface MainButtonProps {
 }
 
 export function MainButton({ onPress, style, textStyle, children, disabled = false }: MainButtonProps) {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const [translateY] = useState(new Animated.Value(0));
 
   const handlePressIn = () => {
@@ -40,8 +51,13 @@ export function MainButton({ onPress, style, textStyle, children, disabled = fal
     ]).start();
   };
 
-  const gradientColors = (disabled ? ["#f3f4f9", "#e4e6f3"] : ["#fbe9f2", "#f6d5ec"]) as [string, string];
-  const shadowColors = (disabled ? ["#c1c3cd", "#a3a4b1"] : ["#e4b8c8", "#c28ba3"]) as [string, string];
+  const bgColor = isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f9", "#e4e6f3"];
+  const shadowColor = isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"];
+  const noDisabledBgColor = isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"];
+  const noDisabledShadowColor = isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"];
+
+  const gradientColors = (disabled ? bgColor : noDisabledBgColor) as [string, string];
+  const shadowColors = (disabled ? shadowColor : noDisabledShadowColor) as [string, string];
 
   return (
     <View style={styles.container}>
@@ -111,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#d3cce3",
+    borderColor: "transparent",
   },
   text: {
     fontSize: 20,

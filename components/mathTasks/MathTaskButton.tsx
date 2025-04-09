@@ -14,8 +14,8 @@ interface MathTaskButtonProps {
   textStyle?: TextStyle;
   children?: React.ReactNode;
   gradientColor: {
-    background: [string, string];
-    shadow: [string, string];
+    background: string[];
+    shadow: string[];
   };
 }
 
@@ -85,9 +85,9 @@ export function MathTaskButton({
           style={[styles.buttonWrapper, style]}
         >
           <LinearGradient
-            colors={gradientColor.background}
-            start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
+            start={{ x: 0.5, y: 0 }}
+            colors={gradientColor.background as [string, string]}
             style={[styles.button, { width: buttonWidth }, disabled && { opacity: 1 }]}
           >
             {children || <ThemedText style={[styles.text, textStyle]}>Continue</ThemedText>}
