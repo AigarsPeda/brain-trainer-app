@@ -22,8 +22,8 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
 
     if (!foundAnswer) {
       return {
-        background: ["#c1c3cd", "#a3a4b1"] as [string, string],
-        shadow: ["#a3a4b1", "#c1c3cd"] as [string, string],
+        background: ["#f3f4f6", "#e4e6f3"] as [string, string],
+        shadow: ["#e5e7eb", "#d1d5db"] as [string, string],
       };
     }
 
