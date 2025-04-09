@@ -113,11 +113,11 @@ const styles = StyleSheet.create({
     left: 0,
     height: 60,
     width: BUTTON_WIDTH,
-    borderRadius: 20,
+    borderRadius: 12,
     zIndex: 0,
   },
   buttonWrapper: {
-    borderRadius: 20,
+    borderRadius: 12,
     zIndex: 1, // ensure it's above the shadow
   },
   button: {
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     width: BUTTON_WIDTH,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "transparent",
   },
