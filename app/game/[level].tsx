@@ -187,7 +187,7 @@ export default function GameLevelScreen() {
             <ThemedText
               type="defaultSemiBold"
               style={{
-                fontSize: 20,
+                fontSize: 24,
                 color: isAtLeastOneTaskAnswered ? "#1f2937" : "#6b7280",
               }}
             >

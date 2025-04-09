@@ -6,13 +6,13 @@
 const tintColorDark = "#fff";
 const tintColorLight = "#4338ca";
 
-const GAME_CARD_COLORS_DARK = ["#D81E5B", "#9D69A3", "#C6D8D3", "#FDF0D5"];
+// const GAME_CARD_COLORS_DARK = ["#D81E5B", "#9D69A3", "#C6D8D3", "#FDF0D5"];
 export const GAME_CARD_COLORS_LIGHT = ["#D81E5B", "#9D69A3", "#C6D8D3", "#FDF0D5"];
 
 export const Colors = {
   light: {
     icon: "#687076",
-    text: "#11181C",
+    text: "#1f2937",
     background: "#fff",
     tint: tintColorLight,
     tabIconDefault: "#687076",

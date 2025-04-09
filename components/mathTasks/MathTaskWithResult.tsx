@@ -1,17 +1,8 @@
-import { ScaleButton } from "@/components/ScaleButton";
+import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type { MultiAnswerMathTaskType, TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { Dimensions, StyleSheet } from "react-native";
-
-const { width } = Dimensions.get("window");
-
-const GAP = 12;
-const ITEM_PER_ROW = 2;
-const WIDOW_WIDTH_WITH_MARGIN = width - 32;
-const TOTAL_GAP_SIZE = (ITEM_PER_ROW - 1) * GAP;
-const childWidth = (WIDOW_WIDTH_WITH_MARGIN - TOTAL_GAP_SIZE) / ITEM_PER_ROW;
+import { StyleSheet } from "react-native";
 
 interface MathTaskWithResultProps {
   isLevelChecked: boolean;
@@ -21,33 +12,46 @@ interface MathTaskWithResultProps {
 }
 
 export default function MathTaskWithResult({ task, answers, handlePress, isLevelChecked }: MathTaskWithResultProps) {
-  const theme = useThemeColor();
-
   const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
     const foundTask = answers?.find((r) => r.optionId === option.id);
     return foundTask;
   };
 
-  const getBorderColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
+  const getGradientColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
     const foundAnswer = getAnswersOfTask(answers, option);
 
     if (!foundAnswer) {
-      return theme.notAnsweredBorder;
+      return {
+        background: ["#c1c3cd", "#a3a4b1"] as [string, string],
+        shadow: ["#a3a4b1", "#c1c3cd"] as [string, string],
+      };
     }
 
     if (foundAnswer.isCorrect && !isLevelChecked) {
-      return theme.clickedAnswer;
+      return {
+        background: ["#c8e6c9", "#a5d6a7"] as [string, string],
+        shadow: ["#a5d6a7", "#81c784"] as [string, string],
+      };
     }
 
     if (!foundAnswer.isCorrect && !isLevelChecked) {
-      return theme.clickedAnswer;
+      return {
+        background: ["#ef9a9a", "#e57373"] as [string, string],
+        shadow: ["#e57373", "#ef5350"] as [string, string],
+      };
     }
 
     if (foundAnswer.isCorrect && isLevelChecked) {
-      return theme.correctAnswer;
+      return {
+        background: ["#c8e6c9", "#a5d6a7"] as [string, string],
+        shadow: ["#a5d6a7", "#81c784"] as [string, string],
+      };
     }
 
-    return theme.incorrectAnswer;
+    return {
+      background: ["#ef9a9a", "#e57373"] as [string, string],
+      shadow: ["#e57373", "#ef5350"] as [string, string],
+    };
   };
 
   return (
@@ -66,23 +70,22 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
           gap: 6,
         }}
       >
-        <ThemedText>Izvēlies</ThemedText>
+        <ThemedText type="subtitle">Izvēlies</ThemedText>
         <ThemedText
+          type="subtitle"
           style={{
             color: "#D81E5B",
-            fontSize: 17,
           }}
         >
           visas
         </ThemedText>
-        <ThemedText>pareizās atbildes</ThemedText>
+        <ThemedText type="subtitle">pareizās atbildes</ThemedText>
       </ThemedView>
       <ThemedView
         style={{
           paddingTop: 20,
           display: "flex",
           paddingBottom: 10,
-          marginVertical: GAP,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -91,41 +94,31 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
           type="title"
           style={{
             fontSize: 60,
-            // lineHeight: 60,
           }}
         >
           {task.result}
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.itemsWrap}>
         {task.options.map((option, i) => {
-          const borderColor = getBorderColor(option, answers);
+          const gradientColor = getGradientColor(option, answers);
 
           return (
-            <ScaleButton
+            <MathTaskButton
+              gradientColor={gradientColor}
               key={`${option.id}-${i}`}
-              style={{
-                ...styles.singleItem,
-                borderWidth: 3.5,
-                display: "flex",
-                borderRadius: 10,
-                borderStyle: "solid",
-                alignItems: "center",
-                marginVertical: GAP / 2,
-                justifyContent: "center",
-                borderColor,
-                position: "relative",
-              }}
               onPress={() => handlePress(option.id, option.isCorrect)}
             >
               <ThemedText
+                type="defaultSemiBold"
                 style={{
                   fontSize: 30,
                 }}
               >
                 {option.equation}
               </ThemedText>
-            </ScaleButton>
+            </MathTaskButton>
           );
         })}
       </ThemedView>
@@ -135,17 +128,9 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
 
 const styles = StyleSheet.create({
   itemsWrap: {
-    display: "flex",
-    flexDirection: "row",
+    rowGap: 20,
     flexWrap: "wrap",
-    justifyContent: "center",
-    marginVertical: -(GAP / 2),
-    marginHorizontal: -(GAP / 2),
-  },
-  singleItem: {
-    marginHorizontal: GAP / 2,
-    minWidth: childWidth,
-    maxWidth: childWidth,
-    height: childWidth / 1.5,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });
