@@ -20,6 +20,43 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
     return foundTask;
   };
 
+  // const getGradientColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
+  //   const foundAnswer = getAnswersOfTask(answers, option);
+
+  //   if (!foundAnswer) {
+  //     return {
+  //       background: isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f6", "#e4e6f3"],
+  //       shadow: isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"],
+  //     };
+  //   }
+
+  //   if (foundAnswer.isCorrect && isLevelChecked) {
+  //     return {
+  //       background: isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"],
+  //       shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
+  //     };
+  //   }
+
+  //   if (!foundAnswer.isCorrect && isLevelChecked) {
+  //     return {
+  //       background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
+  //       shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
+  //     };
+  //   }
+
+  //   // if (foundAnswer.isCorrect && isLevelChecked) {
+  //   //   return {
+  //   //     background: isDarkMode ? ["#2e7d32", "#388e3c"] : ["#c8e6c9", "#a5d6a7"],
+  //   //     shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
+  //   //   };
+  //   // }
+
+  //   return {
+  //     background: isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f6", "#e4e6f3"],
+  //     shadow: isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"],
+  //   };
+  // };
+
   const getGradientColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
     const foundAnswer = getAnswersOfTask(answers, option);
 
@@ -30,30 +67,24 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
       };
     }
 
-    if (foundAnswer.isCorrect && !isLevelChecked) {
+    if (foundAnswer.isCorrect && isLevelChecked) {
       return {
         background: isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"],
         shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
       };
     }
 
-    if (!foundAnswer.isCorrect && !isLevelChecked) {
+    if (!foundAnswer.isCorrect && isLevelChecked) {
       return {
         background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
         shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
       };
     }
 
-    if (foundAnswer.isCorrect && isLevelChecked) {
-      return {
-        background: isDarkMode ? ["#2e7d32", "#388e3c"] : ["#c8e6c9", "#a5d6a7"],
-        shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
-      };
-    }
-
+    // Default case - orange colors
     return {
-      background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
-      shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
+      background: isDarkMode ? ["#f97316", "#ea580c"] : ["#fdba74", "#fb923c"],
+      shadow: isDarkMode ? ["#c2410c", "#9a3412"] : ["#fb923c", "#f97316"],
     };
   };
 
