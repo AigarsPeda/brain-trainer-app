@@ -53,8 +53,6 @@ export function MathTaskButton({
     ]).start();
   };
 
-  //   const gradientColors = (disabled ? ["#f3f4f9", "#e4e6f3"] : ["#fbe9f2", "#f6d5ec"]) as [string, string];
-  //   const shadowColors = (disabled ? ["#c1c3cd", "#a3a4b1"] : ["#e4b8c8", "#c28ba3"]) as [string, string];
   const buttonWidth = width / 2 - 26; // Adjusted button width to fit within the screen
 
   return (
@@ -88,7 +86,7 @@ export function MathTaskButton({
             end={{ x: 0.5, y: 1 }}
             start={{ x: 0.5, y: 0 }}
             colors={gradientColor.background as [string, string]}
-            style={[styles.button, { width: buttonWidth }, disabled && { opacity: 1 }]}
+            style={[styles.button, { width: buttonWidth - 5 }, disabled && { opacity: 1 }]}
           >
             {children || <ThemedText style={[styles.text, textStyle]}>Continue</ThemedText>}
           </LinearGradient>

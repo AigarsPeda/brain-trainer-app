@@ -53,8 +53,8 @@ export function MainButton({ onPress, style, textStyle, children, disabled = fal
 
   const bgColor = isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f9", "#e4e6f3"];
   const shadowColor = isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"];
-  const noDisabledBgColor = isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"];
-  const noDisabledShadowColor = isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"];
+  const noDisabledBgColor = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
+  const noDisabledShadowColor = isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"];
 
   const gradientColors = (disabled ? bgColor : noDisabledBgColor) as [string, string];
   const shadowColors = (disabled ? shadowColor : noDisabledShadowColor) as [string, string];
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 60,
-    width: BUTTON_WIDTH,
+    width: BUTTON_WIDTH - 5,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 12,

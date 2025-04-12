@@ -20,71 +20,34 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
     return foundTask;
   };
 
-  // const getGradientColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
-  //   const foundAnswer = getAnswersOfTask(answers, option);
-
-  //   if (!foundAnswer) {
-  //     return {
-  //       background: isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f6", "#e4e6f3"],
-  //       shadow: isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"],
-  //     };
-  //   }
-
-  //   if (foundAnswer.isCorrect && isLevelChecked) {
-  //     return {
-  //       background: isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"],
-  //       shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
-  //     };
-  //   }
-
-  //   if (!foundAnswer.isCorrect && isLevelChecked) {
-  //     return {
-  //       background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
-  //       shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
-  //     };
-  //   }
-
-  //   // if (foundAnswer.isCorrect && isLevelChecked) {
-  //   //   return {
-  //   //     background: isDarkMode ? ["#2e7d32", "#388e3c"] : ["#c8e6c9", "#a5d6a7"],
-  //   //     shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
-  //   //   };
-  //   // }
-
-  //   return {
-  //     background: isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f6", "#e4e6f3"],
-  //     shadow: isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"],
-  //   };
-  // };
-
   const getGradientColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
     const foundAnswer = getAnswersOfTask(answers, option);
 
     if (!foundAnswer) {
       return {
-        background: isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f6", "#e4e6f3"],
-        shadow: isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"],
+        background: isDarkMode ? ["#64748b", "#475569"] : ["#f1f5f9", "#e2e8f0"],
+        shadow: isDarkMode ? ["#334155", "#1e293b"] : ["#cbd5e1", "#94a3b8"],
       };
     }
 
     if (foundAnswer.isCorrect && isLevelChecked) {
       return {
-        background: isDarkMode ? ["#a5d6a7", "#81c784"] : ["#c8e6c9", "#a5d6a7"],
-        shadow: isDarkMode ? ["#388e3c", "#2e7d32"] : ["#a5d6a7", "#81c784"],
+        background: isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"],
+        shadow: isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"],
       };
     }
 
     if (!foundAnswer.isCorrect && isLevelChecked) {
       return {
-        background: isDarkMode ? ["#e57373", "#ef5350"] : ["#ef9a9a", "#e57373"],
-        shadow: isDarkMode ? ["#a14242", "#8e3a3a"] : ["#e57373", "#ef5350"],
+        background: isDarkMode ? ["#ef4444", "#dc2626"] : ["#fecaca", "#fca5a5"],
+        shadow: isDarkMode ? ["#b91c1c", "#991b1b"] : ["#f87171", "#ef4444"],
       };
     }
 
-    // Default case - orange colors
+    // Default case - improved orange colors with better gradients
     return {
-      background: isDarkMode ? ["#f97316", "#ea580c"] : ["#fdba74", "#fb923c"],
-      shadow: isDarkMode ? ["#c2410c", "#9a3412"] : ["#fb923c", "#f97316"],
+      background: isDarkMode ? ["#fb923c", "#f97316"] : ["#fed7aa", "#fdba74"],
+      shadow: isDarkMode ? ["#ea580c", "#c2410c"] : ["#fb923c", "#f97316"],
     };
   };
 
@@ -137,6 +100,11 @@ export default function MathTaskWithResult({ task, answers, handlePress, isLevel
       <ThemedView style={styles.itemsWrap}>
         {task.options.map((option, i) => {
           const gradientColor = getGradientColor(option, answers);
+
+          if (isDarkMode) {
+            gradientColor.background.reverse();
+            gradientColor.shadow.reverse();
+          }
 
           return (
             <MathTaskButton
