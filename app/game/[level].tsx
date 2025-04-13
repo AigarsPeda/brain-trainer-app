@@ -15,6 +15,9 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
+import FireColors from "@/assets/images/fire-colors.png";
+import SadFace from "@/assets/images/sad-face.png";
 
 export default function GameLevelScreen() {
   const {
@@ -280,27 +283,66 @@ function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps)
         handleStyle={{ height: 0 }}
       >
         <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>
-          <ThemedView>
-            <ThemedText type="subtitle" style={{ marginBottom: 10, textAlign: "left" }}>
-              {isAllAnswersCorrect ? "Pareizi! 🎉" : "Uzdevums pabeigts! 🔥"}
-            </ThemedText>
-            <ThemedText style={{ fontSize: 16, marginBottom: 20, textAlign: "left" }}>
-              {isAllAnswersCorrect
-                ? "Visas atbildes ir pareizas! Turpini tā!"
-                : "Daļa no atbildēm nav pareiza. Nākamreiz būs labāk!"}
-            </ThemedText>
-            <ThemedView style={{ width: "100%", alignItems: "center" }}>
-              <MainButton onPress={onNextTaskPress}>
-                <ThemedText
-                  type="defaultSemiBold"
-                  style={{
-                    fontSize: 20,
-                  }}
-                >
-                  Nākamais uzdevums
+          {isAllAnswersCorrect ? (
+            <ThemedView
+              style={{
+                marginBottom: 10,
+              }}
+            >
+              <ThemedView
+                style={{
+                  gap: 10,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText type="subtitle" style={{ textAlign: "left" }}>
+                  Pareizi!
                 </ThemedText>
-              </MainButton>
+                <ThemedView style={{ ...styles.imgContainer }}>
+                  <Image style={styles.image} source={FireColors} contentFit="cover" transition={1000} />
+                </ThemedView>
+              </ThemedView>
+              <ThemedText style={{ fontSize: 16, marginBottom: 20, textAlign: "left" }}>
+                Visas atbildes ir pareizas! Turpini tā!
+              </ThemedText>
             </ThemedView>
+          ) : (
+            <ThemedView
+              style={{
+                marginBottom: 10,
+              }}
+            >
+              <ThemedView
+                style={{
+                  gap: 10,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText type="subtitle" style={{ textAlign: "left" }}>
+                  Uzdevums pabeigts!
+                </ThemedText>
+                <ThemedView style={{ ...styles.imgContainer }}>
+                  <Image style={styles.image} source={SadFace} contentFit="cover" transition={1000} />
+                </ThemedView>
+              </ThemedView>
+              <ThemedText style={{ fontSize: 16, marginBottom: 20, textAlign: "left" }}>
+                Daļa no atbildēm nav pareiza. Nākamreiz būs labāk!
+              </ThemedText>
+            </ThemedView>
+          )}
+          <ThemedView style={{ width: "100%", alignItems: "center" }}>
+            <MainButton onPress={onNextTaskPress}>
+              <ThemedText
+                type="defaultSemiBold"
+                style={{
+                  fontSize: 20,
+                }}
+              >
+                Nākamais uzdevums
+              </ThemedText>
+            </MainButton>
           </ThemedView>
         </BottomSheetView>
       </BottomSheet>
@@ -322,5 +364,13 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     padding: 36,
+  },
+  imgContainer: {
+    width: 30,
+    height: 30,
+  },
+  image: {
+    flex: 1,
+    width: "100%",
   },
 });
