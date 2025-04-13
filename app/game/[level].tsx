@@ -1,5 +1,7 @@
 import Close from "@/assets/images/close.png";
+import FireColors from "@/assets/images/fire-colors.png";
 import Heart from "@/assets/images/heart.png";
+import CircleX from "@/assets/images/circle-x.png";
 import { MainButton } from "@/components/MainButton";
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import Progressbar from "@/components/Progressbar";
@@ -10,14 +12,12 @@ import { ALL_TASKS, LevelsEnum, TaskAnswerType, TaskOptionType } from "@/context
 import useAppContext from "@/hooks/useAppContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Image } from "expo-image";
-import FireColors from "@/assets/images/fire-colors.png";
-import SadFace from "@/assets/images/sad-face.png";
 
 export default function GameLevelScreen() {
   const {
@@ -324,7 +324,7 @@ function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps)
                   Uzdevums pabeigts!
                 </ThemedText>
                 <ThemedView style={{ ...styles.imgContainer }}>
-                  <Image style={styles.image} source={SadFace} contentFit="cover" transition={1000} />
+                  <Image style={styles.image} source={CircleX} contentFit="cover" transition={1000} />
                 </ThemedView>
               </ThemedView>
               <ThemedText style={{ fontSize: 16, marginBottom: 20, textAlign: "left" }}>
