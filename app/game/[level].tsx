@@ -1,7 +1,6 @@
 import Close from "@/assets/images/close.png";
 import FireColors from "@/assets/images/fire-colors.png";
 import Heart from "@/assets/images/heart.png";
-import CircleX from "@/assets/images/circle-x.png";
 import { MainButton } from "@/components/MainButton";
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import Progressbar from "@/components/Progressbar";
@@ -18,6 +17,8 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+// import circle-x from "react-native-svg/lib/typescript/icons/circle-x";
+import CircleX from "@/assets/images/circle-x.png";
 
 export default function GameLevelScreen() {
   const {
@@ -284,53 +285,13 @@ function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps)
       >
         <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>
           {isAllAnswersCorrect ? (
-            <ThemedView
-              style={{
-                marginBottom: 10,
-              }}
-            >
-              <ThemedView
-                style={{
-                  gap: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <ThemedText type="subtitle" style={{ textAlign: "left" }}>
-                  Pareizi!
-                </ThemedText>
-                <ThemedView style={{ ...styles.imgContainer }}>
-                  <Image style={styles.image} source={FireColors} contentFit="cover" transition={1000} />
-                </ThemedView>
-              </ThemedView>
-              <ThemedText style={{ fontSize: 16, marginBottom: 20, textAlign: "left" }}>
-                Visas atbildes ir pareizas! Turpini tā!
-              </ThemedText>
-            </ThemedView>
+            <DisplayResults title="Pareizi!" description="Visas atbildes ir pareizas! Turpini tā!" />
           ) : (
-            <ThemedView
-              style={{
-                marginBottom: 10,
-              }}
-            >
-              <ThemedView
-                style={{
-                  gap: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <ThemedText type="subtitle" style={{ textAlign: "left" }}>
-                  Uzdevums pabeigts!
-                </ThemedText>
-                <ThemedView style={{ ...styles.imgContainer }}>
-                  <Image style={styles.image} source={CircleX} contentFit="cover" transition={1000} />
-                </ThemedView>
-              </ThemedView>
-              <ThemedText style={{ fontSize: 16, marginBottom: 20, textAlign: "left" }}>
-                Daļa no atbildēm nav pareiza. Nākamreiz būs labāk!
-              </ThemedText>
-            </ThemedView>
+            <DisplayResults
+              isIncorrectAnswer
+              title="Nepareizi!"
+              description="Daļa no atbildēm nav pareizas. Nākamreiz būs labāk!"
+            />
           )}
           <ThemedView style={{ width: "100%", alignItems: "center" }}>
             <MainButton onPress={onNextTaskPress}>
@@ -347,6 +308,58 @@ function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps)
         </BottomSheetView>
       </BottomSheet>
     </GestureHandlerRootView>
+  );
+}
+
+interface DisplayResultsProps {
+  title: string;
+  isIncorrectAnswer?: boolean;
+  description: string;
+}
+
+function DisplayResults({ title, isIncorrectAnswer, description }: DisplayResultsProps) {
+  const { incorrectAnswer } = useThemeColor();
+
+  return (
+    <ThemedView
+      style={{
+        marginBottom: 10,
+      }}
+    >
+      <ThemedView
+        style={{
+          gap: 10,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <ThemedText
+          type="subtitle"
+          style={{ textAlign: "left" }}
+          darkColor={isIncorrectAnswer ? incorrectAnswer : undefined}
+          lightColor={isIncorrectAnswer ? incorrectAnswer : undefined}
+        >
+          {title}
+        </ThemedText>
+        <ThemedView style={{ ...styles.imgContainer }}>
+          <Image
+            style={styles.image}
+            source={isIncorrectAnswer ? CircleX : FireColors}
+            contentFit="cover"
+            transition={1000}
+          />
+        </ThemedView>
+      </ThemedView>
+      <ThemedText
+        style={{
+          fontSize: 16,
+          marginBottom: 20,
+          textAlign: "left",
+        }}
+      >
+        {description}
+      </ThemedText>
+    </ThemedView>
   );
 }
 
