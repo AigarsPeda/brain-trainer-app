@@ -17,7 +17,6 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-// import circle-x from "react-native-svg/lib/typescript/icons/circle-x";
 import CircleX from "@/assets/images/circle-x.png";
 
 export default function GameLevelScreen() {
