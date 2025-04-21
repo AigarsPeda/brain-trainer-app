@@ -1,3 +1,4 @@
+import CircleX from "@/assets/images/circle-x.png";
 import Close from "@/assets/images/close.png";
 import FireColors from "@/assets/images/fire-colors.png";
 import Heart from "@/assets/images/heart.png";
@@ -17,7 +18,6 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import CircleX from "@/assets/images/circle-x.png";
 
 export default function GameLevelScreen() {
   const {
@@ -82,7 +82,6 @@ export default function GameLevelScreen() {
   };
 
   const getNextTaskInLevel = () => {
-    console.log("getNextTaskInLevel", currentTaskInLevel);
     dispatch({
       type: "GET_NEXT_TASK_IN_LEVEL",
     });
@@ -248,8 +247,8 @@ export default function GameLevelScreen() {
 }
 
 interface ShowResultsProps {
-  isAllAnswersCorrect: boolean;
   onNextTaskPress: () => void;
+  isAllAnswersCorrect: boolean;
 }
 
 function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps) {
@@ -277,10 +276,10 @@ function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps)
         index={0}
         ref={sheetRef}
         snapPoints={snapPoints}
+        handleStyle={{ height: 0 }}
         enableDynamicSizing={false}
         onChange={handleSheetChange}
         handleComponent={EmptyHandle}
-        handleStyle={{ height: 0 }}
       >
         <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>
           {isAllAnswersCorrect ? (
@@ -312,11 +311,11 @@ function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps)
 
 interface DisplayResultsProps {
   title: string;
-  isIncorrectAnswer?: boolean;
   description: string;
+  isIncorrectAnswer?: boolean;
 }
 
-function DisplayResults({ title, isIncorrectAnswer, description }: DisplayResultsProps) {
+function DisplayResults({ title, description, isIncorrectAnswer }: DisplayResultsProps) {
   const { incorrectAnswer } = useThemeColor();
 
   return (
