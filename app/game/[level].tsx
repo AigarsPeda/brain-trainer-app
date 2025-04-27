@@ -8,7 +8,15 @@ import Progressbar from "@/components/Progressbar";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ALL_TASKS, LevelsEnum, TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
+import {
+  ALL_TASKS,
+  CreateMathTaskOptionType,
+  isCreateMathTask,
+  isMultiAnswerMathTask,
+  LevelsEnum,
+  TaskAnswerType,
+  TaskOptionType,
+} from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -87,7 +95,7 @@ export default function GameLevelScreen() {
     });
   };
 
-  const getCountOfCorrectAnswersAndWrong = (options: TaskOptionType[]) => {
+  const getCountOfCorrectAnswersAndWrong = (options: TaskOptionType[] | CreateMathTaskOptionType[]) => {
     const currentTaskCorrectAnswers = options.filter((o) => o.isCorrect).length;
     const currentTaskWrongAnswers = options.filter((o) => !o.isCorrect).length;
 
@@ -107,29 +115,26 @@ export default function GameLevelScreen() {
     };
   };
 
-  const { currentTaskCorrectAnswers, currentTaskWrongAnswers } = getCountOfCorrectAnswersAndWrong(
-    currentTask?.options || []
-  );
-
-  const { levelAnswerCorrectAnswers, levelAnswerWrongAnswers } = getCountOfLevelCorrectAnswersAndWrong(
-    levelAnswer?.answers || []
-  );
-
-  console.log("currentTaskCorrectAnswers", currentTaskCorrectAnswers);
-  console.log("currentTaskWrongAnswers", currentTaskWrongAnswers);
-  console.log("levelAnswerCorrectAnswers", levelAnswerCorrectAnswers);
-  console.log("levelAnswerWrongAnswers", levelAnswerWrongAnswers);
+  const { currentTaskCorrectAnswers } = getCountOfCorrectAnswersAndWrong(currentTask?.options || []);
+  const { levelAnswerWrongAnswers } = getCountOfLevelCorrectAnswersAndWrong(levelAnswer?.answers || []);
 
   const isAllAnswersCorrect =
     currentTaskCorrectAnswers === levelAnswer?.answers.length && levelAnswerWrongAnswers === 0;
-
-  console.log("isAllAnswersCorrect", isAllAnswersCorrect);
 
   if (!levelTasks || levelTasks.length === 0) {
     console.error("No tasks found for level", level);
     return (
       <ThemedView>
         <ThemedText>Nav uzdevumu</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (!currentTask) {
+    console.error("No current task found");
+    return (
+      <ThemedView>
+        <ThemedText>Nav atrasts uzdevums</ThemedText>
       </ThemedView>
     );
   }
@@ -177,23 +182,26 @@ export default function GameLevelScreen() {
         }}
       >
         <ThemedView>
-          {(() => {
-            switch (currentTask?.taskType) {
-              case "mathTaskWithResult":
-                return (
-                  <MathTaskWithResult
-                    task={currentTask}
-                    isLevelChecked={isTaskChecked}
-                    answers={levelAnswer?.answers}
-                    handlePress={(optionId, isCorrect) => {
-                      setAnswer(optionId, isCorrect);
-                    }}
-                  />
-                );
-              default:
-                return null;
-            }
-          })()}
+          {isMultiAnswerMathTask(currentTask) && (
+            <MathTaskWithResult
+              task={currentTask}
+              isLevelChecked={isTaskChecked}
+              answers={levelAnswer?.answers}
+              handlePress={(optionId, isCorrect) => {
+                setAnswer(optionId, isCorrect);
+              }}
+            />
+          )}
+          {isCreateMathTask(currentTask) && (
+            <ThemedText
+              type="title"
+              style={{
+                fontSize: 60,
+              }}
+            >
+              Create Math Task
+            </ThemedText>
+          )}
         </ThemedView>
         <ThemedView
           style={{

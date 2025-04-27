@@ -5,11 +5,17 @@ import { createContext } from "react";
 
 // Level -> Multiple tasks -> One task -> Multiple answers
 
-export type MathTypeType = "mathTaskWithResult";
+export type MathTypeType = "mathTaskWithResult" | "createMathTask";
 
 export type TaskOptionType = {
   id: number;
   equation: string;
+  isCorrect: boolean;
+};
+
+export type CreateMathTaskOptionType = {
+  id: number;
+  number: string;
   isCorrect: boolean;
 };
 
@@ -21,13 +27,21 @@ export type TaskInfoType = {
   isLevelCompleted: boolean;
 };
 
-export type MultiAnswerMathTaskType = {
+export type BaseMathTaskType = {
   id: number;
   level: number;
   result: number;
   taskType: MathTypeType;
   taskNumberInLevel: number;
+};
+
+export type MultiAnswerMathTaskType = BaseMathTaskType & {
   options: TaskOptionType[];
+};
+
+export type CreateMathTaskType = BaseMathTaskType & {
+  operation: string;
+  options: CreateMathTaskOptionType[];
 };
 
 export type TaskAnswerType = {
@@ -63,7 +77,17 @@ export enum LevelsEnum {
   LEVEL_2 = "2",
 }
 
-export const ALL_TASKS: Record<LevelsEnum, MultiAnswerMathTaskType[]> = {
+export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType;
+
+export const isMultiAnswerMathTask = (task: TaskType): task is MultiAnswerMathTaskType => {
+  return (task as MultiAnswerMathTaskType).options?.length > 0 && !("operation" in task);
+};
+
+export const isCreateMathTask = (task: TaskType): task is CreateMathTaskType => {
+  return "operation" in task;
+};
+
+export const ALL_TASKS: Record<LevelsEnum, TaskType[]> = {
   [LevelsEnum.LEVEL_1]: LEVEL_1,
   [LevelsEnum.LEVEL_2]: LEVEL_2,
 };
