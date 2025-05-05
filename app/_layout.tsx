@@ -22,6 +22,7 @@ import {
   BalooBhai2_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/baloo-bhai-2";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -49,12 +50,13 @@ export default function RootLayout() {
   }
 
   return (
-    <AppContextProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(home)" options={{ headerShown: false }} />
-          {/* <Stack.Screen name="game" options={{ headerShown: false }} /> */}
-          {/* <Stack.Screen
+    <GestureHandlerRootView>
+      <AppContextProvider>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(home)" options={{ headerShown: false }} />
+            {/* <Stack.Screen name="game" options={{ headerShown: false }} /> */}
+            {/* <Stack.Screen
             name="GameScreen"
             options={(opt) => {
               // const { level } = opt.route.params as { level: string };
@@ -76,31 +78,32 @@ export default function RootLayout() {
             }}
           /> */}
 
-          <Stack.Screen
-            name="game/[level]"
-            options={() => {
-              // const { level } = opt.route.params as { level: string };
-              return {
-                headerShown: false,
-                // title: level ?? "Spēle",
-                title: "",
-                headerBackTitle: "Atpakaļ",
-                headerTintColor: colorScheme === "dark" ? "white" : "black",
-                headerBackground: () => (
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor,
-                    }}
-                  />
-                ),
-              };
-            }}
-          />
+            <Stack.Screen
+              name="game/[level]"
+              options={() => {
+                // const { level } = opt.route.params as { level: string };
+                return {
+                  headerShown: false,
+                  // title: level ?? "Spēle",
+                  title: "",
+                  headerBackTitle: "Atpakaļ",
+                  headerTintColor: colorScheme === "dark" ? "white" : "black",
+                  headerBackground: () => (
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor,
+                      }}
+                    />
+                  ),
+                };
+              }}
+            />
 
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
-    </AppContextProvider>
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </AppContextProvider>
+    </GestureHandlerRootView>
   );
 }

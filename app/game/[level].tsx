@@ -3,6 +3,7 @@ import Close from "@/assets/images/close.png";
 import FireColors from "@/assets/images/fire-colors.png";
 import Heart from "@/assets/images/heart.png";
 import { MainButton } from "@/components/MainButton";
+import { CreateMathTask } from "@/components/mathTasks/CreateMathTask";
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import Progressbar from "@/components/Progressbar";
 import { StatisticsItem } from "@/components/StatisticsItem";
@@ -192,16 +193,7 @@ export default function GameLevelScreen() {
               }}
             />
           )}
-          {isCreateMathTask(currentTask) && (
-            <ThemedText
-              type="title"
-              style={{
-                fontSize: 60,
-              }}
-            >
-              Create Math Task
-            </ThemedText>
-          )}
+          {isCreateMathTask(currentTask) && <CreateMathTask task={currentTask} />}
         </ThemedView>
         <ThemedView
           style={{

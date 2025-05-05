@@ -21,6 +21,7 @@ export const Colors = {
     incorrectAnswer: "#ef4444",
     clickedAnswer: "#374151",
     correctAnswer: "#09E85E",
+    border: "#d1d5db",
   },
   dark: {
     icon: "#9BA1A6",
@@ -33,5 +34,6 @@ export const Colors = {
     incorrectAnswer: "#ef4444",
     clickedAnswer: "#374151",
     correctAnswer: "#09E85E",
+    border: "#374151",
   },
 };
