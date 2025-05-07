@@ -2,8 +2,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { CreateMathTaskType } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
-import { LayoutRectangle, StyleSheet, View } from "react-native";
+import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   LinearTransition,
@@ -36,6 +38,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
     if (withinX && withinY) {
       setLeftValue(number);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
   };
 
@@ -49,12 +52,33 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
     if (withinX && withinY) {
       setRightValue(number);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
   };
 
   return (
     <ThemedView>
-      <View style={{ flexDirection: "row", gap: 16 }}>
+      <ThemedView
+        style={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "row",
+          gap: 6,
+        }}
+      >
+        <ThemedText type="subtitle">Izveido</ThemedText>
+        <ThemedText
+          type="subtitle"
+          style={{
+            color: "#D81E5B",
+          }}
+        >
+          vienādojumu
+        </ThemedText>
+      </ThemedView>
+      <View
+        style={{ flexDirection: "row", gap: 16, paddingTop: 30, alignItems: "center", justifyContent: "space-between" }}
+      >
         <View
           ref={leftZoneRef}
           onLayout={() => {
@@ -64,12 +88,12 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           }}
           style={{ ...styles.button, borderColor: theme.border }}
         >
-          <ThemedText type="defaultSemiBold" style={{ fontSize: 60 }}>
+          <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
             {leftValue !== null ? leftValue : "?"}
           </ThemedText>
         </View>
 
-        <ThemedText type="defaultSemiBold" style={{ fontSize: 60 }}>
+        <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
           {task.operation}
         </ThemedText>
 
@@ -82,12 +106,12 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           }}
           style={{ ...styles.button, borderColor: theme.border }}
         >
-          <ThemedText type="defaultSemiBold" style={{ fontSize: 60 }}>
+          <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
             {rightValue !== null ? rightValue : "?"}
           </ThemedText>
         </View>
 
-        <ThemedText type="defaultSemiBold" style={{ fontSize: 60 }}>
+        <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
           = {task.result}
         </ThemedText>
       </View>
@@ -122,10 +146,24 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 }
 
 const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: number, y: number) => void }) => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  // Define gradient colors based on theme
+  const gradientColors = isDarkMode
+    ? ["#22c55e", "#16a34a"] // Dark mode green gradient
+    : ["#bbf7d0", "#86efac"]; // Light mode green gradient
+
+  const textColor = isDarkMode ? "#ffffff" : "#166534"; // White text for dark mode, dark green for light mode
 
   const panGesture = Gesture.Pan()
+    .onStart(async () => {
+      scale.value = withSpring(1.4);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    })
     .onUpdate((event) => {
       translateX.value = event.translationX;
       translateY.value = event.translationY;
@@ -134,33 +172,33 @@ const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: numbe
       runOnJS(onDrop)(event.absoluteX, event.absoluteY);
       translateX.value = withSpring(0);
       translateY.value = withSpring(0);
+      scale.value = withSpring(1);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
+    transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
   }));
 
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[animatedStyle, { marginRight: 10 }]}>
-        <ThemedText
-          type="defaultSemiBold"
-          style={{
-            padding: 12,
-            borderRadius: 8,
-            fontSize: 30,
-            height: 80,
-            width: 80,
-            textAlign: "center",
-            backgroundColor: "#ddd",
-            justifyContent: "center",
-            alignItems: "center",
-            textAlignVertical: "center",
-            lineHeight: 56,
-          }}
+        <LinearGradient
+          colors={gradientColors as [string, string]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.numberContainer}
         >
-          {number}
-        </ThemedText>
+          <ThemedText
+            type="defaultSemiBold"
+            style={{
+              fontSize: 32,
+              color: textColor,
+              textAlign: "center",
+            }}
+          >
+            {number}
+          </ThemedText>
+        </LinearGradient>
       </Animated.View>
     </GestureDetector>
   );
@@ -168,11 +206,25 @@ const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: numbe
 
 const styles = StyleSheet.create({
   button: {
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 12,
+    width: 110,
+    height: 110,
     borderWidth: 3,
-    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  numberContainer: {
+    width: 75,
+    height: 75,
+    elevation: 2,
+    borderWidth: 1,
+    borderRadius: 8,
+    shadowRadius: 4,
+    shadowOpacity: 0.1,
+    shadowColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "transparent",
+    shadowOffset: { width: 0, height: 2 },
   },
 });

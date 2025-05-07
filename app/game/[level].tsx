@@ -206,6 +206,8 @@ export default function GameLevelScreen() {
           {!isTaskChecked && (
             <MainButton
               onPress={() => {
+                // getNextTaskInLevel();
+
                 if (!isTaskChecked) {
                   dispatch({
                     type: "CHECK_ANSWERS",
