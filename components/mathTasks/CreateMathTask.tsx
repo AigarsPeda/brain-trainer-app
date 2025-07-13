@@ -7,13 +7,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  LinearTransition,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+
+const DRAGGABLE_NUMBER_SIZE = 75;
+
+const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
+  "worklet";
+  const xIntersect = boxA.x < boxB.x + boxB.width && boxA.x + boxA.width > boxB.x;
+  const yIntersect = boxA.y < boxB.y + boxB.height && boxA.y + boxA.height > boxB.y;
+  return xIntersect && yIntersect;
+};
 
 interface CreateMathTaskProps {
   task: CreateMathTaskType;
@@ -28,51 +31,74 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   const [leftZoneLayout, setLeftZoneLayout] = useState<LayoutRectangle | null>(null);
   const [rightZoneLayout, setRightZoneLayout] = useState<LayoutRectangle | null>(null);
 
+  // --- MODIFIED ---
+  // This function now handles replacing existing values.
   const handleDropOnLeft = (x: number, y: number, number: number) => {
     if (!leftZoneLayout) {
-      return;
+      return false;
     }
 
-    const withinX = x >= leftZoneLayout.x && x <= leftZoneLayout.x + leftZoneLayout.width;
-    const withinY = y >= leftZoneLayout.y && y <= leftZoneLayout.y + leftZoneLayout.height;
+    const draggedItemBox: LayoutRectangle = {
+      x: x - DRAGGABLE_NUMBER_SIZE / 2,
+      y: y - DRAGGABLE_NUMBER_SIZE / 2,
+      width: DRAGGABLE_NUMBER_SIZE,
+      height: DRAGGABLE_NUMBER_SIZE,
+    };
 
-    if (withinX && withinY) {
+    if (doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
+      // If the number we are dropping is already in the *other* slot, clear the other slot.
+      if (number === rightValue) {
+        setRightValue(null);
+      }
+      // Set the new value for the left slot. The old value is automatically "returned" to the list.
       setLeftValue(number);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      return true;
     }
+    return false;
   };
 
+  // --- MODIFIED ---
+  // This function now also handles replacing existing values.
   const handleDropOnRight = (x: number, y: number, number: number) => {
     if (!rightZoneLayout) {
-      return;
+      return false;
     }
 
-    const withinX = x >= rightZoneLayout.x && x <= rightZoneLayout.x + rightZoneLayout.width;
-    const withinY = y >= rightZoneLayout.y && y <= rightZoneLayout.y + rightZoneLayout.height;
+    const draggedItemBox: LayoutRectangle = {
+      x: x - DRAGGABLE_NUMBER_SIZE / 2,
+      y: y - DRAGGABLE_NUMBER_SIZE / 2,
+      width: DRAGGABLE_NUMBER_SIZE,
+      height: DRAGGABLE_NUMBER_SIZE,
+    };
 
-    if (withinX && withinY) {
+    if (doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
+      // If the number we are dropping is already in the *other* slot, clear the other slot.
+      if (number === leftValue) {
+        setLeftValue(null);
+      }
+      // Set the new value for the right slot.
       setRightValue(number);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      return true;
+    }
+    return false;
+  };
+
+  const handleDrop = (x: number, y: number, number: number) => {
+    // Try to drop on the left. If it succeeds, we're done.
+    const droppedOnLeft = handleDropOnLeft(x, y, number);
+    // If it didn't drop on the left, try to drop on the right.
+    if (!droppedOnLeft) {
+      handleDropOnRight(x, y, number);
     }
   };
 
   return (
     <ThemedView>
-      <ThemedView
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          gap: 6,
-        }}
-      >
+      <ThemedView style={{ width: "100%", display: "flex", flexDirection: "row", gap: 6 }}>
         <ThemedText type="subtitle">Izveido</ThemedText>
-        <ThemedText
-          type="subtitle"
-          style={{
-            color: "#D81E5B",
-          }}
-        >
+        <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
           vienādojumu
         </ThemedText>
       </ThemedView>
@@ -119,25 +145,17 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       <Animated.FlatList
         horizontal
         data={task.options}
-        itemLayoutAnimation={LinearTransition}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => {
           const num = Number(item.number);
+          // This logic remains the same. It correctly filters based on the current state.
           const isDropped = num === leftValue || num === rightValue;
 
           if (isDropped) {
             return null;
           }
 
-          return (
-            <DraggableNumber
-              number={num}
-              onDrop={(x, y) => {
-                handleDropOnLeft(x, y, num);
-                handleDropOnRight(x, y, num);
-              }}
-            />
-          );
+          return <DraggableNumber number={num} onDrop={(x, y) => handleDrop(x, y, num)} />;
         }}
         style={{ overflow: "visible", paddingTop: 50, maxHeight: 150 }}
       />
@@ -145,6 +163,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   );
 }
 
+// --- DraggableNumber component and styles remain unchanged ---
 const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: number, y: number) => void }) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -152,12 +171,9 @@ const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: numbe
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
 
-  // Define gradient colors based on theme
-  const gradientColors = isDarkMode
-    ? ["#22c55e", "#16a34a"] // Dark mode green gradient
-    : ["#bbf7d0", "#86efac"]; // Light mode green gradient
+  const gradientColors = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
 
-  const textColor = isDarkMode ? "#ffffff" : "#166534"; // White text for dark mode, dark green for light mode
+  const textColor = isDarkMode ? "#ffffff" : "#166534";
 
   const panGesture = Gesture.Pan()
     .onStart(async () => {
@@ -169,7 +185,10 @@ const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: numbe
       translateY.value = event.translationY;
     })
     .onEnd((event) => {
-      runOnJS(onDrop)(event.absoluteX, event.absoluteY);
+      const { absoluteX, absoluteY } = event;
+
+      runOnJS(onDrop)(absoluteX, absoluteY);
+
       translateX.value = withSpring(0);
       translateY.value = withSpring(0);
       scale.value = withSpring(1);
@@ -188,14 +207,7 @@ const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: numbe
           end={{ x: 0.5, y: 1 }}
           style={styles.numberContainer}
         >
-          <ThemedText
-            type="defaultSemiBold"
-            style={{
-              fontSize: 32,
-              color: textColor,
-              textAlign: "center",
-            }}
-          >
+          <ThemedText type="defaultSemiBold" style={{ fontSize: 32, color: textColor, textAlign: "center" }}>
             {number}
           </ThemedText>
         </LinearGradient>
@@ -205,14 +217,7 @@ const DraggableNumber = ({ number, onDrop }: { number: number; onDrop: (x: numbe
 };
 
 const styles = StyleSheet.create({
-  button: {
-    width: 110,
-    height: 110,
-    borderWidth: 3,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  button: { width: 110, height: 110, borderWidth: 3, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   numberContainer: {
     width: 75,
     height: 75,
