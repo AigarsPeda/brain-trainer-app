@@ -10,12 +10,19 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
+const COLLISION_BUFFER = 10; // Extra space between numbers
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   const xIntersect = boxA.x < boxB.x + boxB.width && boxA.x + boxA.width > boxB.x;
   const yIntersect = boxA.y < boxB.y + boxB.height && boxA.y + boxA.height > boxB.y;
   return xIntersect && yIntersect;
+};
+
+const doPositionsOverlap = (pos1: NumberPosition, pos2: NumberPosition): boolean => {
+  const size = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
+  const distance = Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2));
+  return distance < size;
 };
 
 interface NumberPosition {
@@ -42,31 +49,98 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
   const numbers = task.options.map((item) => Number(item.number));
 
-  // Generate random positions for numbers
-  const generateRandomPosition = (): NumberPosition => {
+  // Check if a position overlaps with existing positions
+  const isPositionOccupied = (
+    newPosition: NumberPosition,
+    existingPositions: Map<number, NumberPosition>,
+    excludeNumber?: number
+  ): boolean => {
+    for (const [number, position] of existingPositions) {
+      if (excludeNumber && number === excludeNumber) continue;
+      if (doPositionsOverlap(newPosition, position)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Generate random position that doesn't overlap with existing numbers
+  const generateRandomPosition = (
+    existingPositions: Map<number, NumberPosition> = new Map(),
+    excludeNumber?: number
+  ): NumberPosition => {
     if (!containerLayout) return { x: 0, y: 0 };
 
     const margin = 20;
-    const x = Math.random() * (containerLayout.width - DRAGGABLE_NUMBER_SIZE - margin * 2) + margin;
-    const y = Math.random() * (200 - DRAGGABLE_NUMBER_SIZE - margin * 2) + margin;
+    const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - margin * 2;
+    const maxHeight = 200 - DRAGGABLE_NUMBER_SIZE - margin * 2;
 
-    return { x, y };
+    let attempts = 0;
+    const maxAttempts = 50; // Prevent infinite loop
+
+    while (attempts < maxAttempts) {
+      const x = Math.random() * maxWidth + margin;
+      const y = Math.random() * maxHeight + margin;
+      const newPosition = { x, y };
+
+      if (!isPositionOccupied(newPosition, existingPositions, excludeNumber)) {
+        return newPosition;
+      }
+
+      attempts++;
+    }
+
+    // Fallback: if we can't find a non-overlapping position, use a grid-based approach
+    return generateGridPosition(existingPositions, excludeNumber);
+  };
+
+  // Fallback grid-based positioning when random positioning fails
+  const generateGridPosition = (
+    existingPositions: Map<number, NumberPosition>,
+    excludeNumber?: number
+  ): NumberPosition => {
+    if (!containerLayout) return { x: 0, y: 0 };
+
+    const margin = 20;
+    const spacing = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
+    const cols = Math.floor((containerLayout.width - margin * 2) / spacing);
+    const rows = Math.floor((200 - margin * 2) / spacing);
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const x = margin + col * spacing;
+        const y = margin + row * spacing;
+        const position = { x, y };
+
+        if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
+          return position;
+        }
+      }
+    }
+
+    // Ultimate fallback
+    return { x: margin, y: margin };
   };
 
   // Initialize random positions for all numbers
   useEffect(() => {
     if (containerLayout) {
       const initialPositions = new Map<number, NumberPosition>();
+
       numbers.forEach((number) => {
-        initialPositions.set(number, generateRandomPosition());
+        const position = generateRandomPosition(initialPositions);
+        initialPositions.set(number, position);
       });
+
       setNumberPositions(initialPositions);
     }
   }, [containerLayout]);
 
   const animateNumberToRandomPosition = (number: number) => {
-    const newPosition = generateRandomPosition();
-    setNumberPositions((prev) => new Map(prev.set(number, newPosition)));
+    setNumberPositions((prev) => {
+      const newPosition = generateRandomPosition(prev, number);
+      return new Map(prev.set(number, newPosition));
+    });
   };
 
   const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayout: LayoutRectangle): NumberPosition => {
@@ -179,7 +253,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           }}
           style={{ ...styles.button, borderColor: theme.border }}
         >
-          {/* Remove the text display since numbers will be visually positioned here */}
+          {/* Empty - numbers will be visually positioned here */}
         </View>
 
         <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
@@ -195,7 +269,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           }}
           style={{ ...styles.button, borderColor: theme.border }}
         >
-          {/* Remove the text display since numbers will be visually positioned here */}
+          {/* Empty - numbers will be visually positioned here */}
         </View>
 
         <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
