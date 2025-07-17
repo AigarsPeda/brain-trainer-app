@@ -4,14 +4,13 @@ import { CreateMathTaskType } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
-// const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   const xIntersect = boxA.x < boxB.x + boxB.width && boxA.x + boxA.width > boxB.x;
@@ -47,9 +46,8 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
-  const numbers = task.options.map((item) => Number(item.number));
+  const numbers = useMemo(() => task.options.map((item) => Number(item.number)), [task.options]);
 
-  // Check if a position overlaps with existing positions
   const isPositionOccupied = (
     newPosition: NumberPosition,
     existingPositions: Map<number, NumberPosition>,
@@ -128,7 +126,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     return { x: margin, y: margin };
   };
 
-  // Initialize random positions for all numbers
   useEffect(() => {
     if (containerLayout) {
       const initialPositions = new Map<number, NumberPosition>();
@@ -140,7 +137,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
       setNumberPositions(initialPositions);
     }
-  }, [containerLayout]);
+  }, [containerLayout, numbers]);
 
   const animateNumberToRandomPosition = (number: number) => {
     setNumberPositions((prev) => {
@@ -240,7 +237,14 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
   return (
     <ThemedView>
-      <ThemedView style={{ width: "100%", display: "flex", flexDirection: "row", gap: 6 }}>
+      <ThemedView
+        style={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "row",
+          gap: 6,
+        }}
+      >
         <ThemedText type="subtitle">Izveido</ThemedText>
         <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
           vienādojumu
@@ -248,7 +252,13 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       </ThemedView>
 
       <View
-        style={{ flexDirection: "row", gap: 16, paddingTop: 30, alignItems: "center", justifyContent: "space-between" }}
+        style={{
+          flexDirection: "row",
+          gap: 16,
+          paddingTop: 30,
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
       >
         <View
           ref={leftZoneRef}
@@ -314,7 +324,13 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       <View style={{ marginTop: 20 }}>
         <ThemedText
           onPress={checkAnswers}
-          style={{ padding: 10, backgroundColor: theme.tint, color: "white", textAlign: "center", borderRadius: 8 }}
+          style={{
+            padding: 10,
+            backgroundColor: theme.tint,
+            color: "white",
+            textAlign: "center",
+            borderRadius: 8,
+          }}
         >
           Check Answers (Debug)
         </ThemedText>
