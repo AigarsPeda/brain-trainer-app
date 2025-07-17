@@ -137,6 +137,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
       setNumberPositions(initialPositions);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerLayout, numbers]);
 
   const animateNumberToRandomPosition = (number: number) => {
