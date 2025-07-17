@@ -4,14 +4,14 @@ import { CreateMathTaskType } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRef, useState, useEffect } from "react";
-import { LayoutRectangle, StyleSheet, View, useColorScheme, Dimensions } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+// const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   const xIntersect = boxA.x < boxB.x + boxB.width && boxA.x + boxA.width > boxB.x;
@@ -56,7 +56,9 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     excludeNumber?: number
   ): boolean => {
     for (const [number, position] of existingPositions) {
-      if (excludeNumber && number === excludeNumber) continue;
+      if (excludeNumber && number === excludeNumber) {
+        continue;
+      }
       if (doPositionsOverlap(newPosition, position)) {
         return true;
       }
@@ -69,7 +71,9 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     existingPositions: Map<number, NumberPosition> = new Map(),
     excludeNumber?: number
   ): NumberPosition => {
-    if (!containerLayout) return { x: 0, y: 0 };
+    if (!containerLayout) {
+      return { x: 0, y: 0 };
+    }
 
     const margin = 20;
     const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - margin * 2;
@@ -99,7 +103,9 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     existingPositions: Map<number, NumberPosition>,
     excludeNumber?: number
   ): NumberPosition => {
-    if (!containerLayout) return { x: 0, y: 0 };
+    if (!containerLayout) {
+      return { x: 0, y: 0 };
+    }
 
     const margin = 20;
     const spacing = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
@@ -289,7 +295,9 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
         {numbers.map((number) => {
           const position = numberPositions.get(number);
 
-          if (!position) return null;
+          if (!position) {
+            return null;
+          }
 
           return (
             <DraggableNumber
@@ -337,7 +345,7 @@ const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberPro
   useEffect(() => {
     baseX.value = withSpring(initialPosition.x);
     baseY.value = withSpring(initialPosition.y);
-  }, [initialPosition]);
+  }, [baseX, baseY, initialPosition]);
 
   const panGesture = Gesture.Pan()
     .onStart(async () => {
