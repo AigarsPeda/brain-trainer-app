@@ -193,7 +193,15 @@ export default function GameLevelScreen() {
               }}
             />
           )}
-          {isCreateMathTask(currentTask) && <CreateMathTask task={currentTask} />}
+          {isCreateMathTask(currentTask) && (
+            <CreateMathTask
+              task={currentTask}
+              handlePress={(optionId, isCorrect) => {
+                console.log("CreateMathTask handlePress", optionId, isCorrect);
+                // setAnswer(optionId, isCorrect);
+              }}
+            />
+          )}
         </ThemedView>
         <ThemedView
           style={{
