@@ -13,7 +13,11 @@ const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
 
 // A helper function to measure a view and return a Promise
-const measureView = (ref: React.RefObject<View>): Promise<LayoutRectangle> => {
+const measureView = (ref: React.RefObject<View | null>): Promise<LayoutRectangle> => {
+  if (!ref.current) {
+    return Promise.resolve({ x: 0, y: 0, width: 0, height: 0 });
+  }
+
   return new Promise((resolve) => {
     if (ref.current) {
       ref.current.measure((x, y, width, height, pageX, pageY) => {
@@ -188,7 +192,9 @@ export function CreateMathTask({ task, handlePress }: CreateMathTaskProps) {
     let snapped = false;
 
     if (containerLayout && doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
-      if (leftValue !== null) animateNumberToRandomPosition(leftValue);
+      if (leftValue !== null) {
+        animateNumberToRandomPosition(leftValue);
+      }
 
       setLeftValue(number);
       const dropPosition = getDropZonePosition(leftZoneLayout, containerLayout);
@@ -196,7 +202,9 @@ export function CreateMathTask({ task, handlePress }: CreateMathTaskProps) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       snapped = true;
     } else if (containerLayout && doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
-      if (rightValue !== null) animateNumberToRandomPosition(rightValue);
+      if (rightValue !== null) {
+        animateNumberToRandomPosition(rightValue);
+      }
 
       setRightValue(number);
       const dropPosition = getDropZonePosition(rightZoneLayout, containerLayout);
@@ -286,7 +294,9 @@ export function CreateMathTask({ task, handlePress }: CreateMathTaskProps) {
       >
         {numbers.map((number) => {
           const position = numberPositions.get(number);
-          if (!position) return null;
+          if (!position) {
+            return null;
+          }
           return (
             <DraggableNumber
               key={number}
