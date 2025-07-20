@@ -12,10 +12,28 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
 
+// A helper function to measure a view and return a Promise
+const measureView = (ref: React.RefObject<View>): Promise<LayoutRectangle> => {
+  return new Promise((resolve) => {
+    if (ref.current) {
+      ref.current.measure((x, y, width, height, pageX, pageY) => {
+        resolve({ x: pageX, y: pageY, width, height });
+      });
+    } else {
+      // Resolve with an empty layout if the ref is not available
+      resolve({ x: 0, y: 0, width: 0, height: 0 });
+    }
+  });
+};
+
 const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
-  const xIntersect = boxA.x < boxB.x + boxB.width && boxA.x + boxA.width > boxB.x;
-  const yIntersect = boxA.y < boxB.y + boxB.height && boxA.y + boxA.height > boxB.y;
-  return xIntersect && yIntersect;
+  // Simple bounding box intersection check
+  return (
+    boxA.x < boxB.x + boxB.width &&
+    boxA.x + boxA.width > boxB.x &&
+    boxA.y < boxB.y + boxB.height &&
+    boxA.y + boxA.height > boxB.y
+  );
 };
 
 const doPositionsOverlap = (pos1: NumberPosition, pos2: NumberPosition): boolean => {
@@ -31,9 +49,10 @@ interface NumberPosition {
 
 interface CreateMathTaskProps {
   task: CreateMathTaskType;
+  handlePress: (optionId: number, isCorrect: boolean) => void;
 }
 
-export function CreateMathTask({ task }: CreateMathTaskProps) {
+export function CreateMathTask({ task, handlePress }: CreateMathTaskProps) {
   const theme = useThemeColor();
   const leftZoneRef = useRef<View>(null);
   const rightZoneRef = useRef<View>(null);
@@ -41,8 +60,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
-  const [leftZoneLayout, setLeftZoneLayout] = useState<LayoutRectangle | null>(null);
-  const [rightZoneLayout, setRightZoneLayout] = useState<LayoutRectangle | null>(null);
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
@@ -64,7 +81,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     return false;
   };
 
-  // Generate random position that doesn't overlap with existing numbers
   const generateRandomPosition = (
     existingPositions: Map<number, NumberPosition> = new Map(),
     excludeNumber?: number
@@ -78,7 +94,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     const maxHeight = 200 - DRAGGABLE_NUMBER_SIZE - margin * 2;
 
     let attempts = 0;
-    const maxAttempts = 50; // Prevent infinite loop
+    const maxAttempts = 50;
 
     while (attempts < maxAttempts) {
       const x = Math.random() * maxWidth + margin;
@@ -92,11 +108,9 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       attempts++;
     }
 
-    // Fallback: if we can't find a non-overlapping position, use a grid-based approach
     return generateGridPosition(existingPositions, excludeNumber);
   };
 
-  // Fallback grid-based positioning when random positioning fails
   const generateGridPosition = (
     existingPositions: Map<number, NumberPosition>,
     excludeNumber?: number
@@ -122,7 +136,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       }
     }
 
-    // Ultimate fallback
     return { x: margin, y: margin };
   };
 
@@ -137,7 +150,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
       setNumberPositions(initialPositions);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerLayout, numbers]);
 
   const animateNumberToRandomPosition = (number: number) => {
@@ -148,14 +160,20 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   };
 
   const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayout: LayoutRectangle): NumberPosition => {
-    // Calculate relative position within the container
     const relativeX = zoneLayout.x - containerLayout.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
     const relativeY = zoneLayout.y - containerLayout.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
 
     return { x: relativeX, y: relativeY };
   };
 
-  const handleDrop = (x: number, y: number, number: number) => {
+  const handleDrop = async (x: number, y: number, number: number) => {
+    if (leftValue === number) {
+      setLeftValue(null);
+    }
+    if (rightValue === number) {
+      setRightValue(null);
+    }
+
     const draggedItemBox: LayoutRectangle = {
       x: x - DRAGGABLE_NUMBER_SIZE / 2,
       y: y - DRAGGABLE_NUMBER_SIZE / 2,
@@ -163,53 +181,36 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       height: DRAGGABLE_NUMBER_SIZE,
     };
 
+    // Measure the drop zones at the time of the drop
+    const leftZoneLayout = await measureView(leftZoneRef);
+    const rightZoneLayout = await measureView(rightZoneRef);
+
     let snapped = false;
 
-    // Check if dropped on the left zone
-    if (leftZoneLayout && containerLayout && doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
-      if (leftValue !== null) {
-        // Animate the old number to a random position
-        animateNumberToRandomPosition(leftValue);
-      }
+    if (containerLayout && doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
+      if (leftValue !== null) animateNumberToRandomPosition(leftValue);
 
       setLeftValue(number);
-
-      // Position the number in the left drop zone
       const dropPosition = getDropZonePosition(leftZoneLayout, containerLayout);
       setNumberPositions((prev) => new Map(prev.set(number, dropPosition)));
-
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       snapped = true;
-    }
-
-    // Check if dropped on the right zone
-    if (rightZoneLayout && containerLayout && doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
-      if (rightValue !== null) {
-        // Animate the old number to a random position
-        animateNumberToRandomPosition(rightValue);
-      }
+    } else if (containerLayout && doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
+      if (rightValue !== null) animateNumberToRandomPosition(rightValue);
 
       setRightValue(number);
-
-      // Position the number in the right drop zone
       const dropPosition = getDropZonePosition(rightZoneLayout, containerLayout);
       setNumberPositions((prev) => new Map(prev.set(number, dropPosition)));
-
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       snapped = true;
     }
 
-    // If not snapped, animate back to a random position
     if (!snapped) {
       animateNumberToRandomPosition(number);
     }
   };
 
   const checkAnswers = () => {
-    console.log("Left value:", leftValue);
-    console.log("Right value:", rightValue);
-    console.log("Expected result:", task.result);
-
     if (leftValue !== null && rightValue !== null) {
       let calculatedResult;
       switch (task.operation) {
@@ -231,8 +232,8 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           calculatedResult = 0;
       }
 
-      console.log("Calculated result:", calculatedResult);
-      console.log("Is correct:", calculatedResult === task.result);
+      const isCorrect = calculatedResult === task.result;
+      handlePress(task.id, isCorrect);
     }
   };
 
@@ -261,33 +262,13 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           justifyContent: "space-between",
         }}
       >
-        <View
-          ref={leftZoneRef}
-          onLayout={() => {
-            leftZoneRef.current?.measure((x, y, width, height, pageX, pageY) => {
-              setLeftZoneLayout({ x: pageX, y: pageY, width, height });
-            });
-          }}
-          style={{ ...styles.button, borderColor: theme.border }}
-        >
-          {/* Empty - numbers will be visually positioned here */}
-        </View>
+        <View ref={leftZoneRef} style={{ ...styles.button, borderColor: theme.border }}></View>
 
         <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
           {task.operation}
         </ThemedText>
 
-        <View
-          ref={rightZoneRef}
-          onLayout={() => {
-            rightZoneRef.current?.measure((x, y, width, height, pageX, pageY) => {
-              setRightZoneLayout({ x: pageX, y: pageY, width, height });
-            });
-          }}
-          style={{ ...styles.button, borderColor: theme.border }}
-        >
-          {/* Empty - numbers will be visually positioned here */}
-        </View>
+        <View ref={rightZoneRef} style={{ ...styles.button, borderColor: theme.border }}></View>
 
         <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
           = {task.result}
@@ -305,11 +286,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       >
         {numbers.map((number) => {
           const position = numberPositions.get(number);
-
-          if (!position) {
-            return null;
-          }
-
+          if (!position) return null;
           return (
             <DraggableNumber
               key={number}
@@ -321,7 +298,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
         })}
       </View>
 
-      {/* Temporary button for testing */}
       <View style={{ marginTop: 20 }}>
         <ThemedText
           onPress={checkAnswers}
@@ -340,6 +316,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   );
 }
 
+// DraggableNumber component remains the same
 interface DraggableNumberProps {
   number: number;
   initialPosition: NumberPosition;
@@ -349,45 +326,41 @@ interface DraggableNumberProps {
 const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberProps) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
+
+  const positionX = useSharedValue(initialPosition.x);
+  const positionY = useSharedValue(initialPosition.y);
   const scale = useSharedValue(1);
-  const baseX = useSharedValue(initialPosition.x);
-  const baseY = useSharedValue(initialPosition.y);
+  const context = useSharedValue({ x: 0, y: 0 });
 
   const gradientColors = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
   const textColor = isDarkMode ? "#ffffff" : "#166534";
 
-  // Update base position when initialPosition changes
   useEffect(() => {
-    baseX.value = withSpring(initialPosition.x);
-    baseY.value = withSpring(initialPosition.y);
-  }, [baseX, baseY, initialPosition]);
+    positionX.value = withSpring(initialPosition.x);
+    positionY.value = withSpring(initialPosition.y);
+  }, [initialPosition, positionX, positionY]);
 
   const panGesture = Gesture.Pan()
     .onStart(async () => {
+      context.value = { x: positionX.value, y: positionY.value };
       scale.value = withSpring(1.4);
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     })
     .onUpdate((event) => {
-      translateX.value = event.translationX;
-      translateY.value = event.translationY;
+      positionX.value = context.value.x + event.translationX;
+      positionY.value = context.value.y + event.translationY;
     })
     .onEnd((event) => {
       const { absoluteX, absoluteY } = event;
-
       runOnJS(onDrop)(absoluteX, absoluteY);
-
-      translateX.value = withSpring(0);
-      translateY.value = withSpring(0);
       scale.value = withSpring(1);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
     position: "absolute",
-    left: baseX.value,
-    top: baseY.value,
-    transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
+    left: positionX.value,
+    top: positionY.value,
+    transform: [{ scale: scale.value }],
   }));
 
   return (
@@ -409,7 +382,14 @@ const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberPro
 };
 
 const styles = StyleSheet.create({
-  button: { width: 110, height: 110, borderWidth: 3, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  button: {
+    width: 110,
+    height: 110,
+    borderWidth: 3,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   numberContainer: {
     width: 75,
     height: 75,
