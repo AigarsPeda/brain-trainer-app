@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { CreateMathTaskType } from "@/context/app.context.reducer";
+import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -52,11 +52,11 @@ interface NumberPosition {
 }
 
 interface CreateMathTaskProps {
+  level: LevelsEnum;
   task: CreateMathTaskType;
-  handlePress: (optionId: number, isCorrect: boolean) => void;
 }
 
-export function CreateMathTask({ task, handlePress }: CreateMathTaskProps) {
+export function CreateMathTask({ task }: CreateMathTaskProps) {
   const theme = useThemeColor();
   const leftZoneRef = useRef<View>(null);
   const rightZoneRef = useRef<View>(null);
@@ -241,7 +241,8 @@ export function CreateMathTask({ task, handlePress }: CreateMathTaskProps) {
       }
 
       const isCorrect = calculatedResult === task.result;
-      handlePress(task.id, isCorrect);
+      // handlePress(task.id, isCorrect);
+      console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
     }
   };
 
