@@ -198,7 +198,7 @@ export default function GameLevelScreen() {
               task={currentTask}
               handlePress={(optionId, isCorrect) => {
                 console.log("CreateMathTask handlePress", optionId, isCorrect);
-                // setAnswer(optionId, isCorrect);
+                setAnswer(optionId, isCorrect);
               }}
             />
           )}
