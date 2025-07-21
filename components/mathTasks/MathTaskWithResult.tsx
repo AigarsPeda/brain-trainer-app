@@ -1,4 +1,6 @@
+import { MainButton } from "@/components/MainButton";
 import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
+import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import type {
@@ -11,12 +13,9 @@ import type {
 import useAppContext from "@/hooks/useAppContext";
 import { useRouter } from "expo-router";
 import { StyleSheet, useColorScheme } from "react-native";
-import { ShowResults } from "../ShowResults";
-import { MainButton } from "../MainButton";
 
 interface MathTaskWithResultProps {
   level: LevelsEnum;
-  // isLevelChecked: boolean;
   maxLevelStep: number;
   task: MultiAnswerMathTaskType;
 }
@@ -67,7 +66,6 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
       };
     }
 
-    // Default case - improved orange colors with better gradients
     return {
       background: isDarkMode ? ["#fb923c", "#f97316"] : ["#fed7aa", "#fdba74"],
       shadow: isDarkMode ? ["#ea580c", "#c2410c"] : ["#fb923c", "#f97316"],
@@ -197,9 +195,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
 
             return (
               <MathTaskButton
-                gradientColor={gradientColor}
                 key={`${option.id}-${i}`}
-                // onPress={() => handlePress(option.id, option.isCorrect)}
+                gradientColor={gradientColor}
                 onPress={() => setAnswer(option.id, option.isCorrect)}
               >
                 <ThemedText
