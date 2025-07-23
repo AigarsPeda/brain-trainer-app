@@ -12,6 +12,7 @@ import type {
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
 
 interface MathTaskWithResultProps {
@@ -28,14 +29,16 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
   const {
     dispatch,
     state: {
-      results,
       availableLevels,
       game: { currentTaskInLevel },
     },
   } = useAppContext();
 
-  const levelAnswer = results?.find((r) => r.level === level)?.tasks[currentTaskInLevel];
-  const isTaskChecked = levelAnswer?.isTaskChecked || false;
+  const [isTaskChecked, setIsTaskChecked] = useState(false);
+  const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
+
+  console.log("level", level);
+  console.log("task", task);
 
   const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
     const foundTask = answers?.find((r) => r.optionId === option.id);
@@ -72,19 +75,6 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     };
   };
 
-  const setAnswer = (optionId: number, isCorrect: boolean) => {
-    dispatch({
-      type: "SET_RESULT_FOR_TASK",
-      payload: {
-        level,
-        answer: {
-          optionId,
-          isCorrect,
-        },
-      },
-    });
-  };
-
   const goToNextLevel = () => {
     const currentLevel = Number(level);
     const nextLevel = currentLevel + 1;
@@ -93,6 +83,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
       type: "GET_NEXT_LEVEL",
       payload: {
         nextLevel,
+        stars: 2, // TODO: This is the stars calculated based on the answers
       },
     });
 
@@ -125,18 +116,22 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
   };
 
   const getNextTaskInLevel = () => {
+    setAnswer([]);
+    setIsTaskChecked(false);
+
     dispatch({
       type: "GET_NEXT_TASK_IN_LEVEL",
+      payload: {
+        stars: 2, // TODO: This is the stars calculated based on the answers
+      },
     });
   };
 
   const { currentTaskCorrectAnswers } = getCountOfCorrectAnswersAndWrong(task?.options || []);
-  const { levelAnswerWrongAnswers } = getCountOfLevelCorrectAnswersAndWrong(levelAnswer?.answers || []);
+  const { levelAnswerWrongAnswers } = getCountOfLevelCorrectAnswersAndWrong(answers);
 
-  const isAtLeastOneTaskAnswered = (levelAnswer?.answers?.length ?? 0) > 0;
-
-  const isAllAnswersCorrect =
-    currentTaskCorrectAnswers === levelAnswer?.answers.length && levelAnswerWrongAnswers === 0;
+  const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;
+  const isAllAnswersCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
 
   return (
     <>
@@ -186,7 +181,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
         </ThemedView>
         <ThemedView style={styles.itemsWrap}>
           {task.options.map((option, i) => {
-            const gradientColor = getGradientColor(option, levelAnswer?.answers);
+            const gradientColor = getGradientColor(option, answers);
 
             if (isDarkMode) {
               gradientColor.background.reverse();
@@ -197,7 +192,15 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
               <MathTaskButton
                 key={`${option.id}-${i}`}
                 gradientColor={gradientColor}
-                onPress={() => setAnswer(option.id, option.isCorrect)}
+                onPress={() => {
+                  const foundAnswer = getAnswersOfTask(answers, option);
+
+                  if (foundAnswer) {
+                    setAnswer((prev) => prev.filter((a) => a.optionId !== option.id));
+                  } else {
+                    setAnswer((prev) => [...prev, { optionId: option.id, isCorrect: option.isCorrect }]);
+                  }
+                }}
               >
                 <ThemedText
                   type="defaultSemiBold"
@@ -224,23 +227,25 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
           <MainButton
             onPress={() => {
               if (!isTaskChecked) {
-                dispatch({
-                  type: "CHECK_ANSWERS",
-                  payload: {
-                    level,
-                    currentTaskNumber: currentTaskInLevel,
-                  },
-                });
+                // dispatch({
+                //   type: "CHECK_ANSWERS",
+                //   payload: {
+                //     level,
+                //     currentTaskNumber: currentTaskInLevel,
+                //   },
+                // });
+
+                setIsTaskChecked(true);
 
                 return;
               }
 
-              if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
-                goToNextLevel();
-                return;
-              }
+              // if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
+              //   goToNextLevel();
+              //   return;
+              // }
 
-              getNextTaskInLevel();
+              // getNextTaskInLevel();
             }}
             disabled={!isAtLeastOneTaskAnswered}
           >
@@ -255,7 +260,21 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
           </MainButton>
         </ThemedView>
       )}
-      {isTaskChecked && <ShowResults isAllAnswersCorrect={isAllAnswersCorrect} onNextTaskPress={goToNextLevel} />}
+      {isTaskChecked && (
+        <ShowResults
+          isAllAnswersCorrect={isAllAnswersCorrect}
+          onNextTaskPress={() => {
+            if (maxLevelStep === currentTaskInLevel) {
+              goToNextLevel();
+              return;
+            }
+
+            console.log("Go to next level ???");
+
+            getNextTaskInLevel();
+          }}
+        />
+      )}
     </>
   );
 }

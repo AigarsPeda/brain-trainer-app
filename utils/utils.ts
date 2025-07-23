@@ -1,35 +1,11 @@
-import { TaskAnswerType } from "@/context/app.context.reducer";
-
-const calculateStars = (taskResults: TaskAnswerType[]): number => {
-  const correctAnswersCount = taskResults.filter(
-    (answer) => answer.isCorrect
-  ).length;
-
-  const totalAnswersCount = taskResults.length;
-
-  if (totalAnswersCount === 0) {
+const calculateStars = (taskResults: number, usedStars: number): number => {
+  if (taskResults === 0) {
     return 0;
   }
 
-  const correctPercentage = (correctAnswersCount / totalAnswersCount) * 100;
+  const stars = Math.floor(taskResults / usedStars);
 
-  if (correctPercentage === 100) {
-    return 5;
-  }
-
-  if (correctPercentage >= 75) {
-    return 4;
-  }
-
-  if (correctPercentage >= 50) {
-    return 3;
-  }
-
-  if (correctPercentage >= 25) {
-    return 2;
-  }
-
-  return 1;
+  return Math.max(0, Math.min(stars, 3));
 };
 
 export default calculateStars;

@@ -1,6 +1,5 @@
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
-import calculateStars from "@/utils/utils";
 import { createContext } from "react";
 
 // Level -> Multiple tasks -> One task -> Multiple answers
@@ -49,12 +48,22 @@ export type TaskAnswerType = {
   isCorrect: boolean;
 };
 
+export type TaskResultType = {
+  taskNumber: string;
+  stars: number;
+};
+
 type AppContextStateType = {
   gems: number;
   name: string;
   lives: number;
   daysInARow: number;
-  results: ResultType[];
+  results: {
+    [level: string]: {
+      tasksResults: TaskResultType[];
+    };
+  };
+
   levels: TaskInfoType[];
   availableLevels: number;
   game: { currentLevel: number; currentTaskInLevel: number };
@@ -64,7 +73,6 @@ export type AppContextActionType =
   | GetNextLevel
   | SetNameActionType
   | CreateNextLevelActionType
-  | SetResultForTaskActionType
   | SetIsCheckedForTaskActionType;
 
 export type AppContextType = {
@@ -92,16 +100,6 @@ export const ALL_TASKS: Record<LevelsEnum, TaskType[]> = {
   [LevelsEnum.LEVEL_2]: LEVEL_2,
 };
 
-type ResultType = {
-  level: string;
-  tasks: {
-    [taskNumber: string]: {
-      isTaskChecked: boolean;
-      answers: TaskAnswerType[];
-    };
-  };
-};
-
 const INITIAL_LEVEL = 1;
 const INITIAL_TASK = 1;
 const DEFAULT_STARS = 0;
@@ -119,7 +117,11 @@ const initializeLevels = (): TaskInfoType[] => {
 export const initialState: AppContextStateType = {
   gems: 0,
   lives: 5,
-  results: [],
+  results: {
+    "1": {
+      tasksResults: [],
+    },
+  },
   daysInARow: 0,
   name: "Aigars",
   game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
@@ -139,17 +141,6 @@ interface SetNameActionType {
   payload: string;
 }
 
-interface SetResultForTaskActionType {
-  type: "SET_RESULT_FOR_TASK";
-  payload: {
-    level: string;
-    answer: {
-      optionId: number;
-      isCorrect: boolean;
-    };
-  };
-}
-
 interface SetIsCheckedForTaskActionType {
   type: "CHECK_ANSWERS";
   payload: {
@@ -160,12 +151,16 @@ interface SetIsCheckedForTaskActionType {
 
 interface CreateNextLevelActionType {
   type: "GET_NEXT_TASK_IN_LEVEL";
+  payload: {
+    stars: number; // This is the stars calculated based on the answers
+  };
 }
 
 interface GetNextLevel {
   type: "GET_NEXT_LEVEL";
   payload: {
     nextLevel: number;
+    stars: number; // Optional, if you want to pass stars for the next level
   };
 }
 
@@ -174,83 +169,18 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
     case "SET_NAME":
       return { ...state, name: action.payload };
 
-    case "SET_RESULT_FOR_TASK": {
-      const { level, answer } = action.payload;
-      const foundAnswer = state.results.find((r) => r.level === level);
-
-      if (!foundAnswer) {
-        return {
-          ...state,
-          results: [
-            ...state.results,
-            {
-              level,
-              tasks: {
-                [state.game.currentTaskInLevel]: {
-                  isTaskChecked: false,
-                  answers: [answer],
-                },
-              },
-            },
-          ],
-        };
-      }
-
-      const levelAnswers = foundAnswer.tasks;
-      const currentTask = levelAnswers[state.game.currentTaskInLevel];
-
-      const updatedAnswers = currentTask?.answers?.some((r) => r.optionId === answer.optionId)
-        ? currentTask.answers.filter((r) => r.optionId !== answer.optionId)
-        : [...(currentTask?.answers || []), answer];
-
-      return {
-        ...state,
-        results: state.results.map((r) =>
-          r.level === level
-            ? {
-                ...r,
-                tasks: {
-                  ...r.tasks,
-                  [state.game.currentTaskInLevel]: {
-                    ...r.tasks[state.game.currentTaskInLevel],
-                    answers: updatedAnswers,
-                  },
-                },
-              }
-            : r
-        ),
-      };
-    }
-
-    case "CHECK_ANSWERS": {
-      const { level, currentTaskNumber } = action.payload;
-      const foundAnswer = state.results.find((r) => r.level === level);
-      const levelAnswers = foundAnswer?.tasks || {};
-      const currentTask = levelAnswers[currentTaskNumber] || {};
-
-      const updatedTask = {
-        ...currentTask,
-        isTaskChecked: true,
-      };
-
-      return {
-        ...state,
-        results: state.results.map((r) =>
-          r.level === level
-            ? {
-                ...r,
-                tasks: {
-                  ...r.tasks,
-                  [currentTaskNumber]: updatedTask,
-                },
-              }
-            : r
-        ),
-      };
-    }
-
     case "GET_NEXT_TASK_IN_LEVEL": {
+      const { stars } = action.payload;
       const nextLevelNumber = state.game.currentTaskInLevel + 1;
+
+      const foundLevel = state.results[state.game.currentLevel?.toString() || "1"] ?? {
+        tasksResults: [],
+      };
+
+      foundLevel.tasksResults.push({
+        taskNumber: state.game.currentTaskInLevel.toString(),
+        stars: stars || 0, // TODO: calculate based on answers
+      });
 
       return {
         ...state,
@@ -258,58 +188,49 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
           ...state.game,
           currentTaskInLevel: nextLevelNumber,
         },
-        results: [
-          ...state.results,
-          {
-            level: state.game.currentLevel.toString(),
-            tasks: {
-              [nextLevelNumber]: {
-                isTaskChecked: false,
-                answers: [],
-              },
-            },
-          },
-        ],
       };
     }
 
     case "GET_NEXT_LEVEL": {
-      const { nextLevel } = action.payload;
-
-      // get all answers for the current level
-      const currentLevelAnswers = state.results.find((r) => r.level === state.game.currentLevel.toString());
-
-      if (!currentLevelAnswers) {
-        return state;
-      }
-
-      const allLevelResult = Object.values(currentLevelAnswers?.tasks).reduce<TaskAnswerType[]>((acc, task) => {
-        return acc.concat(task.answers);
-      }, []);
-
-      const updatedTaskInfos = state.levels.map((t) => {
-        if (t.levelNumber === state.game.currentLevel) {
-          return {
-            ...t,
-            stars: calculateStars(allLevelResult),
-            isLevelCompleted: true,
-          };
-        } else if (t.levelNumber === nextLevel) {
-          return {
-            ...t,
-            isLevelLocked: false,
-          };
-        }
-        return t;
-      });
+      const { nextLevel, stars } = action.payload;
+      const currentLevel = state.game.currentLevel;
+      const currentTaskInLevel = state.game.currentTaskInLevel;
 
       return {
         ...state,
         game: {
-          currentTaskInLevel: 1,
-          currentLevel: nextLevel,
+          currentTaskInLevel: 1, // Reset the task number for the next level
+          currentLevel: nextLevel, // Update the current level to the next level
         },
-        levels: updatedTaskInfos,
+        results: {
+          ...state.results,
+          [currentLevel.toString()]: {
+            tasksResults: [
+              ...(state.results[currentLevel.toString()]?.tasksResults || []),
+              {
+                taskNumber: currentTaskInLevel.toString(),
+                stars: stars || 0, // Add stars for the current task TODO: calculate based on answers
+              },
+            ],
+          },
+          [nextLevel.toString()]: {
+            tasksResults: [], // Initialize the next level's tasksResults as an empty array
+          },
+        },
+        levels: state.levels.map((level) =>
+          level.levelNumber === currentLevel
+            ? {
+                ...level,
+                stars: 4, // Set stars for the current level TODO: calculate based on answers
+                isLevelCompleted: true, // Mark the current level as completed
+              }
+            : level.levelNumber === nextLevel
+              ? {
+                  ...level,
+                  isLevelLocked: false, // Unlock the next level
+                }
+              : level
+        ),
       };
     }
 
