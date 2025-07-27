@@ -50,7 +50,7 @@ export type TaskAnswerType = {
 
 export type TaskResultType = {
   taskNumber: string;
-  stars: number;
+  correctnessPercentage: number;
 };
 
 type AppContextStateType = {
@@ -152,7 +152,7 @@ interface SetIsCheckedForTaskActionType {
 interface CreateNextLevelActionType {
   type: "GET_NEXT_TASK_IN_LEVEL";
   payload: {
-    stars: number; // This is the stars calculated based on the answers
+    correctnessPercentage: number; // Percentage of correct answers
   };
 }
 
@@ -160,7 +160,7 @@ interface GetNextLevel {
   type: "GET_NEXT_LEVEL";
   payload: {
     nextLevel: number;
-    stars: number; // Optional, if you want to pass stars for the next level
+    correctnessPercentage: number; // Percentage of correct answers
   };
 }
 
@@ -170,7 +170,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return { ...state, name: action.payload };
 
     case "GET_NEXT_TASK_IN_LEVEL": {
-      const { stars } = action.payload;
+      const { correctnessPercentage } = action.payload;
       const nextLevelNumber = state.game.currentTaskInLevel + 1;
 
       const foundLevel = state.results[state.game.currentLevel?.toString() || "1"] ?? {
@@ -179,7 +179,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       foundLevel.tasksResults.push({
         taskNumber: state.game.currentTaskInLevel.toString(),
-        stars: stars || 0, // TODO: calculate based on answers
+        correctnessPercentage,
       });
 
       return {
@@ -192,36 +192,54 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
     }
 
     case "GET_NEXT_LEVEL": {
-      const { nextLevel, stars } = action.payload;
+      const { nextLevel, correctnessPercentage } = action.payload;
       const currentLevel = state.game.currentLevel;
       const currentTaskInLevel = state.game.currentTaskInLevel;
 
-      return {
+      const calculateStars = (tasksResults: TaskResultType[]): number => {
+        const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
+
+        if (totalPercentage >= 90) {
+          return 5;
+        } else if (totalPercentage >= 75) {
+          return 4;
+        } else if (totalPercentage >= 60) {
+          return 3;
+        } else if (totalPercentage >= 40) {
+          return 2;
+        } else {
+          return 1;
+        }
+      };
+
+      const newResults = {
+        ...state.results,
+        [currentLevel.toString()]: {
+          tasksResults: [
+            ...(state.results[currentLevel.toString()]?.tasksResults || []),
+            {
+              taskNumber: currentTaskInLevel.toString(),
+              correctnessPercentage,
+            },
+          ],
+        },
+        [nextLevel.toString()]: {
+          tasksResults: [], // Initialize the next level's tasksResults as an empty array
+        },
+      };
+
+      const newState = {
         ...state,
         game: {
-          currentTaskInLevel: 1, // Reset the task number for the next level
+          currentTaskInLevel: 1, // Reset the task number for the next level (use number, not string)
           currentLevel: nextLevel, // Update the current level to the next level
         },
-        results: {
-          ...state.results,
-          [currentLevel.toString()]: {
-            tasksResults: [
-              ...(state.results[currentLevel.toString()]?.tasksResults || []),
-              {
-                taskNumber: currentTaskInLevel.toString(),
-                stars: stars || 0, // Add stars for the current task TODO: calculate based on answers
-              },
-            ],
-          },
-          [nextLevel.toString()]: {
-            tasksResults: [], // Initialize the next level's tasksResults as an empty array
-          },
-        },
+        results: newResults,
         levels: state.levels.map((level) =>
           level.levelNumber === currentLevel
             ? {
                 ...level,
-                stars: 4, // Set stars for the current level TODO: calculate based on answers
+                stars: calculateStars(newResults[currentLevel.toString()].tasksResults),
                 isLevelCompleted: true, // Mark the current level as completed
               }
             : level.levelNumber === nextLevel
@@ -232,6 +250,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
               : level
         ),
       };
+
+      return newState;
     }
 
     default: {

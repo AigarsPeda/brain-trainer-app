@@ -37,8 +37,23 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
   const [isTaskChecked, setIsTaskChecked] = useState(false);
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
 
-  console.log("level", level);
-  console.log("task", task);
+  const calculatePercentageInTask = (
+    answers: TaskAnswerType[],
+    options: TaskOptionType[],
+    maxLevelStep: number
+  ): number => {
+    const totalCorrectOptions = options.filter((o) => o.isCorrect).length;
+    const correctAnswers = answers.filter((a) => a.isCorrect).length;
+
+    if (totalCorrectOptions === 0) {
+      return 0;
+    }
+
+    const taskPercentage = (correctAnswers / totalCorrectOptions) * 100;
+    const weightedPercentage = taskPercentage / maxLevelStep;
+
+    return parseFloat(weightedPercentage.toFixed(2));
+  };
 
   const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
     const foundTask = answers?.find((r) => r.optionId === option.id);
@@ -83,7 +98,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
       type: "GET_NEXT_LEVEL",
       payload: {
         nextLevel,
-        stars: 2, // TODO: This is the stars calculated based on the answers
+        correctnessPercentage: calculatePercentageInTask(answers, task.options, maxLevelStep),
       },
     });
 
@@ -122,7 +137,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     dispatch({
       type: "GET_NEXT_TASK_IN_LEVEL",
       payload: {
-        stars: 2, // TODO: This is the stars calculated based on the answers
+        correctnessPercentage: calculatePercentageInTask(answers, task.options, maxLevelStep),
       },
     });
   };
