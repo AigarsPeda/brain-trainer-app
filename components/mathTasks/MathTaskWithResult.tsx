@@ -11,6 +11,7 @@ import type {
   TaskOptionType,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { getAnswersOfTask, getGradientColor } from "@/utils/utils";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
@@ -34,7 +35,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     },
   } = useAppContext();
 
-  const [isTaskChecked, setIsTaskChecked] = useState(false);
+  const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
 
   const calculatePercentageInTask = (
@@ -55,39 +56,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     return parseFloat(weightedPercentage.toFixed(2));
   };
 
-  const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
-    const foundTask = answers?.find((r) => r.optionId === option.id);
-    return foundTask;
-  };
-
-  const getGradientColor = (option: TaskOptionType, answers: TaskAnswerType[] | undefined) => {
-    const foundAnswer = getAnswersOfTask(answers, option);
-
-    if (!foundAnswer) {
-      return {
-        background: isDarkMode ? ["#64748b", "#475569"] : ["#f1f5f9", "#e2e8f0"],
-        shadow: isDarkMode ? ["#334155", "#1e293b"] : ["#cbd5e1", "#94a3b8"],
-      };
-    }
-
-    if (foundAnswer.isCorrect && isTaskChecked) {
-      return {
-        background: isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"],
-        shadow: isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"],
-      };
-    }
-
-    if (!foundAnswer.isCorrect && isTaskChecked) {
-      return {
-        background: isDarkMode ? ["#ef4444", "#dc2626"] : ["#fecaca", "#fca5a5"],
-        shadow: isDarkMode ? ["#b91c1c", "#991b1b"] : ["#f87171", "#ef4444"],
-      };
-    }
-
-    return {
-      background: isDarkMode ? ["#fb923c", "#f97316"] : ["#fed7aa", "#fdba74"],
-      shadow: isDarkMode ? ["#ea580c", "#c2410c"] : ["#fb923c", "#f97316"],
-    };
+  const setDisplayTaskResultsVisibility = () => {
+    setDisplayTaskResults(true);
   };
 
   const goToNextLevel = () => {
@@ -132,7 +102,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
 
   const getNextTaskInLevel = () => {
     setAnswer([]);
-    setIsTaskChecked(false);
+    setDisplayTaskResults(false);
 
     dispatch({
       type: "GET_NEXT_TASK_IN_LEVEL",
@@ -196,7 +166,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
         </ThemedView>
         <ThemedView style={styles.itemsWrap}>
           {task.options.map((option, i) => {
-            const gradientColor = getGradientColor(option, answers);
+            const gradientColor = getGradientColor(option, answers, isDarkMode, displayTaskResults);
 
             if (isDarkMode) {
               gradientColor.background.reverse();
@@ -230,7 +200,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
           })}
         </ThemedView>
       </ThemedView>
-      {!isTaskChecked && (
+      {!displayTaskResults ? (
         <ThemedView
           style={{
             display: "flex",
@@ -239,43 +209,18 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
             justifyContent: "center",
           }}
         >
-          <MainButton
-            onPress={() => {
-              if (!isTaskChecked) {
-                // dispatch({
-                //   type: "CHECK_ANSWERS",
-                //   payload: {
-                //     level,
-                //     currentTaskNumber: currentTaskInLevel,
-                //   },
-                // });
-
-                setIsTaskChecked(true);
-
-                return;
-              }
-
-              // if (isTaskChecked && maxLevelStep === currentTaskInLevel) {
-              //   goToNextLevel();
-              //   return;
-              // }
-
-              // getNextTaskInLevel();
-            }}
-            disabled={!isAtLeastOneTaskAnswered}
-          >
+          <MainButton disabled={!isAtLeastOneTaskAnswered} onPress={setDisplayTaskResultsVisibility}>
             <ThemedText
               type="defaultSemiBold"
               style={{
                 fontSize: 20,
               }}
             >
-              {isTaskChecked ? "Nākamais uzdevums" : "Pārbaudīt"}
+              {displayTaskResults ? "Nākamais uzdevums" : "Pārbaudīt"}
             </ThemedText>
           </MainButton>
         </ThemedView>
-      )}
-      {isTaskChecked && (
+      ) : (
         <ShowResults
           isAllAnswersCorrect={isAllAnswersCorrect}
           onNextTaskPress={() => {
@@ -283,8 +228,6 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
               goToNextLevel();
               return;
             }
-
-            console.log("Go to next level ???");
 
             getNextTaskInLevel();
           }}
