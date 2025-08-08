@@ -4,10 +4,10 @@ import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import { useEffect, useMemo, useRef, useState } from "react";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
@@ -69,97 +69,107 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
   const numbers = useMemo(() => task.options.map((item) => Number(item.number)), [task.options]);
 
-  const isPositionOccupied = (
-    newPosition: NumberPosition,
-    existingPositions: Map<number, NumberPosition>,
-    excludeNumber?: number
-  ): boolean => {
-    for (const [number, position] of existingPositions) {
-      if (excludeNumber && number === excludeNumber) {
-        continue;
-      }
-      if (doPositionsOverlap(newPosition, position)) {
-        return true;
-      }
-    }
-    return false;
-  };
+  // ensure we only initialize once after container layout is available
+  const initializedRef = useRef(false);
 
-  const generateRandomPosition = (
-    existingPositions: Map<number, NumberPosition> = new Map(),
-    excludeNumber?: number
-  ): NumberPosition => {
-    if (!containerLayout) {
-      return { x: 0, y: 0 };
-    }
-
-    const margin = 20;
-    const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - margin * 2;
-    const maxHeight = 200 - DRAGGABLE_NUMBER_SIZE - margin * 2;
-
-    let attempts = 0;
-    const maxAttempts = 50;
-
-    while (attempts < maxAttempts) {
-      const x = Math.random() * maxWidth + margin;
-      const y = Math.random() * maxHeight + margin;
-      const newPosition = { x, y };
-
-      if (!isPositionOccupied(newPosition, existingPositions, excludeNumber)) {
-        return newPosition;
-      }
-
-      attempts++;
-    }
-
-    return generateGridPosition(existingPositions, excludeNumber);
-  };
-
-  const generateGridPosition = (
-    existingPositions: Map<number, NumberPosition>,
-    excludeNumber?: number
-  ): NumberPosition => {
-    if (!containerLayout) {
-      return { x: 0, y: 0 };
-    }
-
-    const margin = 20;
-    const spacing = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
-    const cols = Math.floor((containerLayout.width - margin * 2) / spacing);
-    const rows = Math.floor((200 - margin * 2) / spacing);
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const x = margin + col * spacing;
-        const y = margin + row * spacing;
-        const position = { x, y };
-
-        if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
-          return position;
+  const isPositionOccupied = useCallback(
+    (newPosition: NumberPosition, existingPositions: Map<number, NumberPosition>, excludeNumber?: number): boolean => {
+      for (const [num, position] of existingPositions) {
+        if (excludeNumber !== undefined && num === excludeNumber) {
+          continue;
+        }
+        if (doPositionsOverlap(newPosition, position)) {
+          return true;
         }
       }
-    }
+      return false;
+    },
+    []
+  );
 
-    return { x: margin, y: margin };
-  };
+  const generateGridPosition = useCallback(
+    (existingPositions: Map<number, NumberPosition>, excludeNumber?: number): NumberPosition => {
+      if (!containerLayout) {
+        return { x: 0, y: 0 };
+      }
+
+      const margin = 20;
+      const spacing = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
+      const cols = Math.floor((containerLayout.width - margin * 2) / spacing);
+      const rows = Math.floor((200 - margin * 2) / spacing);
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const x = margin + col * spacing;
+          const y = margin + row * spacing;
+          const position = { x, y };
+
+          if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
+            return position;
+          }
+        }
+      }
+
+      return { x: margin, y: margin };
+    },
+    [containerLayout, isPositionOccupied]
+  );
+
+  const generateRandomPosition = useCallback(
+    (existingPositions: Map<number, NumberPosition> = new Map(), excludeNumber?: number): NumberPosition => {
+      if (!containerLayout) {
+        return { x: 0, y: 0 };
+      }
+
+      const margin = 20;
+      const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - margin * 2;
+      const maxHeight = 200 - DRAGGABLE_NUMBER_SIZE - margin * 2;
+
+      let attempts = 0;
+      const maxAttempts = 50;
+
+      while (attempts < maxAttempts) {
+        const x = Math.random() * maxWidth + margin;
+        const y = Math.random() * maxHeight + margin;
+        const newPosition = { x, y };
+
+        if (!isPositionOccupied(newPosition, existingPositions, excludeNumber)) {
+          return newPosition;
+        }
+
+        attempts++;
+      }
+
+      return generateGridPosition(existingPositions, excludeNumber);
+    },
+    [containerLayout, isPositionOccupied, generateGridPosition]
+  );
 
   useEffect(() => {
-    if (containerLayout) {
-      const initialPositions = new Map<number, NumberPosition>();
-
-      numbers.forEach((number) => {
-        const position = generateRandomPosition(initialPositions);
-        initialPositions.set(number, position);
-      });
-
-      setNumberPositions(initialPositions);
+    if (!containerLayout) {
+      return;
     }
-  }, [containerLayout, numbers]);
+    if (initializedRef.current) {
+      return;
+    }
 
-  const animateNumberToRandomPosition = (number: number) => {
+    const initialPositions = new Map<number, NumberPosition>();
+
+    numbers.forEach((number) => {
+      const position = generateRandomPosition(initialPositions);
+      initialPositions.set(number, position);
+    });
+
+    setNumberPositions(initialPositions);
+    initializedRef.current = true;
+  }, [containerLayout, numbers, generateRandomPosition]);
+
+  const animateNumberToRandomPosition = (num: number) => {
     setNumberPositions((prev) => {
-      const newPosition = generateRandomPosition(prev, number);
-      return new Map(prev.set(number, newPosition));
+      const cloned = new Map(prev);
+      const newPosition = generateRandomPosition(prev, num);
+      cloned.set(num, newPosition);
+      return cloned;
     });
   };
 
