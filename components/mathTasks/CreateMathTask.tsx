@@ -404,6 +404,13 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     transform: [{ scale: scale.value }],
   }));
 
+  const dragColorDark = isSnappedRef.current
+    ? "rgba(34,197,94,0.22)" // success (dark)
+    : "rgba(34,211,238,0.22)"; // drag (dark)
+  const dragColorLight = isSnappedRef.current
+    ? "rgba(34,197,94,0.16)" // success (light)
+    : "rgba(34,211,238,0.18)"; // drag (light)
+
   const overlayStyle = useAnimatedStyle(() => ({
     top: 0,
     left: 0,
@@ -411,7 +418,7 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     bottom: 0,
     borderRadius: 8,
     position: "absolute",
-    backgroundColor: isDarkMode ? "rgba(34,197,94,0.18)" : "rgba(216,30,91,0.18)",
+    backgroundColor: isDarkMode ? dragColorDark : dragColorLight,
     opacity: withSpring(isDragging.value ? 1 : 0, { damping: 12, stiffness: 180 }),
   }));
 
@@ -424,7 +431,6 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
           end={{ x: 0.5, y: 1 }}
           style={styles.numberContainer}
         >
-          {/* overlay sits on top of the gradient and changes when dragging */}
           <Animated.View style={overlayStyle} pointerEvents="none" />
           <ThemedText type="defaultSemiBold" style={{ fontSize: 32, color: textColor, textAlign: "center" }}>
             {number}
