@@ -4,7 +4,7 @@ import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -24,14 +24,12 @@ const measureView = (ref: React.RefObject<View | null>): Promise<LayoutRectangle
         resolve({ x: pageX, y: pageY, width, height });
       });
     } else {
-      // Resolve with an empty layout if the ref is not available
       resolve({ x: 0, y: 0, width: 0, height: 0 });
     }
   });
 };
 
 const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
-  // Simple bounding box intersection check
   return (
     boxA.x < boxB.x + boxB.width &&
     boxA.x + boxA.width > boxB.x &&
@@ -58,9 +56,9 @@ interface CreateMathTaskProps {
 
 export function CreateMathTask({ task }: CreateMathTaskProps) {
   const theme = useThemeColor();
-  const leftZoneRef = useRef<View>(null);
-  const rightZoneRef = useRef<View>(null);
-  const containerRef = useRef<View>(null);
+  const leftZoneRef = useRef<View | null>(null);
+  const rightZoneRef = useRef<View | null>(null);
+  const containerRef = useRef<View | null>(null);
 
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
@@ -208,7 +206,11 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
       setLeftValue(number);
       const dropPosition = getDropZonePosition(leftZoneLayout, containerLayout);
-      setNumberPositions((prev) => new Map(prev.set(number, dropPosition)));
+      setNumberPositions((prev) => {
+        const cloned = new Map(prev);
+        cloned.set(number, dropPosition);
+        return cloned;
+      });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       snapped = true;
     } else if (containerLayout && doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
@@ -218,7 +220,11 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
       setRightValue(number);
       const dropPosition = getDropZonePosition(rightZoneLayout, containerLayout);
-      setNumberPositions((prev) => new Map(prev.set(number, dropPosition)));
+      setNumberPositions((prev) => {
+        const cloned = new Map(prev);
+        cloned.set(number, dropPosition);
+        return cloned;
+      });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       snapped = true;
     }
@@ -251,7 +257,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       }
 
       const isCorrect = calculatedResult === task.result;
-      // handlePress(task.id, isCorrect);
       console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
     }
   };
@@ -281,13 +286,13 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
           justifyContent: "space-between",
         }}
       >
-        <View ref={leftZoneRef} style={{ ...styles.button, borderColor: theme.border }}></View>
+        <View ref={leftZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
 
         <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
           {task.operation}
         </ThemedText>
 
-        <View ref={rightZoneRef} style={{ ...styles.button, borderColor: theme.border }}></View>
+        <View ref={rightZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
 
         <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
           = {task.result}
@@ -297,7 +302,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
       <View
         ref={containerRef}
         onLayout={() => {
-          containerRef.current?.measure((x, y, width, height, pageX, pageY) => {
+          containerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
             setContainerLayout({ x: pageX, y: pageY, width, height });
           });
         }}
@@ -313,6 +318,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
               key={number}
               number={number}
               initialPosition={position}
+              isSnapped={leftValue === number || rightValue === number}
               onDrop={(x, y) => handleDrop(x, y, number)}
             />
           );
@@ -337,14 +343,14 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
   );
 }
 
-// DraggableNumber component remains the same
 interface DraggableNumberProps {
   number: number;
   initialPosition: NumberPosition;
   onDrop: (x: number, y: number) => void;
+  isSnapped: boolean;
 }
 
-const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberProps) => {
+const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: DraggableNumberProps) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
@@ -352,19 +358,29 @@ const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberPro
   const positionY = useSharedValue(initialPosition.y);
   const scale = useSharedValue(1);
   const context = useSharedValue({ x: 0, y: 0 });
+  const isDragging = useSharedValue(false);
+  const zIndex = useSharedValue(0);
 
-  const gradientColors = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
-  const textColor = isDarkMode ? "#ffffff" : "#166534";
+  const isSnappedRef = useRef(isSnapped);
+  useEffect(() => {
+    isSnappedRef.current = isSnapped;
+    scale.value = withSpring(isSnapped ? 1.4 : 1);
+  }, [isSnapped, scale]);
 
   useEffect(() => {
     positionX.value = withSpring(initialPosition.x);
     positionY.value = withSpring(initialPosition.y);
   }, [initialPosition, positionX, positionY]);
 
+  const gradientColors = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
+  const textColor = isDarkMode ? "#ffffff" : "#166534";
+
   const panGesture = Gesture.Pan()
     .onStart(async () => {
       context.value = { x: positionX.value, y: positionY.value };
-      scale.value = withSpring(1.4);
+      isDragging.value = true;
+      scale.value = withSpring(1.7);
+      zIndex.value = 999;
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     })
     .onUpdate((event) => {
@@ -374,14 +390,29 @@ const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberPro
     .onEnd((event) => {
       const { absoluteX, absoluteY } = event;
       runOnJS(onDrop)(absoluteX, absoluteY);
-      scale.value = withSpring(1);
+      zIndex.value = 0;
+      isDragging.value = false;
+      scale.value = withSpring(isSnappedRef.current ? 1.4 : 1);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
     position: "absolute",
-    left: positionX.value,
     top: positionY.value,
+    zIndex: zIndex.value,
+    left: positionX.value,
+    elevation: zIndex.value,
     transform: [{ scale: scale.value }],
+  }));
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 8,
+    position: "absolute",
+    backgroundColor: isDarkMode ? "rgba(34,197,94,0.18)" : "rgba(216,30,91,0.18)",
+    opacity: withSpring(isDragging.value ? 1 : 0, { damping: 12, stiffness: 180 }),
   }));
 
   return (
@@ -393,6 +424,8 @@ const DraggableNumber = ({ number, initialPosition, onDrop }: DraggableNumberPro
           end={{ x: 0.5, y: 1 }}
           style={styles.numberContainer}
         >
+          {/* overlay sits on top of the gradient and changes when dragging */}
+          <Animated.View style={overlayStyle} pointerEvents="none" />
           <ThemedText type="defaultSemiBold" style={{ fontSize: 32, color: textColor, textAlign: "center" }}>
             {number}
           </ThemedText>
