@@ -361,11 +361,14 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
   const isDragging = useSharedValue(false);
   const zIndex = useSharedValue(0);
 
-  const isSnappedRef = useRef(isSnapped);
+  // use a shared value (not a React ref) for data accessed in worklets
+  const isSnappedSV = useSharedValue(isSnapped);
+
   useEffect(() => {
-    isSnappedRef.current = isSnapped;
+    // update shared value from JS thread when prop changes
+    isSnappedSV.value = isSnapped;
     scale.value = withSpring(isSnapped ? 1.4 : 1);
-  }, [isSnapped, scale]);
+  }, [isSnapped, scale, isSnappedSV]);
 
   useEffect(() => {
     positionX.value = withSpring(initialPosition.x);
@@ -392,7 +395,8 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
       runOnJS(onDrop)(absoluteX, absoluteY);
       zIndex.value = 0;
       isDragging.value = false;
-      scale.value = withSpring(isSnappedRef.current ? 1.4 : 1);
+      // read the shared value inside the worklet
+      scale.value = withSpring(isSnappedSV.value ? 1.4 : 1);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -404,12 +408,8 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     transform: [{ scale: scale.value }],
   }));
 
-  const dragColorDark = isSnappedRef.current
-    ? "rgba(34,197,94,0.22)" // success (dark)
-    : "rgba(34,211,238,0.22)"; // drag (dark)
-  const dragColorLight = isSnappedRef.current
-    ? "rgba(34,197,94,0.16)" // success (light)
-    : "rgba(34,211,238,0.18)"; // drag (light)
+  const dragColorDark = isSnapped ? "rgba(34,197,94,0.22)" : "rgba(34,211,238,0.22)";
+  const dragColorLight = isSnapped ? "rgba(34,197,94,0.16)" : "rgba(34,211,238,0.18)";
 
   const overlayStyle = useAnimatedStyle(() => ({
     top: 0,
