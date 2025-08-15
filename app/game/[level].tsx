@@ -56,7 +56,7 @@ export default function GameLevelScreen() {
     <ThemedView
       style={{
         flex: 1,
-        alignItems: "center",
+        // alignItems: "center",
         paddingTop: insets.top + 16,
         paddingBottom: insets.bottom + 25,
       }}
@@ -94,12 +94,10 @@ export default function GameLevelScreen() {
           justifyContent: "space-between",
         }}
       >
-        <>
-          {isMultiAnswerMathTask(currentTask) && (
-            <MathTaskWithResult level={level} maxLevelStep={maxLevelStep} task={currentTask} />
-          )}
-          {isCreateMathTask(currentTask) && <CreateMathTask level={level} task={currentTask} />}
-        </>
+        {isMultiAnswerMathTask(currentTask) && (
+          <MathTaskWithResult level={level} maxLevelStep={maxLevelStep} task={currentTask} />
+        )}
+        {isCreateMathTask(currentTask) && <CreateMathTask level={level} task={currentTask} />}
       </ThemedView>
     </ThemedView>
   );

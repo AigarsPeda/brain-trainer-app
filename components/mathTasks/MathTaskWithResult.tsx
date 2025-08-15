@@ -57,7 +57,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
   };
 
   const setDisplayTaskResultsVisibility = () => {
-    setDisplayTaskResults(true);
+    setDisplayTaskResults((state) => !state);
   };
 
   const goToNextLevel = () => {

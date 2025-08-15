@@ -8,6 +8,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { MainButton } from "../MainButton";
+import { ShowResults } from "../ShowResults";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
@@ -62,6 +64,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
+  const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
@@ -69,6 +72,12 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
   // ensure we only initialize once after container layout is available
   const initializedRef = useRef(false);
+
+  const isBothValuesSet = leftValue !== null && rightValue !== null;
+
+  const setDisplayTaskResultsVisibility = () => {
+    setDisplayTaskResults((state) => !state);
+  };
 
   const isPositionOccupied = useCallback(
     (newPosition: NumberPosition, existingPositions: Map<number, NumberPosition>, excludeNumber?: number): boolean => {
@@ -234,112 +243,138 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     }
   };
 
-  const checkAnswers = () => {
-    if (leftValue !== null && rightValue !== null) {
-      let calculatedResult;
-      switch (task.operation) {
-        case "+":
-          calculatedResult = leftValue + rightValue;
-          break;
-        case "-":
-          calculatedResult = leftValue - rightValue;
-          break;
-        case "×":
-        case "*":
-          calculatedResult = leftValue * rightValue;
-          break;
-        case "÷":
-        case "/":
-          calculatedResult = leftValue / rightValue;
-          break;
-        default:
-          calculatedResult = 0;
-      }
-
-      const isCorrect = calculatedResult === task.result;
-      console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
+  const checkAnswers = (): boolean => {
+    if (leftValue === null || rightValue === null) {
+      return false;
     }
+
+    let calculatedResult: number;
+    switch (task.operation) {
+      case "+":
+        calculatedResult = leftValue + rightValue;
+        break;
+      case "-":
+        calculatedResult = leftValue - rightValue;
+        break;
+      case "×":
+      case "*":
+        calculatedResult = leftValue * rightValue;
+        break;
+      case "÷":
+      case "/":
+        calculatedResult = leftValue / rightValue;
+        break;
+      default:
+        calculatedResult = 0;
+    }
+
+    const isCorrect = calculatedResult === task.result;
+    console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
+    return isCorrect;
   };
 
   return (
-    <ThemedView>
-      <ThemedView
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          gap: 6,
-        }}
-      >
-        <ThemedText type="subtitle">Izveido</ThemedText>
-        <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
-          vienādojumu
-        </ThemedText>
-      </ThemedView>
-
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 16,
-          paddingTop: 30,
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <View ref={leftZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
-
-        <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
-          {task.operation}
-        </ThemedText>
-
-        <View ref={rightZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
-
-        <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
-          = {task.result}
-        </ThemedText>
-      </View>
-
-      <View
-        ref={containerRef}
-        onLayout={() => {
-          containerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
-            setContainerLayout({ x: pageX, y: pageY, width, height });
-          });
-        }}
-        style={{ height: 200, marginTop: 50, position: "relative" }}
-      >
-        {numbers.map((number) => {
-          const position = numberPositions.get(number);
-          if (!position) {
-            return null;
-          }
-          return (
-            <DraggableNumber
-              key={number}
-              number={number}
-              initialPosition={position}
-              isSnapped={leftValue === number || rightValue === number}
-              onDrop={(x, y) => handleDrop(x, y, number)}
-            />
-          );
-        })}
-      </View>
-
-      <View style={{ marginTop: 20 }}>
-        <ThemedText
-          onPress={checkAnswers}
+    <>
+      <ThemedView>
+        <ThemedView
           style={{
-            padding: 10,
-            backgroundColor: theme.tint,
-            color: "white",
-            textAlign: "center",
-            borderRadius: 8,
+            width: "100%",
+            display: "flex",
+            flexDirection: "row",
+            gap: 6,
           }}
         >
-          Check Answers (Debug)
-        </ThemedText>
-      </View>
-    </ThemedView>
+          <ThemedText type="subtitle">Izveido</ThemedText>
+          <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
+            vienādojumu
+          </ThemedText>
+        </ThemedView>
+
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 16,
+            paddingTop: 30,
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View ref={leftZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
+
+          <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
+            {task.operation}
+          </ThemedText>
+
+          <View ref={rightZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
+
+          <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
+            = {task.result}
+          </ThemedText>
+        </View>
+
+        <View
+          ref={containerRef}
+          onLayout={() => {
+            containerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
+              setContainerLayout({ x: pageX, y: pageY, width, height });
+            });
+          }}
+          style={{ height: 200, marginTop: 50, position: "relative" }}
+        >
+          {numbers.map((number) => {
+            const position = numberPositions.get(number);
+            if (!position) {
+              return null;
+            }
+            return (
+              <DraggableNumber
+                key={number}
+                number={number}
+                initialPosition={position}
+                isSnapped={leftValue === number || rightValue === number}
+                onDrop={(x, y) => handleDrop(x, y, number)}
+              />
+            );
+          })}
+        </View>
+      </ThemedView>
+      {!displayTaskResults ? (
+        <ThemedView
+          style={{
+            display: "flex",
+            marginBottom: 26,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {/* <MainButton disabled={!isBothValuesSet} onPress={checkAnswers}> */}
+          <MainButton disabled={!isBothValuesSet} onPress={setDisplayTaskResultsVisibility}>
+            <ThemedText
+              type="defaultSemiBold"
+              style={{
+                fontSize: 20,
+              }}
+            >
+              {displayTaskResults ? "Nākamais uzdevums" : "Pārbaudīt"}
+            </ThemedText>
+          </MainButton>
+        </ThemedView>
+      ) : (
+        <ShowResults
+          // isAllAnswersCorrect={isAllAnswersCorrect}
+          isAllAnswersCorrect={checkAnswers()}
+          onNextTaskPress={() => {
+            // if (maxLevelStep === currentTaskInLevel) {
+            //   goToNextLevel();
+            //   return;
+            // }
+
+            // getNextTaskInLevel();
+            console.log("Get next task in level");
+          }}
+        />
+      )}
+    </>
   );
 }
 
