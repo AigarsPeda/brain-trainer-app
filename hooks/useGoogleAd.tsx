@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MobileAds, { RewardedAd, RewardedAdEventType, TestIds } from "react-native-google-mobile-ads";
 
 const ios = "ca-app-pub-5238286944896076~6398230265";
-const android = "ca-app-pub-5238286944896076/8832821918";
+const android = "ca-app-pub-5238286944896076~1145903580";
 
 const adDeviceId = Device.osName === "iOS" ? ios : android;
 const adUnitId = __DEV__ ? TestIds.REWARDED : adDeviceId;
