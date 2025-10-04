@@ -38,8 +38,10 @@ export type MultiAnswerMathTaskType = BaseMathTaskType & {
   options: TaskOptionType[];
 };
 
+export type MathOperation = "+" | "-" | "×" | "÷" | "*" | "/";
+
 export type CreateMathTaskType = BaseMathTaskType & {
-  operation: string;
+  operation: MathOperation;
   options: CreateMathTaskOptionType[];
 };
 

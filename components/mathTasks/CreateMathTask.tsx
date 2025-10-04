@@ -12,6 +12,7 @@ import { MainButton } from "../MainButton";
 import { ShowResults } from "../ShowResults";
 import useAppContext from "@/hooks/useAppContext";
 import { scheduleOnRN } from "react-native-worklets";
+import { checkAnswers } from "@/utils/checkAnswers";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
@@ -244,35 +245,35 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     }
   };
 
-  const checkAnswers = (): boolean => {
-    if (leftValue === null || rightValue === null) {
-      return false;
-    }
+  // const checkAnswers = (): boolean => {
+  //   if (leftValue === null || rightValue === null) {
+  //     return false;
+  //   }
 
-    let calculatedResult: number;
-    switch (task.operation) {
-      case "+":
-        calculatedResult = leftValue + rightValue;
-        break;
-      case "-":
-        calculatedResult = leftValue - rightValue;
-        break;
-      case "×":
-      case "*":
-        calculatedResult = leftValue * rightValue;
-        break;
-      case "÷":
-      case "/":
-        calculatedResult = leftValue / rightValue;
-        break;
-      default:
-        calculatedResult = 0;
-    }
+  //   let calculatedResult: number;
+  //   switch (task.operation) {
+  //     case "+":
+  //       calculatedResult = leftValue + rightValue;
+  //       break;
+  //     case "-":
+  //       calculatedResult = leftValue - rightValue;
+  //       break;
+  //     case "×":
+  //     case "*":
+  //       calculatedResult = leftValue * rightValue;
+  //       break;
+  //     case "÷":
+  //     case "/":
+  //       calculatedResult = leftValue / rightValue;
+  //       break;
+  //     default:
+  //       calculatedResult = 0;
+  //   }
 
-    const isCorrect = calculatedResult === task.result;
-    console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
-    return isCorrect;
-  };
+  //   const isCorrect = calculatedResult === task.result;
+  //   console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
+  //   return isCorrect;
+  // };
 
   const { dispatch } = useAppContext();
 
@@ -364,14 +365,14 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
         </ThemedView>
       ) : (
         <ShowResults
-          isAllAnswersCorrect={checkAnswers()}
+          isAllAnswersCorrect={checkAnswers(leftValue, rightValue, task.operation, task.result)}
           onNextTaskPress={() => {
             setDisplayTaskResults(false);
 
             dispatch({
               type: "GET_NEXT_TASK_IN_LEVEL",
               payload: {
-                correctnessPercentage: checkAnswers() ? 100 : 0,
+                correctnessPercentage: checkAnswers(leftValue, rightValue, task.operation, task.result) ? 100 : 0,
               },
             });
           }}
