@@ -7,9 +7,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { MainButton } from "../MainButton";
 import { ShowResults } from "../ShowResults";
+import useAppContext from "@/hooks/useAppContext";
+import { scheduleOnRN } from "react-native-worklets";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
@@ -72,7 +74,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
 
   // ensure we only initialize once after container layout is available
   const initializedRef = useRef(false);
-
   const isBothValuesSet = leftValue !== null && rightValue !== null;
 
   const setDisplayTaskResultsVisibility = () => {
@@ -273,6 +274,8 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     return isCorrect;
   };
 
+  const { dispatch } = useAppContext();
+
   return (
     <>
       <ThemedView>
@@ -361,16 +364,16 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
         </ThemedView>
       ) : (
         <ShowResults
-          // isAllAnswersCorrect={isAllAnswersCorrect}
           isAllAnswersCorrect={checkAnswers()}
           onNextTaskPress={() => {
-            // if (maxLevelStep === currentTaskInLevel) {
-            //   goToNextLevel();
-            //   return;
-            // }
+            setDisplayTaskResults(false);
 
-            // getNextTaskInLevel();
-            console.log("Get next task in level");
+            dispatch({
+              type: "GET_NEXT_TASK_IN_LEVEL",
+              payload: {
+                correctnessPercentage: checkAnswers() ? 100 : 0,
+              },
+            });
           }}
         />
       )}
@@ -427,7 +430,7 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     })
     .onEnd((event) => {
       const { absoluteX, absoluteY } = event;
-      runOnJS(onDrop)(absoluteX, absoluteY);
+      scheduleOnRN(onDrop, absoluteX, absoluteY);
       zIndex.value = 0;
       isDragging.value = false;
       // read the shared value inside the worklet

@@ -56,7 +56,6 @@ export default function GameLevelScreen() {
     <ThemedView
       style={{
         flex: 1,
-        // alignItems: "center",
         paddingTop: insets.top + 16,
         paddingBottom: insets.bottom + 25,
       }}
