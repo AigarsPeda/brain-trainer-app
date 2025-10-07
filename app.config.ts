@@ -24,6 +24,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "expo-web-browser",
     [
       "react-native-google-mobile-ads",
       {

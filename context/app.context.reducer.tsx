@@ -9,13 +9,11 @@ export type MathTypeType = "mathTaskWithResult" | "createMathTask";
 export type TaskOptionType = {
   id: number;
   equation: string;
-  isCorrect: boolean;
 };
 
 export type CreateMathTaskOptionType = {
   id: number;
   number: string;
-  isCorrect: boolean;
 };
 
 export type TaskInfoType = {

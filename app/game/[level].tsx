@@ -10,11 +10,13 @@ import { ALL_TASKS, isCreateMathTask, isMultiAnswerMathTask, LevelsEnum } from "
 import useAppContext from "@/hooks/useAppContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TouchableOpacity, Animated, StyleSheet, ViewStyle, TextStyle, View, useWindowDimensions } from "react-native";
 
 export default function GameLevelScreen() {
   const {
     state: {
       lives,
+      results,
       game: { currentTaskInLevel },
     },
   } = useAppContext();
@@ -28,6 +30,11 @@ export default function GameLevelScreen() {
         <ThemedText>Nav atrasts līmenis</ThemedText>
       </ThemedView>
     );
+  }
+
+  // i need to see nested object in console
+  for (const [levelKey, levelValue] of Object.entries(results)) {
+    console.log("levelValue.tasksResults:", levelValue.tasksResults);
   }
 
   const levelTasks = ALL_TASKS[level];
@@ -55,19 +62,12 @@ export default function GameLevelScreen() {
   return (
     <ThemedView
       style={{
-        flex: 1,
-        paddingTop: insets.top + 16,
-        paddingBottom: insets.bottom + 25,
+        ...styles.itemsWrap,
+        paddingTop: styles.itemsWrap.paddingTop + insets.top,
+        paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
       }}
     >
-      <ThemedView
-        style={{
-          gap: 8,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-        }}
-      >
+      <ThemedView style={styles.view}>
         <StatisticsItem
           src={Close}
           onPress={() => {
@@ -75,24 +75,9 @@ export default function GameLevelScreen() {
           }}
         />
         <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={currentTaskInLevel} />
-        <StatisticsItem
-          src={Heart}
-          stat={lives}
-          size={{
-            width: 36,
-            height: 36,
-          }}
-        />
+        <StatisticsItem src={Heart} stat={lives} size={styles.statisticsItem} />
       </ThemedView>
-      <ThemedView
-        style={{
-          paddingTop: 10,
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <ThemedView style={styles.levelView}>
         {isMultiAnswerMathTask(currentTask) && (
           <MathTaskWithResult level={level} maxLevelStep={maxLevelStep} task={currentTask} />
         )}
@@ -101,3 +86,28 @@ export default function GameLevelScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  itemsWrap: {
+    flex: 1,
+    paddingTop: 16,
+    paddingBottom: 25,
+  },
+  view: {
+    gap: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
+  statisticsItem: {
+    width: 36,
+    height: 36,
+  },
+  levelView: {
+    paddingTop: 10,
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+});

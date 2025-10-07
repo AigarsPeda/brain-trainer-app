@@ -245,36 +245,6 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
     }
   };
 
-  // const checkAnswers = (): boolean => {
-  //   if (leftValue === null || rightValue === null) {
-  //     return false;
-  //   }
-
-  //   let calculatedResult: number;
-  //   switch (task.operation) {
-  //     case "+":
-  //       calculatedResult = leftValue + rightValue;
-  //       break;
-  //     case "-":
-  //       calculatedResult = leftValue - rightValue;
-  //       break;
-  //     case "×":
-  //     case "*":
-  //       calculatedResult = leftValue * rightValue;
-  //       break;
-  //     case "÷":
-  //     case "/":
-  //       calculatedResult = leftValue / rightValue;
-  //       break;
-  //     default:
-  //       calculatedResult = 0;
-  //   }
-
-  //   const isCorrect = calculatedResult === task.result;
-  //   console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
-  //   return isCorrect;
-  // };
-
   const { dispatch } = useAppContext();
 
   return (
@@ -372,7 +342,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
             dispatch({
               type: "GET_NEXT_TASK_IN_LEVEL",
               payload: {
-                correctnessPercentage: checkAnswers(leftValue, rightValue, task.operation, task.result) ? 100 : 0,
+                correctnessPercentage: checkAnswers(leftValue, rightValue, task.operation, task.result) ? 25 : 0,
               },
             });
           }}

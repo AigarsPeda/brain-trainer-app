@@ -1,11 +1,10 @@
-import { Link } from "expo-router";
+import { Link, type ExternalPathString } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { type ComponentProps } from "react";
 import { Platform } from "react-native";
 
-// type Props = Omit<ComponentProps<typeof Link>, "href"> & { href: string };
 type Props = Omit<ComponentProps<typeof Link>, "href"> & {
-  href: string;
+  href: ExternalPathString;
 };
 
 export function ExternalLink({ href, ...rest }: Props) {
@@ -13,14 +12,10 @@ export function ExternalLink({ href, ...rest }: Props) {
     <Link
       target="_blank"
       {...rest}
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       href={href}
       onPress={async (event) => {
         if (Platform.OS !== "web") {
-          // Prevent the default behavior of linking to the default browser on native.
           event.preventDefault();
-          // Open the link in an in-app browser.
           await openBrowserAsync(href);
         }
       }}

@@ -11,7 +11,7 @@ import type {
   TaskOptionType,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
-import { getAnswersOfTask, getGradientColor } from "@/utils/utils";
+import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
@@ -43,7 +43,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     options: TaskOptionType[],
     maxLevelStep: number
   ): number => {
-    const totalCorrectOptions = options.filter((o) => o.isCorrect).length;
+    const totalCorrectOptions = options.filter((o) => isEquationCorrect(o.equation, task.result)).length;
     const correctAnswers = answers.filter((a) => a.isCorrect).length;
 
     if (totalCorrectOptions === 0) {
@@ -81,8 +81,12 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
   };
 
   const getCountOfCorrectAnswersAndWrong = (options: TaskOptionType[] | CreateMathTaskOptionType[]) => {
-    const currentTaskCorrectAnswers = options.filter((o) => o.isCorrect).length;
-    const currentTaskWrongAnswers = options.filter((o) => !o.isCorrect).length;
+    const currentTaskCorrectAnswers = (options as TaskOptionType[]).filter((o) =>
+      "equation" in o ? isEquationCorrect(o.equation, task.result) : false
+    ).length;
+    const currentTaskWrongAnswers = (options as TaskOptionType[]).filter((o) =>
+      "equation" in o ? !isEquationCorrect(o.equation, task.result) : false
+    ).length;
 
     return {
       currentTaskWrongAnswers,
@@ -183,7 +187,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
                   if (foundAnswer) {
                     setAnswer((prev) => prev.filter((a) => a.optionId !== option.id));
                   } else {
-                    setAnswer((prev) => [...prev, { optionId: option.id, isCorrect: option.isCorrect }]);
+                    const isCorrect = isEquationCorrect(option.equation, task.result);
+                    setAnswer((prev) => [...prev, { optionId: option.id, isCorrect }]);
                   }
                 }}
               >
