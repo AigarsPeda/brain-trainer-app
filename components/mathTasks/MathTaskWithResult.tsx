@@ -62,7 +62,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     setDisplayTaskResults(false);
 
     dispatch({
-      type: "GET_NEXT_TASK_IN_LEVEL",
+      type: "GET_NEXT_TASK",
       payload: {
         correctnessPercentage: calculatePercentageInTask(answers, task.options, maxLevelStep),
         maxLevelStep,

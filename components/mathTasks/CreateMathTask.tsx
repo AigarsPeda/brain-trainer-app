@@ -351,7 +351,7 @@ export function CreateMathTask({ task, maxLevelStep }: CreateMathTaskProps) {
             setDisplayTaskResults(false);
 
             dispatch({
-              type: "GET_NEXT_TASK_IN_LEVEL",
+              type: "GET_NEXT_TASK",
               payload: {
                 correctnessPercentage: checkAnswers(leftValue, rightValue, task.operation, task.result) ? 25 : 0,
                 maxLevelStep,

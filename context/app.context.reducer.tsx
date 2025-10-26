@@ -26,7 +26,6 @@ export type TaskInfoType = {
 
 export type BaseMathTaskType = {
   id: number;
-  // level: number;
   result: number;
   taskType: MathTypeType;
   taskNumberInLevel: number;
@@ -149,7 +148,7 @@ interface SetIsCheckedForTaskActionType {
 }
 
 interface CreateNextLevelActionType {
-  type: "GET_NEXT_TASK_IN_LEVEL";
+  type: "GET_NEXT_TASK";
   payload: {
     correctnessPercentage: number; // Percentage of correct answers
     maxLevelStep: number; // Total tasks in current level
@@ -169,7 +168,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
     case "SET_NAME":
       return { ...state, name: action.payload };
 
-    case "GET_NEXT_TASK_IN_LEVEL": {
+    case "GET_NEXT_TASK": {
       const { correctnessPercentage, maxLevelStep } = action.payload;
       const currentLevel = state.game.currentLevel;
       const currentTaskInLevel = state.game.currentTaskInLevel;
