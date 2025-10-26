@@ -12,7 +12,6 @@ import type {
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
 
@@ -23,14 +22,12 @@ interface MathTaskWithResultProps {
 }
 
 export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTaskWithResultProps) {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
   const {
     dispatch,
     state: {
-      availableLevels,
       game: { currentTaskInLevel },
     },
   } = useAppContext();
@@ -60,24 +57,19 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     setDisplayTaskResults((state) => !state);
   };
 
-  const goToNextLevel = () => {
-    const currentLevel = Number(level);
-    const nextLevel = currentLevel + 1;
+  const goToNextTask = () => {
+    setAnswer([]);
+    setDisplayTaskResults(false);
 
     dispatch({
-      type: "GET_NEXT_LEVEL",
+      type: "GET_NEXT_TASK_IN_LEVEL",
       payload: {
-        nextLevel,
         correctnessPercentage: calculatePercentageInTask(answers, task.options, maxLevelStep),
+        maxLevelStep,
       },
     });
 
-    const isLastAvailableLevel = availableLevels === currentLevel;
-
-    router.replace({
-      pathname: isLastAvailableLevel ? "/" : "/game/[level]",
-      params: { level: isLastAvailableLevel ? 1 : nextLevel },
-    });
+    // Navigation is handled by context state change
   };
 
   const getCountOfCorrectAnswersAndWrong = (options: TaskOptionType[] | CreateMathTaskOptionType[]) => {
@@ -102,18 +94,6 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
       levelAnswerWrongAnswers,
       levelAnswerCorrectAnswers,
     };
-  };
-
-  const getNextTaskInLevel = () => {
-    setAnswer([]);
-    setDisplayTaskResults(false);
-
-    dispatch({
-      type: "GET_NEXT_TASK_IN_LEVEL",
-      payload: {
-        correctnessPercentage: calculatePercentageInTask(answers, task.options, maxLevelStep),
-      },
-    });
   };
 
   const { currentTaskCorrectAnswers } = getCountOfCorrectAnswersAndWrong(task?.options || []);
@@ -226,17 +206,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
           </MainButton>
         </ThemedView>
       ) : (
-        <ShowResults
-          isAllAnswersCorrect={isAllAnswersCorrect}
-          onNextTaskPress={() => {
-            if (maxLevelStep === currentTaskInLevel) {
-              goToNextLevel();
-              return;
-            }
-
-            getNextTaskInLevel();
-          }}
-        />
+        <ShowResults isAllAnswersCorrect={isAllAnswersCorrect} onNextTaskPress={goToNextTask} />
       )}
     </>
   );

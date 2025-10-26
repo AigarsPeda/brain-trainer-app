@@ -81,7 +81,9 @@ export default function GameLevelScreen() {
         {isMultiAnswerMathTask(currentTask) && (
           <MathTaskWithResult level={level} maxLevelStep={maxLevelStep} task={currentTask} />
         )}
-        {isCreateMathTask(currentTask) && <CreateMathTask level={level} task={currentTask} />}
+        {isCreateMathTask(currentTask) && (
+          <CreateMathTask level={level} task={currentTask} maxLevelStep={maxLevelStep} />
+        )}
       </ThemedView>
     </ThemedView>
   );

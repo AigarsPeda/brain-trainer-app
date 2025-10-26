@@ -152,6 +152,7 @@ interface CreateNextLevelActionType {
   type: "GET_NEXT_TASK_IN_LEVEL";
   payload: {
     correctnessPercentage: number; // Percentage of correct answers
+    maxLevelStep: number; // Total tasks in current level
   };
 }
 
@@ -169,24 +170,87 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return { ...state, name: action.payload };
 
     case "GET_NEXT_TASK_IN_LEVEL": {
-      const { correctnessPercentage } = action.payload;
-      const nextLevelNumber = state.game.currentTaskInLevel + 1;
+      const { correctnessPercentage, maxLevelStep } = action.payload;
+      const currentLevel = state.game.currentLevel;
+      const currentTaskInLevel = state.game.currentTaskInLevel;
+      const nextTaskInLevel = currentTaskInLevel + 1;
 
-      const foundLevel = state.results[state.game.currentLevel?.toString() || "1"] ?? {
-        tasksResults: [],
+      // Add current task result to results
+      const newResults = {
+        ...state.results,
+        [currentLevel.toString()]: {
+          tasksResults: [
+            ...(state.results[currentLevel.toString()]?.tasksResults || []),
+            {
+              taskNumber: currentTaskInLevel.toString(),
+              correctnessPercentage,
+            },
+          ],
+        },
       };
 
-      foundLevel.tasksResults.push({
-        taskNumber: state.game.currentTaskInLevel.toString(),
-        correctnessPercentage,
-      });
+      // Check if this is the last task in the level
+      const isLastTaskInLevel = nextTaskInLevel > maxLevelStep;
 
+      if (isLastTaskInLevel) {
+        // Auto-advance to next level
+        const nextLevel = currentLevel + 1;
+
+        const calculateStars = (tasksResults: TaskResultType[]): number => {
+          const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
+
+          if (totalPercentage >= 90) {
+            return 5;
+          } else if (totalPercentage >= 75) {
+            return 4;
+          } else if (totalPercentage >= 60) {
+            return 3;
+          } else if (totalPercentage >= 40) {
+            return 2;
+          } else {
+            return 1;
+          }
+        };
+
+        const finalResults = {
+          ...newResults,
+          [nextLevel.toString()]: {
+            tasksResults: [],
+          },
+        };
+
+        return {
+          ...state,
+          game: {
+            currentTaskInLevel: 1,
+            currentLevel: nextLevel,
+          },
+          results: finalResults,
+          levels: state.levels.map((level) =>
+            level.levelNumber === currentLevel
+              ? {
+                  ...level,
+                  stars: calculateStars(finalResults[currentLevel.toString()].tasksResults),
+                  isLevelCompleted: true,
+                }
+              : level.levelNumber === nextLevel
+                ? {
+                    ...level,
+                    isLevelLocked: false,
+                  }
+                : level
+          ),
+        };
+      }
+
+      // Move to next task in same level
       return {
         ...state,
         game: {
           ...state.game,
-          currentTaskInLevel: nextLevelNumber,
+          currentTaskInLevel: nextTaskInLevel,
         },
+        results: newResults,
       };
     }
 

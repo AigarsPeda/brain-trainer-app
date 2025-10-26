@@ -57,9 +57,10 @@ interface NumberPosition {
 interface CreateMathTaskProps {
   level: LevelsEnum;
   task: CreateMathTaskType;
+  maxLevelStep: number;
 }
 
-export function CreateMathTask({ task }: CreateMathTaskProps) {
+export function CreateMathTask({ task, maxLevelStep }: CreateMathTaskProps) {
   const theme = useThemeColor();
   const leftZoneRef = useRef<View | null>(null);
   const rightZoneRef = useRef<View | null>(null);
@@ -353,6 +354,7 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
               type: "GET_NEXT_TASK_IN_LEVEL",
               payload: {
                 correctnessPercentage: checkAnswers(leftValue, rightValue, task.operation, task.result) ? 25 : 0,
+                maxLevelStep,
               },
             });
           }}
