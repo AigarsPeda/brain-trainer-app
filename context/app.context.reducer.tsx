@@ -26,7 +26,7 @@ export type TaskInfoType = {
 
 export type BaseMathTaskType = {
   id: number;
-  level: number;
+  // level: number;
   result: number;
   taskType: MathTypeType;
   taskNumberInLevel: number;
@@ -63,7 +63,6 @@ type AppContextStateType = {
       tasksResults: TaskResultType[];
     };
   };
-
   levels: TaskInfoType[];
   availableLevels: number;
   game: { currentLevel: number; currentTaskInLevel: number };

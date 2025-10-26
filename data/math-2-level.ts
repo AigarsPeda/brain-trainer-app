@@ -3,7 +3,7 @@ import type { MultiAnswerMathTaskType } from "@/context/app.context.reducer";
 export const LEVEL_2: MultiAnswerMathTaskType[] = [
   {
     id: 1,
-    level: 2,
+    // level: 2,
     taskNumberInLevel: 1,
     taskType: "mathTaskWithResult",
     result: 12,
@@ -28,7 +28,7 @@ export const LEVEL_2: MultiAnswerMathTaskType[] = [
   },
   {
     id: 2,
-    level: 2,
+    // level: 2,
     taskNumberInLevel: 2,
     taskType: "mathTaskWithResult",
     result: 4,
@@ -53,7 +53,7 @@ export const LEVEL_2: MultiAnswerMathTaskType[] = [
   },
   {
     id: 3,
-    level: 2,
+    // level: 2,
     taskNumberInLevel: 3,
     taskType: "mathTaskWithResult",
     result: 9,

@@ -102,24 +102,34 @@ export function CreateMathTask({ task }: CreateMathTaskProps) {
         return { x: 0, y: 0 };
       }
 
-      const margin = 20;
-      const spacing = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
-      const cols = Math.floor((containerLayout.width - margin * 2) / spacing);
-      const rows = Math.floor((200 - margin * 2) / spacing);
+      // Create a 3x3 grid with fixed positioning
+      const gridCols = 3;
+      const gridRows = 3;
+      const margin = 25;
+      const spacing = (containerLayout.width - margin * 2) / gridCols;
+      const verticalSpacing = (200 - margin * 2) / gridRows;
 
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const x = margin + col * spacing;
-          const y = margin + row * spacing;
-          const position = { x, y };
-
-          if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
-            return position;
-          }
+      // Collect all available grid positions
+      const gridPositions: NumberPosition[] = [];
+      for (let row = 0; row < gridRows; row++) {
+        for (let col = 0; col < gridCols; col++) {
+          const x = margin + col * spacing + (spacing - DRAGGABLE_NUMBER_SIZE) / 2;
+          const y = margin + row * verticalSpacing + (verticalSpacing - DRAGGABLE_NUMBER_SIZE) / 2;
+          gridPositions.push({ x, y });
         }
       }
 
-      return { x: margin, y: margin };
+      // Try each grid position in random order to find an unoccupied one
+      const shuffledPositions = [...gridPositions].sort(() => Math.random() - 0.5);
+
+      for (const position of shuffledPositions) {
+        if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
+          return position;
+        }
+      }
+
+      // Fallback: return first grid position
+      return gridPositions[0] || { x: margin, y: margin };
     },
     [containerLayout, isPositionOccupied]
   );

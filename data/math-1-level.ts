@@ -5,7 +5,7 @@ export const LEVEL_1: TaskType[] = [
     id: 5,
     taskType: "createMathTask",
     result: 8,
-    level: 1,
+    // level: 1,
     operation: "+",
     taskNumberInLevel: 1,
     options: [
@@ -56,7 +56,7 @@ export const LEVEL_1: TaskType[] = [
     id: 2,
     taskType: "mathTaskWithResult",
     result: 3,
-    level: 1,
+    // level: 1,
     taskNumberInLevel: 2,
     options: [
       { id: 1, equation: "1 + 2" },
@@ -69,7 +69,7 @@ export const LEVEL_1: TaskType[] = [
     id: 3,
     taskType: "mathTaskWithResult",
     result: 6,
-    level: 1,
+    // level: 1,
     taskNumberInLevel: 3,
     options: [
       { id: 1, equation: "5 - 2" },
@@ -82,7 +82,7 @@ export const LEVEL_1: TaskType[] = [
     id: 4,
     taskType: "mathTaskWithResult",
     result: 10,
-    level: 1,
+    // level: 1,
     taskNumberInLevel: 4,
     options: [
       { id: 1, equation: "5 + 5" },
