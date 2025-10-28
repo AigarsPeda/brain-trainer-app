@@ -6,11 +6,12 @@ import Progressbar from "@/components/Progressbar";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ALL_TASKS, isCreateMathTask, isMultiAnswerMathTask, LevelsEnum } from "@/context/app.context.reducer";
+import { isCreateMathTask, isMultiAnswerMathTask, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { getLevelTaskData } from "@/utils/game";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { TouchableOpacity, Animated, StyleSheet, ViewStyle, TextStyle, View, useWindowDimensions } from "react-native";
 
 export default function GameLevelScreen() {
   const {
@@ -23,6 +24,7 @@ export default function GameLevelScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
+  const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
 
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {
     return (
@@ -36,10 +38,6 @@ export default function GameLevelScreen() {
   for (const [levelKey, levelValue] of Object.entries(results)) {
     console.log("levelValue.tasksResults:", levelValue.tasksResults);
   }
-
-  const levelTasks = ALL_TASKS[level];
-  const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
-  const maxLevelStep = levelTasks?.length || 0;
 
   if (!levelTasks || levelTasks.length === 0) {
     console.error("No tasks found for level", level);

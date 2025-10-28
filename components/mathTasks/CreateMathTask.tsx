@@ -12,7 +12,7 @@ import { MainButton } from "../MainButton";
 import { ShowResults } from "../ShowResults";
 import useAppContext from "@/hooks/useAppContext";
 import { scheduleOnRN } from "react-native-worklets";
-import { checkAnswers } from "@/utils/checkAnswers";
+import { checkAnswers } from "@/utils/game";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers

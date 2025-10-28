@@ -1,4 +1,11 @@
-import { MathOperation } from "@/context/app.context.reducer";
+import { ALL_TASKS, LevelsEnum, MathOperation } from "@/context/app.context.reducer";
+
+export const getLevelTaskData = (level: LevelsEnum, currentTaskInLevel: number) => {
+  const levelTasks = ALL_TASKS[level];
+  const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
+  const maxLevelStep = levelTasks?.length || 0;
+  return { levelTasks, currentTask, maxLevelStep };
+};
 
 export const checkAnswers = (
   value1: number | null,
@@ -11,6 +18,7 @@ export const checkAnswers = (
   }
 
   let calculatedResult: number;
+
   switch (operation) {
     case "+":
       calculatedResult = value1 + value2;
@@ -31,6 +39,5 @@ export const checkAnswers = (
   }
 
   const isCorrect = calculatedResult === result;
-  //   console.log(`Task ID: ${task.id}, Is Correct: ${isCorrect}`);
   return isCorrect;
 };
