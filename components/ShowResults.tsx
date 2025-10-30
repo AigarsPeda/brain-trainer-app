@@ -10,16 +10,28 @@ import CircleX from "@/assets/images/circle-x.png";
 import FireColors from "@/assets/images/fire-colors.png";
 import { StyleSheet } from "react-native";
 
+interface LevelCompletionState {
+  isCompleted: boolean;
+  onGoHomePress: () => void;
+  onNextLevelPress?: () => void;
+  hasNextLevel?: boolean;
+  title?: string;
+  description?: string;
+}
+
 interface ShowResultsProps {
   onNextTaskPress: () => void;
   isAllAnswersCorrect: boolean;
+  levelCompletionState?: LevelCompletionState;
 }
 
-export function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResultsProps) {
+export function ShowResults({ onNextTaskPress, isAllAnswersCorrect, levelCompletionState }: ShowResultsProps) {
   const sheetRef = useRef<BottomSheet>(null);
-  const { background } = useThemeColor();
+  const { background, text } = useThemeColor();
 
-  const snapPoints = useMemo(() => ["35%"], []);
+  const snapPoints = useMemo(() => {
+    return [levelCompletionState?.isCompleted ? "55%" : "35%"];
+  }, [levelCompletionState?.isCompleted]);
 
   const handleSheetChange = useCallback((index: number) => {
     console.log("handleSheetChange", index);
@@ -55,18 +67,42 @@ export function ShowResults({ onNextTaskPress, isAllAnswersCorrect }: ShowResult
               description="Daļa no atbildēm nav pareizas. Nākamreiz būs labāk!"
             />
           )}
-          <ThemedView style={{ width: "100%", alignItems: "center" }}>
-            <MainButton onPress={onNextTaskPress}>
-              <ThemedText
-                type="defaultSemiBold"
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                Nākamais uzdevums
-              </ThemedText>
-            </MainButton>
-          </ThemedView>
+
+          {levelCompletionState?.isCompleted ? (
+            <>
+              <LevelCompletionNotice
+                title={levelCompletionState.title}
+                description={levelCompletionState.description}
+                hasNextLevel={levelCompletionState.hasNextLevel}
+              />
+              <ThemedView style={styles.buttonsStack}>
+                {levelCompletionState.onNextLevelPress && levelCompletionState.hasNextLevel ? (
+                  <ThemedView style={styles.buttonContainer}>
+                    <MainButton onPress={levelCompletionState.onNextLevelPress}>
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        Nākamais līmenis
+                      </ThemedText>
+                    </MainButton>
+                  </ThemedView>
+                ) : null}
+                <ThemedView style={[styles.buttonContainer, styles.lastButton]}>
+                  <MainButton variant="secondary" onPress={levelCompletionState.onGoHomePress}>
+                    <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
+                      Uz sākumu
+                    </ThemedText>
+                  </MainButton>
+                </ThemedView>
+              </ThemedView>
+            </>
+          ) : (
+            <ThemedView style={{ width: "100%", alignItems: "center" }}>
+              <MainButton onPress={onNextTaskPress}>
+                <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                  Nākamais uzdevums
+                </ThemedText>
+              </MainButton>
+            </ThemedView>
+          )}
         </BottomSheetView>
       </BottomSheet>
     </GestureHandlerRootView>
@@ -79,6 +115,29 @@ interface DisplayResultsProps {
   isIncorrectAnswer?: boolean;
 }
 
+interface LevelCompletionNoticeProps {
+  title?: string;
+  description?: string;
+  hasNextLevel?: boolean;
+}
+
+function LevelCompletionNotice({ title, description, hasNextLevel }: LevelCompletionNoticeProps) {
+  const defaultTitle = title ?? "Līmenis pabeigts!";
+  const defaultDescription =
+    description ??
+    (hasNextLevel
+      ? "Nākamais līmenis ir atslēgts. Izvēlies, kā turpināt."
+      : "Apsveicam! Tu esi pabeidzis visus pieejamos līmeņus.");
+
+  return (
+    <ThemedView style={styles.levelCompletionContainer}>
+      <ThemedText type="subtitle" style={styles.levelCompletionTitle}>
+        {defaultTitle}
+      </ThemedText>
+      <ThemedText style={styles.levelCompletionDescription}>{defaultDescription}</ThemedText>
+    </ThemedView>
+  );
+}
 function DisplayResults({ title, description, isIncorrectAnswer }: DisplayResultsProps) {
   const { incorrectAnswer } = useThemeColor();
 
@@ -147,5 +206,32 @@ const styles = StyleSheet.create({
   image: {
     flex: 1,
     width: "100%",
+  },
+  buttonsStack: {
+    width: "100%",
+    alignItems: "center",
+  },
+  buttonContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  lastButton: {
+    marginBottom: 0,
+  },
+  levelCompletionContainer: {
+    width: "100%",
+    marginBottom: 16,
+  },
+  levelCompletionTitle: {
+    textAlign: "left",
+  },
+  levelCompletionDescription: {
+    fontSize: 16,
+    marginTop: 4,
+    textAlign: "left",
+  },
+  buttonText: {
+    fontSize: 20,
   },
 });

@@ -11,29 +11,34 @@ import type {
   TaskOptionType,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
 
 interface MathTaskWithResultProps {
   level: LevelsEnum;
   maxLevelStep: number;
+  isFinalTaskInLevel: boolean;
   task: MultiAnswerMathTaskType;
 }
 
-export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTaskWithResultProps) {
+export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalTaskInLevel }: MathTaskWithResultProps) {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
   const {
     dispatch,
-    state: {
-      game: { currentTaskInLevel },
-    },
+    state: { availableLevels },
   } = useAppContext();
+  const router = useRouter();
 
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
+
+  const levelNumber = Number(level);
+  const hasNextLevel = levelNumber < availableLevels;
 
   const calculatePercentageInTask = (
     answers: TaskAnswerType[],
@@ -57,20 +62,30 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
     setDisplayTaskResults((state) => !state);
   };
 
-  const goToNextTask = () => {
-    setAnswer([]);
-    setDisplayTaskResults(false);
+  const finalizeTaskProgress = () => {
+    const correctnessPercentage = calculatePercentageInTask(answers, task.options, maxLevelStep);
 
     dispatch({
       type: "GET_NEXT_TASK",
       payload: {
-        correctnessPercentage: calculatePercentageInTask(answers, task.options, maxLevelStep),
+        correctnessPercentage,
         maxLevelStep,
       },
     });
 
-    // Navigation is handled by context state change
+    setAnswer([]);
+    setDisplayTaskResults(false);
   };
+
+  const nextLevelValue = (levelNumber + 1).toString();
+
+  const { goToNextTask, handleGoHome, handleNextLevel } = createLevelNavigationHandlers({
+    isFinalTaskInLevel,
+    hasNextLevel,
+    finalizeTaskProgress,
+    router,
+    nextLevelValue,
+  });
 
   const getCountOfCorrectAnswersAndWrong = (options: TaskOptionType[] | CreateMathTaskOptionType[]) => {
     const currentTaskCorrectAnswers = (options as TaskOptionType[]).filter((o) =>
@@ -206,7 +221,20 @@ export default function MathTaskWithResult({ level, task, maxLevelStep }: MathTa
           </MainButton>
         </ThemedView>
       ) : (
-        <ShowResults isAllAnswersCorrect={isAllAnswersCorrect} onNextTaskPress={goToNextTask} />
+        <ShowResults
+          isAllAnswersCorrect={isAllAnswersCorrect}
+          onNextTaskPress={goToNextTask}
+          levelCompletionState={
+            isFinalTaskInLevel
+              ? {
+                  isCompleted: true,
+                  hasNextLevel,
+                  onGoHomePress: handleGoHome,
+                  onNextLevelPress: handleNextLevel,
+                }
+              : undefined
+          }
+        />
       )}
     </>
   );

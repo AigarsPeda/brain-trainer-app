@@ -13,6 +13,8 @@ import { ShowResults } from "../ShowResults";
 import useAppContext from "@/hooks/useAppContext";
 import { scheduleOnRN } from "react-native-worklets";
 import { checkAnswers } from "@/utils/game";
+import { useRouter } from "expo-router";
+import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 
 const DRAGGABLE_NUMBER_SIZE = 75;
 const COLLISION_BUFFER = 10; // Extra space between numbers
@@ -56,11 +58,12 @@ interface NumberPosition {
 
 interface CreateMathTaskProps {
   level: LevelsEnum;
-  task: CreateMathTaskType;
   maxLevelStep: number;
+  task: CreateMathTaskType;
+  isFinalTaskInLevel: boolean;
 }
 
-export function CreateMathTask({ task, maxLevelStep }: CreateMathTaskProps) {
+export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }: CreateMathTaskProps) {
   const theme = useThemeColor();
   const leftZoneRef = useRef<View | null>(null);
   const rightZoneRef = useRef<View | null>(null);
@@ -256,7 +259,52 @@ export function CreateMathTask({ task, maxLevelStep }: CreateMathTaskProps) {
     }
   };
 
-  const { dispatch } = useAppContext();
+  const {
+    dispatch,
+    state: { availableLevels },
+  } = useAppContext();
+  const router = useRouter();
+
+  const levelNumber = Number(level);
+  const hasNextLevel = levelNumber < availableLevels;
+
+  const getCorrectnessPercentage = () => {
+    const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
+    if (maxLevelStep <= 0) {
+      return isCorrect ? 100 : 0;
+    }
+
+    const perTaskScore = parseFloat((100 / maxLevelStep).toFixed(2));
+    return isCorrect ? perTaskScore : 0;
+  };
+
+  const finalizeTaskProgress = () => {
+    const correctnessPercentage = getCorrectnessPercentage();
+
+    dispatch({
+      type: "GET_NEXT_TASK",
+      payload: {
+        correctnessPercentage,
+        maxLevelStep,
+      },
+    });
+
+    setDisplayTaskResults(false);
+    setLeftValue(null);
+    setRightValue(null);
+    initializedRef.current = false;
+  };
+
+  const nextLevelValue = (levelNumber + 1).toString();
+  const isAllAnswersCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
+
+  const { goToNextTask, handleGoHome, handleNextLevel } = createLevelNavigationHandlers({
+    isFinalTaskInLevel,
+    hasNextLevel,
+    finalizeTaskProgress,
+    router,
+    nextLevelValue,
+  });
 
   return (
     <>
@@ -346,18 +394,18 @@ export function CreateMathTask({ task, maxLevelStep }: CreateMathTaskProps) {
         </ThemedView>
       ) : (
         <ShowResults
-          isAllAnswersCorrect={checkAnswers(leftValue, rightValue, task.operation, task.result)}
-          onNextTaskPress={() => {
-            setDisplayTaskResults(false);
-
-            dispatch({
-              type: "GET_NEXT_TASK",
-              payload: {
-                correctnessPercentage: checkAnswers(leftValue, rightValue, task.operation, task.result) ? 25 : 0,
-                maxLevelStep,
-              },
-            });
-          }}
+          isAllAnswersCorrect={isAllAnswersCorrect}
+          onNextTaskPress={goToNextTask}
+          levelCompletionState={
+            isFinalTaskInLevel
+              ? {
+                  isCompleted: true,
+                  hasNextLevel,
+                  onGoHomePress: handleGoHome,
+                  onNextLevelPress: handleNextLevel,
+                }
+              : undefined
+          }
         />
       )}
     </>

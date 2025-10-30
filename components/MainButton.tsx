@@ -16,15 +16,25 @@ import {
 const { width } = Dimensions.get("window");
 const BUTTON_WIDTH = width - 32;
 
+type MainButtonVariant = "primary" | "secondary";
+
 interface MainButtonProps {
   style?: ViewStyle;
   disabled?: boolean;
   onPress: () => void;
   textStyle?: TextStyle;
   children?: React.ReactNode;
+  variant?: MainButtonVariant;
 }
 
-export function MainButton({ onPress, style, textStyle, children, disabled = false }: MainButtonProps) {
+export function MainButton({
+  style,
+  onPress,
+  children,
+  textStyle,
+  disabled = false,
+  variant = "primary",
+}: MainButtonProps) {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const [translateY] = useState(new Animated.Value(0));
@@ -51,13 +61,20 @@ export function MainButton({ onPress, style, textStyle, children, disabled = fal
     ]).start();
   };
 
-  const bgColor = isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f9", "#e4e6f3"];
-  const shadowColor = isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"];
-  const noDisabledBgColor = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
-  const noDisabledShadowColor = isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"];
+  const disabledBgColor = isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f9", "#e4e6f3"];
+  const disabledShadowColor = isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"];
 
-  const gradientColors = (disabled ? bgColor : noDisabledBgColor) as [string, string];
-  const shadowColors = (disabled ? shadowColor : noDisabledShadowColor) as [string, string];
+  const primaryBgColor = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
+  const primaryShadowColor = isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"];
+
+  const secondaryBgColor = isDarkMode ? ["#374151", "#1f2937"] : ["#f9fafb", "#e5e7eb"];
+  const secondaryShadowColor = isDarkMode ? ["#111827", "#111827"] : ["#d1d5db", "#d1d5db"];
+
+  const enabledBgColor = variant === "secondary" ? secondaryBgColor : primaryBgColor;
+  const enabledShadowColor = variant === "secondary" ? secondaryShadowColor : primaryShadowColor;
+
+  const gradientColors = (disabled ? disabledBgColor : enabledBgColor) as [string, string];
+  const shadowColors = (disabled ? disabledShadowColor : enabledShadowColor) as [string, string];
 
   return (
     <View style={styles.container}>

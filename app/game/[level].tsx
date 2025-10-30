@@ -26,6 +26,8 @@ export default function GameLevelScreen() {
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
   const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
 
+  const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
+
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {
     return (
       <ThemedView>
@@ -77,10 +79,20 @@ export default function GameLevelScreen() {
       </ThemedView>
       <ThemedView style={styles.levelView}>
         {isMultiAnswerMathTask(currentTask) && (
-          <MathTaskWithResult level={level} maxLevelStep={maxLevelStep} task={currentTask} />
+          <MathTaskWithResult
+            level={level}
+            task={currentTask}
+            maxLevelStep={maxLevelStep}
+            isFinalTaskInLevel={isFinalTaskInLevel}
+          />
         )}
         {isCreateMathTask(currentTask) && (
-          <CreateMathTask level={level} task={currentTask} maxLevelStep={maxLevelStep} />
+          <CreateMathTask
+            level={level}
+            task={currentTask}
+            maxLevelStep={maxLevelStep}
+            isFinalTaskInLevel={isFinalTaskInLevel}
+          />
         )}
       </ThemedView>
     </ThemedView>
