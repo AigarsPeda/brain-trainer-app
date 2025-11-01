@@ -72,6 +72,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
+  const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
@@ -80,10 +81,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   // ensure we only initialize once after container layout is available
   const initializedRef = useRef(false);
   const isBothValuesSet = leftValue !== null && rightValue !== null;
-
-  const setDisplayTaskResultsVisibility = () => {
-    setDisplayTaskResults((state) => !state);
-  };
 
   const isPositionOccupied = useCallback(
     (newPosition: NumberPosition, existingPositions: Map<number, NumberPosition>, excludeNumber?: number): boolean => {
@@ -293,6 +290,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     setLeftValue(null);
     setRightValue(null);
     initializedRef.current = false;
+    setHasAppliedLifePenalty(false);
   };
 
   const nextLevelValue = (levelNumber + 1).toString();
@@ -305,6 +303,15 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     router,
     nextLevelValue,
   });
+
+  const handleCheckAnswers = () => {
+    if (!isAllAnswersCorrect && !hasAppliedLifePenalty) {
+      dispatch({ type: "LOSE_LIFE" });
+      setHasAppliedLifePenalty(true);
+    }
+
+    setDisplayTaskResults(true);
+  };
 
   return (
     <>
@@ -381,7 +388,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
           }}
         >
           {/* <MainButton disabled={!isBothValuesSet} onPress={checkAnswers}> */}
-          <MainButton disabled={!isBothValuesSet} onPress={setDisplayTaskResultsVisibility}>
+          <MainButton disabled={!isBothValuesSet} onPress={handleCheckAnswers}>
             <ThemedText
               type="defaultSemiBold"
               style={{

@@ -1,5 +1,6 @@
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
+import { LEVEL_3 } from "@/data/math-3-level";
 import { createContext } from "react";
 
 // Level -> Multiple tasks -> One task -> Multiple answers
@@ -71,7 +72,8 @@ export type AppContextActionType =
   | GetNextLevel
   | SetNameActionType
   | CreateNextLevelActionType
-  | SetIsCheckedForTaskActionType;
+  | SetIsCheckedForTaskActionType
+  | LoseLifeActionType;
 
 export type AppContextType = {
   state: AppContextStateType;
@@ -81,6 +83,7 @@ export type AppContextType = {
 export enum LevelsEnum {
   LEVEL_1 = "1",
   LEVEL_2 = "2",
+  LEVEL_3 = "3",
 }
 
 export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType;
@@ -96,6 +99,7 @@ export const isCreateMathTask = (task: TaskType): task is CreateMathTaskType => 
 export const ALL_TASKS: Record<LevelsEnum, TaskType[]> = {
   [LevelsEnum.LEVEL_1]: LEVEL_1,
   [LevelsEnum.LEVEL_2]: LEVEL_2,
+  [LevelsEnum.LEVEL_3]: LEVEL_3,
 };
 
 const INITIAL_LEVEL = 1;
@@ -155,6 +159,10 @@ interface CreateNextLevelActionType {
   };
 }
 
+interface LoseLifeActionType {
+  type: "LOSE_LIFE";
+}
+
 interface GetNextLevel {
   type: "GET_NEXT_LEVEL";
   payload: {
@@ -173,6 +181,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       const currentLevel = state.game.currentLevel;
       const currentTaskInLevel = state.game.currentTaskInLevel;
       const nextTaskInLevel = currentTaskInLevel + 1;
+      const updatedLives = state.lives;
 
       // Add current task result to results
       const newResults = {
@@ -220,6 +229,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
         return {
           ...state,
+          lives: updatedLives,
           game: {
             currentTaskInLevel: 1,
             currentLevel: nextLevel,
@@ -245,6 +255,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       // Move to next task in same level
       return {
         ...state,
+        lives: updatedLives,
         game: {
           ...state.game,
           currentTaskInLevel: nextTaskInLevel,
@@ -314,6 +325,13 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       };
 
       return newState;
+    }
+
+    case "LOSE_LIFE": {
+      return {
+        ...state,
+        lives: Math.max(0, state.lives - 1),
+      };
     }
 
     default: {

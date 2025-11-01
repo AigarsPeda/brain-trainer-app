@@ -36,6 +36,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
+  const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
@@ -58,10 +59,6 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
     return parseFloat(weightedPercentage.toFixed(2));
   };
 
-  const setDisplayTaskResultsVisibility = () => {
-    setDisplayTaskResults((state) => !state);
-  };
-
   const finalizeTaskProgress = () => {
     const correctnessPercentage = calculatePercentageInTask(answers, task.options, maxLevelStep);
 
@@ -75,6 +72,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
     setAnswer([]);
     setDisplayTaskResults(false);
+    setHasAppliedLifePenalty(false);
   };
 
   const nextLevelValue = (levelNumber + 1).toString();
@@ -116,6 +114,15 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
   const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;
   const isAllAnswersCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
+
+  const handleCheckAnswers = () => {
+    if (!isAllAnswersCorrect && !hasAppliedLifePenalty) {
+      dispatch({ type: "LOSE_LIFE" });
+      setHasAppliedLifePenalty(true);
+    }
+
+    setDisplayTaskResults(true);
+  };
 
   return (
     <>
@@ -209,7 +216,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
             justifyContent: "center",
           }}
         >
-          <MainButton disabled={!isAtLeastOneTaskAnswered} onPress={setDisplayTaskResultsVisibility}>
+          <MainButton disabled={!isAtLeastOneTaskAnswered} onPress={handleCheckAnswers}>
             <ThemedText
               type="defaultSemiBold"
               style={{
