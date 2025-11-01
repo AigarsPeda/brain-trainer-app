@@ -6,11 +6,14 @@ import Heart from "@/assets/images/heart.png";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedView } from "@/components/ThemedView";
 import useAppContext from "@/hooks/useAppContext";
+import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { useWindowDimensions } from "react-native";
 
 export function UserStatistics() {
   const { state } = useAppContext();
   const { width } = useWindowDimensions();
+
+  const livesAnimatedStyle = usePulseOnChange(state.lives);
 
   const itemWidth = width / 3;
 
@@ -53,6 +56,7 @@ export function UserStatistics() {
           width: 36,
           height: 36,
         }}
+        animation={livesAnimatedStyle}
       />
     </ThemedView>
   );

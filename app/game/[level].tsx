@@ -8,6 +8,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { isCreateMathTask, isMultiAnswerMathTask, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { getLevelTaskData } from "@/utils/game";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet } from "react-native";
@@ -25,6 +26,8 @@ export default function GameLevelScreen() {
   const insets = useSafeAreaInsets();
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
   const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
+
+  const livesAnimation = usePulseOnChange(lives);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
 
@@ -75,7 +78,7 @@ export default function GameLevelScreen() {
           }}
         />
         <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={currentTaskInLevel} />
-        <StatisticsItem src={Heart} stat={lives} size={styles.statisticsItem} />
+        <StatisticsItem src={Heart} stat={lives} size={styles.statisticsItem} animation={livesAnimation} />
       </ThemedView>
       <ThemedView style={styles.levelView}>
         {isMultiAnswerMathTask(currentTask) && (
