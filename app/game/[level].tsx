@@ -94,11 +94,12 @@ export default function GameLevelScreen() {
           <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={currentTaskInLevel} />
           <StatisticsItem src={Heart} stat={lives} size={styles.statisticsItem} animation={livesAnimation} />
         </ThemedView>
-        <ThemedView style={styles.infoRow}>
+        {/* TODO: Where should I put the info row? */}
+        {/* <ThemedView style={styles.infoRow}>
           <ThemedText style={styles.infoText} type="subtitle" onPress={openInfoModal}>
             Uzzini vairak par so uzdevumu
           </ThemedText>
-        </ThemedView>
+        </ThemedView> */}
         <ThemedView style={styles.levelView}>
           {isMultiAnswerMathTask(currentTask) && (
             <MathTaskWithResult
@@ -159,5 +160,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     paddingBottom: 4,
+    fontSize: 14,
   },
 });
