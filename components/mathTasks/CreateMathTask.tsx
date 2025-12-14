@@ -1,38 +1,45 @@
+import { MainButton } from "@/components/MainButton";
+import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
+import useAppContext from "@/hooks/useAppContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { checkAnswers } from "@/utils/game";
+import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import { MainButton } from "../MainButton";
-import { ShowResults } from "../ShowResults";
-import useAppContext from "@/hooks/useAppContext";
 import { scheduleOnRN } from "react-native-worklets";
-import { checkAnswers } from "@/utils/game";
-import { useRouter } from "expo-router";
-import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 
+// Constants
 const DRAGGABLE_NUMBER_SIZE = 75;
-const COLLISION_BUFFER = 10; // Extra space between numbers
+const COLLISION_BUFFER = 10;
+const DROP_ZONE_SIZE = 110;
+const CONTAINER_HEIGHT = 200;
+const GRID_COLS = 3;
+const GRID_ROWS = 3;
+const GRID_MARGIN = 25;
+const POSITION_MARGIN = 20;
+const MAX_POSITION_ATTEMPTS = 50;
+const DRAG_SCALE = 1.7;
+const SNAPPED_SCALE = 1.4;
+const NORMAL_SCALE = 1;
 
-// A helper function to measure a view and return a Promise
 const measureView = (ref: React.RefObject<View | null>): Promise<LayoutRectangle> => {
-  if (!ref.current) {
-    return Promise.resolve({ x: 0, y: 0, width: 0, height: 0 });
-  }
-
   return new Promise((resolve) => {
-    if (ref.current) {
-      ref.current.measure((x, y, width, height, pageX, pageY) => {
-        resolve({ x: pageX, y: pageY, width, height });
-      });
-    } else {
+    if (!ref.current) {
       resolve({ x: 0, y: 0, width: 0, height: 0 });
+      return;
     }
+
+    ref.current.measure((x, y, width, height, pageX, pageY) => {
+      resolve({ x: pageX, y: pageY, width, height });
+    });
   });
 };
 
@@ -103,25 +110,21 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
         return { x: 0, y: 0 };
       }
 
-      // Create a 3x3 grid with fixed positioning
-      const gridCols = 3;
-      const gridRows = 3;
-      const margin = 25;
-      const spacing = (containerLayout.width - margin * 2) / gridCols;
-      const verticalSpacing = (200 - margin * 2) / gridRows;
+      const spacing = (containerLayout.width - GRID_MARGIN * 2) / GRID_COLS;
+      const verticalSpacing = (CONTAINER_HEIGHT - GRID_MARGIN * 2) / GRID_ROWS;
 
       // Collect all available grid positions
       const gridPositions: NumberPosition[] = [];
-      for (let row = 0; row < gridRows; row++) {
-        for (let col = 0; col < gridCols; col++) {
-          const x = margin + col * spacing + (spacing - DRAGGABLE_NUMBER_SIZE) / 2;
-          const y = margin + row * verticalSpacing + (verticalSpacing - DRAGGABLE_NUMBER_SIZE) / 2;
+      for (let row = 0; row < GRID_ROWS; row++) {
+        for (let col = 0; col < GRID_COLS; col++) {
+          const x = GRID_MARGIN + col * spacing + (spacing - DRAGGABLE_NUMBER_SIZE) / 2;
+          const y = GRID_MARGIN + row * verticalSpacing + (verticalSpacing - DRAGGABLE_NUMBER_SIZE) / 2;
           gridPositions.push({ x, y });
         }
       }
 
-      // Try each grid position in random order to find an unoccupied one
-      const shuffledPositions = [...gridPositions].sort(() => Math.random() - 0.5);
+      // Shuffle and find first unoccupied position
+      const shuffledPositions = gridPositions.sort(() => Math.random() - 0.5);
 
       for (const position of shuffledPositions) {
         if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
@@ -130,7 +133,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
       }
 
       // Fallback: return first grid position
-      return gridPositions[0] || { x: margin, y: margin };
+      return gridPositions[0] || { x: GRID_MARGIN, y: GRID_MARGIN };
     },
     [containerLayout, isPositionOccupied]
   );
@@ -141,23 +144,17 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
         return { x: 0, y: 0 };
       }
 
-      const margin = 20;
-      const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - margin * 2;
-      const maxHeight = 200 - DRAGGABLE_NUMBER_SIZE - margin * 2;
+      const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - POSITION_MARGIN * 2;
+      const maxHeight = CONTAINER_HEIGHT - DRAGGABLE_NUMBER_SIZE - POSITION_MARGIN * 2;
 
-      let attempts = 0;
-      const maxAttempts = 50;
-
-      while (attempts < maxAttempts) {
-        const x = Math.random() * maxWidth + margin;
-        const y = Math.random() * maxHeight + margin;
+      for (let attempts = 0; attempts < MAX_POSITION_ATTEMPTS; attempts++) {
+        const x = Math.random() * maxWidth + POSITION_MARGIN;
+        const y = Math.random() * maxHeight + POSITION_MARGIN;
         const newPosition = { x, y };
 
         if (!isPositionOccupied(newPosition, existingPositions, excludeNumber)) {
           return newPosition;
         }
-
-        attempts++;
       }
 
       return generateGridPosition(existingPositions, excludeNumber);
@@ -200,61 +197,54 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     return { x: relativeX, y: relativeY };
   };
 
-  const handleDrop = async (x: number, y: number, number: number) => {
-    if (leftValue === number) {
-      setLeftValue(null);
-    }
-    if (rightValue === number) {
-      setRightValue(null);
-    }
+  const handleDrop = useCallback(
+    async (x: number, y: number, number: number) => {
+      // Clear if number was already placed
+      if (leftValue === number) setLeftValue(null);
+      if (rightValue === number) setRightValue(null);
 
-    const draggedItemBox: LayoutRectangle = {
-      x: x - DRAGGABLE_NUMBER_SIZE / 2,
-      y: y - DRAGGABLE_NUMBER_SIZE / 2,
-      width: DRAGGABLE_NUMBER_SIZE,
-      height: DRAGGABLE_NUMBER_SIZE,
-    };
+      const draggedItemBox: LayoutRectangle = {
+        x: x - DRAGGABLE_NUMBER_SIZE / 2,
+        y: y - DRAGGABLE_NUMBER_SIZE / 2,
+        width: DRAGGABLE_NUMBER_SIZE,
+        height: DRAGGABLE_NUMBER_SIZE,
+      };
 
-    // Measure the drop zones at the time of the drop
-    const leftZoneLayout = await measureView(leftZoneRef);
-    const rightZoneLayout = await measureView(rightZoneRef);
+      const [leftZoneLayout, rightZoneLayout] = await Promise.all([
+        measureView(leftZoneRef),
+        measureView(rightZoneRef),
+      ]);
 
-    let snapped = false;
-
-    if (containerLayout && doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
-      if (leftValue !== null) {
-        animateNumberToRandomPosition(leftValue);
+      if (!containerLayout) {
+        animateNumberToRandomPosition(number);
+        return;
       }
 
-      setLeftValue(number);
-      const dropPosition = getDropZonePosition(leftZoneLayout, containerLayout);
-      setNumberPositions((prev) => {
-        const cloned = new Map(prev);
-        cloned.set(number, dropPosition);
-        return cloned;
-      });
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      snapped = true;
-    } else if (containerLayout && doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
-      if (rightValue !== null) {
-        animateNumberToRandomPosition(rightValue);
+      // Check left zone
+      if (doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
+        if (leftValue !== null) animateNumberToRandomPosition(leftValue);
+        setLeftValue(number);
+        const dropPosition = getDropZonePosition(leftZoneLayout, containerLayout);
+        setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        return;
       }
 
-      setRightValue(number);
-      const dropPosition = getDropZonePosition(rightZoneLayout, containerLayout);
-      setNumberPositions((prev) => {
-        const cloned = new Map(prev);
-        cloned.set(number, dropPosition);
-        return cloned;
-      });
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      snapped = true;
-    }
+      // Check right zone
+      if (doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
+        if (rightValue !== null) animateNumberToRandomPosition(rightValue);
+        setRightValue(number);
+        const dropPosition = getDropZonePosition(rightZoneLayout, containerLayout);
+        setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        return;
+      }
 
-    if (!snapped) {
+      // Not snapped to any zone
       animateNumberToRandomPosition(number);
-    }
-  };
+    },
+    [leftValue, rightValue, containerLayout, animateNumberToRandomPosition, getDropZonePosition]
+  );
 
   const {
     dispatch,
@@ -265,17 +255,15 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
 
-  const getCorrectnessPercentage = () => {
+  const getCorrectnessPercentage = useCallback(() => {
     const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
-    if (maxLevelStep <= 0) {
-      return isCorrect ? 100 : 0;
-    }
+    if (maxLevelStep <= 0) return isCorrect ? 100 : 0;
 
-    const perTaskScore = parseFloat((100 / maxLevelStep).toFixed(2));
+    const perTaskScore = Number((100 / maxLevelStep).toFixed(2));
     return isCorrect ? perTaskScore : 0;
-  };
+  }, [leftValue, rightValue, task.operation, task.result, maxLevelStep]);
 
-  const finalizeTaskProgress = () => {
+  const finalizeTaskProgress = useCallback(() => {
     const correctnessPercentage = getCorrectnessPercentage();
 
     dispatch({
@@ -291,7 +279,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     setRightValue(null);
     initializedRef.current = false;
     setHasAppliedLifePenalty(false);
-  };
+  }, [getCorrectnessPercentage, dispatch, maxLevelStep]);
 
   const nextLevelValue = (levelNumber + 1).toString();
   const isAllAnswersCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
@@ -304,14 +292,14 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     nextLevelValue,
   });
 
-  const handleCheckAnswers = () => {
+  const handleCheckAnswers = useCallback(() => {
     if (!isAllAnswersCorrect && !hasAppliedLifePenalty) {
       dispatch({ type: "LOSE_LIFE" });
       setHasAppliedLifePenalty(true);
     }
 
     setDisplayTaskResults(true);
-  };
+  }, [isAllAnswersCorrect, hasAppliedLifePenalty, dispatch]);
 
   return (
     <>
@@ -339,15 +327,15 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
             justifyContent: "space-between",
           }}
         >
-          <View ref={leftZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
+          <View ref={leftZoneRef} style={[styles.dropZone, { borderColor: theme.border }]} />
 
-          <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
+          <ThemedText type="defaultSemiBold" style={styles.operationText}>
             {task.operation}
           </ThemedText>
 
-          <View ref={rightZoneRef} style={{ ...styles.button, borderColor: theme.border }} />
+          <View ref={rightZoneRef} style={[styles.dropZone, { borderColor: theme.border }]} />
 
-          <ThemedText type="defaultSemiBold" style={{ fontSize: 40 }}>
+          <ThemedText type="defaultSemiBold" style={styles.operationText}>
             = {task.result}
           </ThemedText>
         </View>
@@ -359,7 +347,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
               setContainerLayout({ x: pageX, y: pageY, width, height });
             });
           }}
-          style={{ height: 200, marginTop: 50, position: "relative" }}
+          style={styles.numbersContainer}
         >
           {numbers.map((number) => {
             const position = numberPositions.get(number);
@@ -441,9 +429,8 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
   const isSnappedSV = useSharedValue(isSnapped);
 
   useEffect(() => {
-    // update shared value from JS thread when prop changes
     isSnappedSV.value = isSnapped;
-    scale.value = withSpring(isSnapped ? 1.4 : 1);
+    scale.value = withSpring(isSnapped ? SNAPPED_SCALE : NORMAL_SCALE);
   }, [isSnapped, scale, isSnappedSV]);
 
   useEffect(() => {
@@ -458,7 +445,7 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     .onStart(async () => {
       context.value = { x: positionX.value, y: positionY.value };
       isDragging.value = true;
-      scale.value = withSpring(1.7);
+      scale.value = withSpring(DRAG_SCALE);
       zIndex.value = 999;
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     })
@@ -471,8 +458,7 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
       scheduleOnRN(onDrop, absoluteX, absoluteY);
       zIndex.value = 0;
       isDragging.value = false;
-      // read the shared value inside the worklet
-      scale.value = withSpring(isSnappedSV.value ? 1.4 : 1);
+      scale.value = withSpring(isSnappedSV.value ? SNAPPED_SCALE : NORMAL_SCALE);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -518,17 +504,25 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
 };
 
 const styles = StyleSheet.create({
-  button: {
-    width: 110,
-    height: 110,
+  dropZone: {
+    width: DROP_ZONE_SIZE,
+    height: DROP_ZONE_SIZE,
     borderWidth: 3,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
+  numbersContainer: {
+    height: CONTAINER_HEIGHT,
+    marginTop: 50,
+    position: "relative",
+  },
+  operationText: {
+    fontSize: 40,
+  },
   numberContainer: {
-    width: 75,
-    height: 75,
+    width: DRAGGABLE_NUMBER_SIZE,
+    height: DRAGGABLE_NUMBER_SIZE,
     elevation: 2,
     borderWidth: 1,
     borderRadius: 8,
