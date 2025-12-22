@@ -81,6 +81,7 @@ export default function GameLevelScreen() {
       <ThemedView
         style={{
           ...styles.itemsWrap,
+          paddingTop: styles.itemsWrap.paddingTop + (Platform.OS === "android" ? insets.top + 12 : 0),
           paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
         }}
       >
