@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { MainButton } from "@/components/MainButton";
+import { AnimatedTimer } from "@/components/AnimatedTimer";
 import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
 import { Image } from "expo-image";
 import { Modal, Pressable, StyleSheet, View, ActivityIndicator } from "react-native";
@@ -83,9 +84,7 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
             {!isFullLives && lastLifeLostAt !== null ? (
               <ThemedView style={styles.timerSection}>
                 <ThemedText style={styles.timerLabel}>Nākamā dzīvība pēc:</ThemedText>
-                <ThemedText type="subtitle" style={styles.timerValue}>
-                  {formatTime(timeRemaining)}
-                </ThemedText>
+                <AnimatedTimer time={formatTime(timeRemaining)} style={styles.timerValue} />
               </ThemedView>
             ) : (
               <ThemedText style={styles.fullLivesText}>Visas dzīvības ir pilnas!</ThemedText>
@@ -118,7 +117,12 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
             )}
 
             <Pressable style={styles.modalCloseButton} onPress={onClose}>
-              <ThemedText style={styles.modalCloseButtonText} darkColor="#ffffff" lightColor="#151414ff">
+              <ThemedText
+                type="subtitle"
+                darkColor="#ffffff"
+                lightColor="#151414ff"
+                style={styles.modalCloseButtonText}
+              >
                 Aizvērt
               </ThemedText>
             </Pressable>
@@ -184,6 +188,8 @@ const styles = StyleSheet.create({
   timerValue: {
     fontSize: 28,
     color: "#D81E5B",
+    fontFamily: "BalooBhai2_700Bold",
+    lineHeight: 36,
   },
   fullLivesText: {
     fontSize: 16,
@@ -198,7 +204,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalCloseButtonText: {
-    fontFamily: "BalooBhai2_500Medium",
+    // fontFamily: "BalooBhai2_500Medium",
     fontSize: 16,
   },
   adButton: {
