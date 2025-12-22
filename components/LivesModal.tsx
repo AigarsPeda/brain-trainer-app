@@ -3,8 +3,10 @@ import { ThemedView } from "@/components/ThemedView";
 import { MainButton } from "@/components/MainButton";
 import { AnimatedTimer } from "@/components/AnimatedTimer";
 import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
+import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { Image } from "expo-image";
 import { Modal, Pressable, StyleSheet, View, ActivityIndicator } from "react-native";
+import Animated from "react-native-reanimated";
 import { useEffect, useState } from "react";
 import Heart from "@/assets/images/heart.png";
 import AdIcon from "@/assets/images/ad.png";
@@ -31,6 +33,7 @@ const formatTime = (ms: number): string => {
 export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, onWatchAd }: LivesModalProps) {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const isFullLives = lives >= MAX_LIVES;
+  const livesAnimation = usePulseOnChange(lives);
 
   useEffect(() => {
     if (!visible || isFullLives || lastLifeLostAt === null) {
@@ -75,7 +78,7 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
               Dzīvības
             </ThemedText>
 
-            <View style={styles.heartsRow}>{renderHearts()}</View>
+            <Animated.View style={[styles.heartsRow, livesAnimation]}>{renderHearts()}</Animated.View>
 
             <ThemedText style={styles.livesCount}>
               {lives} / {MAX_LIVES}
@@ -84,7 +87,7 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
             {!isFullLives && lastLifeLostAt !== null ? (
               <ThemedView style={styles.timerSection}>
                 <ThemedText style={styles.timerLabel}>Nākamā dzīvība pēc:</ThemedText>
-                <AnimatedTimer time={formatTime(timeRemaining)} style={styles.timerValue} />
+                <AnimatedTimer time={formatTime(timeRemaining)} style={styles.timerValue} direction="down" />
               </ThemedView>
             ) : (
               <ThemedText style={styles.fullLivesText}>Visas dzīvības ir pilnas!</ThemedText>
