@@ -9,7 +9,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Button, ViewToken } from "react-native";
+import { Button, Platform, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,7 +26,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ThemedView style={{ flex: 1 }}>
+    <ThemedView style={{ flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }}>
       <LivesModal
         visible={isLivesModalVisible}
         onClose={() => setIsLivesModalVisible(false)}
