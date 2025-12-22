@@ -1,7 +1,6 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
 import ListItem from "@/components/ListItem";
 import { LivesModal } from "@/components/LivesModal";
-import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { UserStatistics } from "@/components/UserStatistics";
 import { TaskInfoType } from "@/context/app.context.reducer";
@@ -9,7 +8,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Button, Platform, ViewToken } from "react-native";
+import { Platform, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,18 +24,22 @@ export default function HomeScreen() {
     });
   };
 
+  const handleOpenLivesModalClose = () => {
+    setIsLivesModalVisible((state) => !state);
+  };
+
   return (
     <ThemedView style={{ flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }}>
       <LivesModal
-        visible={isLivesModalVisible}
-        onClose={() => setIsLivesModalVisible(false)}
-        lives={state.lives}
-        lastLifeLostAt={state.lastLifeLostAt}
         adLoaded={loaded}
+        lives={state.lives}
         onWatchAd={handleWatchAd}
+        visible={isLivesModalVisible}
+        lastLifeLostAt={state.lastLifeLostAt}
+        onClose={handleOpenLivesModalClose}
       />
       <SafeAreaView>
-        <UserStatistics onLivesPress={() => setIsLivesModalVisible(true)} />
+        <UserStatistics onLivesPress={handleOpenLivesModalClose} />
 
         <AnimatedFlatList
           paddingTop={0}
