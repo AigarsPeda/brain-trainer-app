@@ -1,23 +1,23 @@
+import AdIcon from "@/assets/images/ad.png";
+import Heart from "@/assets/images/heart.png";
+import { AnimatedTimer } from "@/components/AnimatedTimer";
+import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { MainButton } from "@/components/MainButton";
-import { AnimatedTimer } from "@/components/AnimatedTimer";
-import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
+import { LIFE_RESTORE_INTERVAL_MS, MAX_LIVES } from "@/constants/GameSettings";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { Image } from "expo-image";
-import { Modal, Pressable, StyleSheet, View, ActivityIndicator } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
-import { useEffect, useState } from "react";
-import Heart from "@/assets/images/heart.png";
-import AdIcon from "@/assets/images/ad.png";
 
 interface LivesModalProps {
-  visible: boolean;
-  onClose: () => void;
   lives: number;
-  lastLifeLostAt: number | null;
+  visible: boolean;
   adLoaded?: boolean;
+  onClose: () => void;
   onWatchAd?: () => void;
+  lastLifeLostAt: number | null;
 }
 
 const formatTime = (ms: number): string => {
@@ -31,9 +31,24 @@ const formatTime = (ms: number): string => {
 };
 
 export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, onWatchAd }: LivesModalProps) {
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const lastLivesRef = useRef(lives);
   const isFullLives = lives >= MAX_LIVES;
   const livesAnimation = usePulseOnChange(lives);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [animatedHeartIndex, setAnimatedHeartIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const previousLives = lastLivesRef.current;
+    const delta = lives - previousLives;
+
+    if (delta > 0) {
+      setAnimatedHeartIndex(lives - 1);
+    } else {
+      setAnimatedHeartIndex(null);
+    }
+
+    lastLivesRef.current = lives;
+  }, [lives]);
 
   useEffect(() => {
     if (!visible || isFullLives || lastLifeLostAt === null) {
@@ -60,10 +75,13 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
     const hearts = [];
     for (let i = 0; i < MAX_LIVES; i++) {
       const isFilled = i < lives;
+      const animateThis = animatedHeartIndex === i;
       hearts.push(
-        <View key={i} style={[styles.heartContainer, !isFilled && styles.heartEmpty]}>
-          <Image source={Heart} style={styles.heartImage} contentFit="contain" />
-        </View>
+        <Animated.View key={i} style={animateThis ? livesAnimation : undefined}>
+          <View style={[styles.heartContainer, !isFilled && styles.heartEmpty]}>
+            <Image source={Heart} style={styles.heartImage} contentFit="contain" />
+          </View>
+        </Animated.View>
       );
     }
     return hearts;
@@ -78,7 +96,7 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
               Dzīvības
             </ThemedText>
 
-            <Animated.View style={[styles.heartsRow, livesAnimation]}>{renderHearts()}</Animated.View>
+            <Animated.View style={styles.heartsRow}>{renderHearts()}</Animated.View>
 
             <ThemedText style={styles.livesCount}>
               {lives} / {MAX_LIVES}
