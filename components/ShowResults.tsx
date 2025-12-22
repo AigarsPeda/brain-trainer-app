@@ -23,15 +23,30 @@ interface ShowResultsProps {
   onNextTaskPress: () => void;
   isAllAnswersCorrect: boolean;
   levelCompletionState?: LevelCompletionState;
+  onTryAgainPress?: () => void;
+  lives?: number;
+  onGoHomePress?: () => void;
+  onWatchAdPress?: () => void;
+  adLoaded?: boolean;
 }
 
-export function ShowResults({ onNextTaskPress, isAllAnswersCorrect, levelCompletionState }: ShowResultsProps) {
+export function ShowResults({
+  onNextTaskPress,
+  isAllAnswersCorrect,
+  levelCompletionState,
+  onTryAgainPress,
+  lives,
+  onGoHomePress,
+  onWatchAdPress,
+  adLoaded,
+}: ShowResultsProps) {
   const sheetRef = useRef<BottomSheet>(null);
   const { background, text } = useThemeColor();
 
   const snapPoints = useMemo(() => {
+    if (lives === 0) return ["50%"];
     return [levelCompletionState?.isCompleted ? "55%" : "35%"];
-  }, [levelCompletionState?.isCompleted]);
+  }, [levelCompletionState?.isCompleted, lives]);
 
   const handleSheetChange = useCallback((index: number) => {
     console.log("handleSheetChange", index);
@@ -60,6 +75,12 @@ export function ShowResults({ onNextTaskPress, isAllAnswersCorrect, levelComplet
         <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>
           {isAllAnswersCorrect ? (
             <DisplayResults title="Pareizi!" description="Visas atbildes ir pareizas! Turpini tā!" />
+          ) : lives === 0 ? (
+            <DisplayResults
+              isIncorrectAnswer
+              title="Dzīvības beigšās!"
+              description="Tev vairs nav dzīvību. Skaties reklāmu, lai atgūtu dzīvību, vai atgriezies sākumā."
+            />
           ) : (
             <DisplayResults
               isIncorrectAnswer
@@ -68,7 +89,28 @@ export function ShowResults({ onNextTaskPress, isAllAnswersCorrect, levelComplet
             />
           )}
 
-          {levelCompletionState?.isCompleted ? (
+          {lives === 0 ? (
+            <ThemedView style={styles.buttonsStack}>
+              {onWatchAdPress ? (
+                <ThemedView style={styles.buttonContainer}>
+                  <MainButton onPress={onWatchAdPress} disabled={!adLoaded}>
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      {adLoaded ? "🎬 Skatīties reklāmu (+1 ❤️)" : "⏳ Ielādē reklāmu..."}
+                    </ThemedText>
+                  </MainButton>
+                </ThemedView>
+              ) : null}
+              {onGoHomePress ? (
+                <ThemedView style={[styles.buttonContainer, styles.lastButton]}>
+                  <MainButton variant="secondary" onPress={onGoHomePress}>
+                    <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
+                      Uz sākumu
+                    </ThemedText>
+                  </MainButton>
+                </ThemedView>
+              ) : null}
+            </ThemedView>
+          ) : levelCompletionState?.isCompleted && isAllAnswersCorrect ? (
             <>
               <LevelCompletionNotice
                 title={levelCompletionState.title}
@@ -94,7 +136,7 @@ export function ShowResults({ onNextTaskPress, isAllAnswersCorrect, levelComplet
                 </ThemedView>
               </ThemedView>
             </>
-          ) : (
+          ) : isAllAnswersCorrect ? (
             <ThemedView style={{ width: "100%", alignItems: "center" }}>
               <MainButton onPress={onNextTaskPress}>
                 <ThemedText type="defaultSemiBold" style={styles.buttonText}>
@@ -102,7 +144,15 @@ export function ShowResults({ onNextTaskPress, isAllAnswersCorrect, levelComplet
                 </ThemedText>
               </MainButton>
             </ThemedView>
-          )}
+          ) : onTryAgainPress ? (
+            <ThemedView style={{ width: "100%", alignItems: "center" }}>
+              <MainButton onPress={onTryAgainPress}>
+                <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                  Mēģini vēlreiz
+                </ThemedText>
+              </MainButton>
+            </ThemedView>
+          ) : null}
         </BottomSheetView>
       </BottomSheet>
     </GestureHandlerRootView>

@@ -11,6 +11,7 @@ import type {
   TaskOptionType,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
 import { useRouter } from "expo-router";
@@ -30,9 +31,10 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
   const {
     dispatch,
-    state: { availableLevels },
+    state: { availableLevels, lives },
   } = useAppContext();
   const router = useRouter();
+  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
 
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
@@ -116,12 +118,20 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   const isAllAnswersCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
 
   const handleCheckAnswers = () => {
-    if (!isAllAnswersCorrect && !hasAppliedLifePenalty) {
+    const isCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
+
+    if (!isCorrect && !hasAppliedLifePenalty) {
       dispatch({ type: "LOSE_LIFE" });
       setHasAppliedLifePenalty(true);
     }
 
     setDisplayTaskResults(true);
+  };
+
+  const handleTryAgain = () => {
+    dispatch({ type: "LOSE_LIFE" });
+    setAnswer([]);
+    setDisplayTaskResults(false);
   };
 
   return (
@@ -231,6 +241,19 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
         <ShowResults
           isAllAnswersCorrect={isAllAnswersCorrect}
           onNextTaskPress={goToNextTask}
+          onTryAgainPress={handleTryAgain}
+          lives={lives}
+          adLoaded={adLoaded}
+          onGoHomePress={handleGoHome}
+          onWatchAdPress={() => {
+            showAdForReward(() => {
+              dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+              // Reset task and close modal - free retry after watching ad
+              setAnswer([]);
+              setDisplayTaskResults(false);
+              setHasAppliedLifePenalty(false);
+            });
+          }}
           levelCompletionState={
             isFinalTaskInLevel
               ? {

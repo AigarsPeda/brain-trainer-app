@@ -2,6 +2,7 @@ import Close from "@/assets/images/close.png";
 import Heart from "@/assets/images/heart.png";
 import Info from "@/assets/images/exclamation-mark.png";
 import { InfoModal } from "@/components/InfoModal";
+import { LivesModal } from "@/components/LivesModal";
 import { CreateMathTask } from "@/components/mathTasks/CreateMathTask";
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
 import Progressbar from "@/components/Progressbar";
@@ -10,6 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { isCreateMathTask, isMultiAnswerMathTask, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import useGoogleAd from "@/hooks/useGoogleAd";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { getLevelTaskData } from "@/utils/game";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -22,12 +24,16 @@ export default function GameLevelScreen() {
     state: {
       lives,
       results,
+      lastLifeLostAt,
       game: { currentTaskInLevel },
     },
+    dispatch,
   } = useAppContext();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { loaded, showAdForReward } = useGoogleAd();
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
+  const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
   const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
 
@@ -41,6 +47,21 @@ export default function GameLevelScreen() {
 
   const closeInfoModal = () => {
     setIsInfoModalVisible(false);
+  };
+
+  const openLivesModal = () => {
+    setIsLivesModalVisible(true);
+  };
+
+  const closeLivesModal = () => {
+    setIsLivesModalVisible(false);
+  };
+
+  const handleWatchAd = () => {
+    showAdForReward(() => {
+      dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+      setIsLivesModalVisible(false);
+    });
   };
 
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {
@@ -78,10 +99,18 @@ export default function GameLevelScreen() {
     <>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <InfoModal visible={isInfoModalVisible} onClose={closeInfoModal} />
+      <LivesModal
+        visible={isLivesModalVisible}
+        onClose={closeLivesModal}
+        lives={lives}
+        lastLifeLostAt={lastLifeLostAt}
+        adLoaded={loaded}
+        onWatchAd={handleWatchAd}
+      />
       <ThemedView
         style={{
           ...styles.itemsWrap,
-          paddingTop: styles.itemsWrap.paddingTop + (Platform.OS === "android" ? insets.top + 12 : 0),
+          paddingTop: styles.itemsWrap.paddingTop + insets.top + 12,
           paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
         }}
       >
@@ -93,7 +122,13 @@ export default function GameLevelScreen() {
             }}
           />
           <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={currentTaskInLevel} />
-          <StatisticsItem src={Heart} stat={lives} size={styles.statisticsItem} animation={livesAnimation} />
+          <StatisticsItem
+            src={Heart}
+            stat={lives}
+            size={styles.statisticsItem}
+            animation={livesAnimation}
+            onPress={openLivesModal}
+          />
         </ThemedView>
         {/* TODO: Where should I put the info row? */}
         {/* <ThemedView style={styles.infoRow}>
@@ -142,8 +177,8 @@ const styles = StyleSheet.create({
     height: 36,
   },
   levelView: {
+    flex: 1,
     paddingTop: 10,
-    height: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",

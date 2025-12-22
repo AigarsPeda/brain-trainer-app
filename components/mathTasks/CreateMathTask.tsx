@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import useGoogleAd from "@/hooks/useGoogleAd";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { checkAnswers } from "@/utils/game";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
@@ -248,9 +249,10 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
 
   const {
     dispatch,
-    state: { availableLevels },
+    state: { availableLevels, lives },
   } = useAppContext();
   const router = useRouter();
+  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
@@ -293,13 +295,23 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   });
 
   const handleCheckAnswers = useCallback(() => {
-    if (!isAllAnswersCorrect && !hasAppliedLifePenalty) {
+    const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
+
+    if (!isCorrect && !hasAppliedLifePenalty) {
       dispatch({ type: "LOSE_LIFE" });
       setHasAppliedLifePenalty(true);
     }
 
     setDisplayTaskResults(true);
-  }, [isAllAnswersCorrect, hasAppliedLifePenalty, dispatch]);
+  }, [leftValue, rightValue, task.operation, task.result, hasAppliedLifePenalty, dispatch]);
+
+  const handleTryAgain = useCallback(() => {
+    dispatch({ type: "LOSE_LIFE" });
+    setLeftValue(null);
+    setRightValue(null);
+    setDisplayTaskResults(false);
+    initializedRef.current = false;
+  }, [dispatch]);
 
   return (
     <>
@@ -391,6 +403,21 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
         <ShowResults
           isAllAnswersCorrect={isAllAnswersCorrect}
           onNextTaskPress={goToNextTask}
+          onTryAgainPress={handleTryAgain}
+          lives={lives}
+          adLoaded={adLoaded}
+          onGoHomePress={handleGoHome}
+          onWatchAdPress={() => {
+            showAdForReward(() => {
+              dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+              // Reset task and close modal - free retry after watching ad
+              setLeftValue(null);
+              setRightValue(null);
+              setDisplayTaskResults(false);
+              initializedRef.current = false;
+              setHasAppliedLifePenalty(false);
+            });
+          }}
           levelCompletionState={
             isFinalTaskInLevel
               ? {

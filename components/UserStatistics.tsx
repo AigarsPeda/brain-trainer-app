@@ -9,7 +9,11 @@ import useAppContext from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { useWindowDimensions } from "react-native";
 
-export function UserStatistics() {
+interface UserStatisticsProps {
+  onLivesPress?: () => void;
+}
+
+export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
   const { state } = useAppContext();
   const { width } = useWindowDimensions();
 
@@ -57,6 +61,7 @@ export function UserStatistics() {
           height: 36,
         }}
         animation={livesAnimatedStyle}
+        onPress={onLivesPress}
       />
     </ThemedView>
   );

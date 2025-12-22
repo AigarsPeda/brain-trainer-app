@@ -1,5 +1,6 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
 import ListItem from "@/components/ListItem";
+import { LivesModal } from "@/components/LivesModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { UserStatistics } from "@/components/UserStatistics";
@@ -7,28 +8,35 @@ import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { router } from "expo-router";
+import { useState } from "react";
 import { Button, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  const { state } = useAppContext();
-  const { isRewarded, loaded, rewarded } = useGoogleAd();
+  const { state, dispatch } = useAppContext();
+  const { loaded, showAdForReward } = useGoogleAd();
+  const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
+
+  const handleWatchAd = () => {
+    showAdForReward(() => {
+      dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+      setIsLivesModalVisible(false);
+    });
+  };
 
   return (
     <ThemedView style={{ flex: 1 }}>
+      <LivesModal
+        visible={isLivesModalVisible}
+        onClose={() => setIsLivesModalVisible(false)}
+        lives={state.lives}
+        lastLifeLostAt={state.lastLifeLostAt}
+        adLoaded={loaded}
+        onWatchAd={handleWatchAd}
+      />
       <SafeAreaView>
-        <UserStatistics />
-        <ThemedView
-          style={{
-            gap: 8,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ThemedText type="subtitle">Is Ad loaded: {loaded ? "Yes" : "No"}</ThemedText>
-          <Button title="Show ad" onPress={() => rewarded.show()} />
-        </ThemedView>
+        <UserStatistics onLivesPress={() => setIsLivesModalVisible(true)} />
 
         <AnimatedFlatList
           paddingTop={0}

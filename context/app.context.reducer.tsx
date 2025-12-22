@@ -1,6 +1,7 @@
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { LEVEL_3 } from "@/data/math-3-level";
+import { INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
 import { createContext } from "react";
 
 // Level -> Multiple tasks -> One task -> Multiple answers
@@ -53,11 +54,12 @@ export type TaskResultType = {
   correctnessPercentage: number;
 };
 
-type AppContextStateType = {
+export type AppContextStateType = {
   gems: number;
   name: string;
   lives: number;
   daysInARow: number;
+  lastLifeLostAt: number | null; // Timestamp when the last life was lost (for restoration timer)
   results: {
     [level: string]: {
       tasksResults: TaskResultType[];
@@ -73,7 +75,10 @@ export type AppContextActionType =
   | SetNameActionType
   | CreateNextLevelActionType
   | SetIsCheckedForTaskActionType
-  | LoseLifeActionType;
+  | LoseLifeActionType
+  | RestoreLifeActionType
+  | RestoreLifeFromAdActionType
+  | HydrateStateActionType;
 
 export type AppContextType = {
   state: AppContextStateType;
@@ -118,13 +123,14 @@ const initializeLevels = (): TaskInfoType[] => {
 
 export const initialState: AppContextStateType = {
   gems: 0,
-  lives: 5,
+  lives: INITIAL_LIVES,
   results: {
     "1": {
       tasksResults: [],
     },
   },
   daysInARow: 0,
+  lastLifeLostAt: null,
   name: "Aigars",
   game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
   availableLevels: Object.keys(ALL_TASKS).length,
@@ -161,6 +167,19 @@ interface CreateNextLevelActionType {
 
 interface LoseLifeActionType {
   type: "LOSE_LIFE";
+}
+
+interface RestoreLifeActionType {
+  type: "RESTORE_LIFE";
+}
+
+interface RestoreLifeFromAdActionType {
+  type: "RESTORE_LIFE_FROM_AD";
+}
+
+interface HydrateStateActionType {
+  type: "HYDRATE_STATE";
+  payload: AppContextStateType;
 }
 
 interface GetNextLevel {
@@ -328,9 +347,41 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
     }
 
     case "LOSE_LIFE": {
+      const newLives = Math.max(0, state.lives - 1);
       return {
         ...state,
-        lives: Math.max(0, state.lives - 1),
+        lives: newLives,
+        // Set timestamp when life is lost (only if we actually lost a life and timer isn't already running)
+        lastLifeLostAt: newLives < state.lives && state.lastLifeLostAt === null ? Date.now() : state.lastLifeLostAt,
+      };
+    }
+
+    case "RESTORE_LIFE": {
+      const newLives = Math.min(MAX_LIVES, state.lives + 1);
+      return {
+        ...state,
+        lives: newLives,
+        // Clear timestamp if we're back to max lives, otherwise keep it for next restoration
+        lastLifeLostAt: newLives >= MAX_LIVES ? null : Date.now(),
+      };
+    }
+
+    case "RESTORE_LIFE_FROM_AD": {
+      const newLives = Math.min(MAX_LIVES, state.lives + 1);
+      return {
+        ...state,
+        lives: newLives,
+        // Clear timestamp if we're back to max lives, otherwise keep it to continue timer
+        lastLifeLostAt: newLives >= MAX_LIVES ? null : state.lastLifeLostAt,
+      };
+    }
+
+    case "HYDRATE_STATE": {
+      // Restore the entire state from persisted storage
+      return {
+        ...action.payload,
+        // Ensure availableLevels is always current (in case new levels were added)
+        availableLevels: Object.keys(ALL_TASKS).length,
       };
     }
 
