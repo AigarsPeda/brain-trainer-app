@@ -8,7 +8,9 @@ import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
 import CircleX from "@/assets/images/circle-x.png";
 import FireColors from "@/assets/images/fire-colors.png";
-import { StyleSheet } from "react-native";
+import AdIcon from "@/assets/images/ad.png";
+import Heart from "@/assets/images/heart.png";
+import { StyleSheet, View } from "react-native";
 
 interface LevelCompletionState {
   isCompleted: boolean;
@@ -94,9 +96,18 @@ export function ShowResults({
               {onWatchAdPress ? (
                 <ThemedView style={styles.buttonContainer}>
                   <MainButton onPress={onWatchAdPress} disabled={!adLoaded}>
-                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                      {adLoaded ? "🎬 Skatīties reklāmu (+1 ❤️)" : "⏳ Ielādē reklāmu..."}
-                    </ThemedText>
+                    <View style={styles.adButtonContent}>
+                      {adLoaded && <Image source={AdIcon} style={styles.adIcon} contentFit="contain" />}
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        {adLoaded ? "Skatīties reklāmu (+1" : "⏳ Ielādē reklāmu..."}
+                      </ThemedText>
+                      {adLoaded && <Image source={Heart} style={styles.heartIcon} contentFit="contain" />}
+                      {adLoaded && (
+                        <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                          )
+                        </ThemedText>
+                      )}
+                    </View>
                   </MainButton>
                 </ThemedView>
               ) : null}
@@ -283,5 +294,18 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 20,
+  },
+  adButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  adIcon: {
+    width: 28,
+    height: 28,
+  },
+  heartIcon: {
+    width: 22,
+    height: 22,
   },
 });

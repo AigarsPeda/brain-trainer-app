@@ -1,10 +1,12 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { MainButton } from "@/components/MainButton";
 import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
 import { Image } from "expo-image";
 import { Modal, Pressable, StyleSheet, View, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import Heart from "@/assets/images/heart.png";
+import AdIcon from "@/assets/images/ad.png";
 
 interface LivesModalProps {
   visible: boolean;
@@ -28,7 +30,6 @@ const formatTime = (ms: number): string => {
 export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, onWatchAd }: LivesModalProps) {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const isFullLives = lives >= MAX_LIVES;
-  const canWatchAd = !isFullLives && adLoaded && onWatchAd;
 
   useEffect(() => {
     if (!visible || isFullLives || lastLifeLostAt === null) {
@@ -90,23 +91,34 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
               <ThemedText style={styles.fullLivesText}>Visas dzīvības ir pilnas!</ThemedText>
             )}
 
-            {canWatchAd && (
-              <Pressable style={styles.watchAdButton} onPress={onWatchAd}>
-                <ThemedText style={styles.watchAdButtonText} darkColor="#ffffff" lightColor="#ffffff">
-                  🎬 Skatīties reklāmu (+1 ❤️)
-                </ThemedText>
-              </Pressable>
-            )}
-
-            {!isFullLives && !adLoaded && (
-              <ThemedView style={styles.adLoadingSection}>
-                <ActivityIndicator size="small" color="#6a4acb" />
-                <ThemedText style={styles.adLoadingText}>Ielādē reklāmu...</ThemedText>
-              </ThemedView>
+            {!isFullLives && onWatchAd && (
+              <MainButton onPress={onWatchAd} disabled={!adLoaded} style={styles.adButton}>
+                <View style={styles.adButtonContent}>
+                  {adLoaded ? (
+                    <>
+                      <Image source={AdIcon} style={styles.adIcon} contentFit="contain" />
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        Skatīties reklāmu (+1
+                      </ThemedText>
+                      <Image source={Heart} style={styles.heartIcon} contentFit="contain" />
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        )
+                      </ThemedText>
+                    </>
+                  ) : (
+                    <>
+                      <ActivityIndicator size="small" color="#166534" />
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        Ielādē reklāmu...
+                      </ThemedText>
+                    </>
+                  )}
+                </View>
+              </MainButton>
             )}
 
             <Pressable style={styles.modalCloseButton} onPress={onClose}>
-              <ThemedText style={styles.modalCloseButtonText} darkColor="#ffffff" lightColor="#ffffff">
+              <ThemedText style={styles.modalCloseButtonText} darkColor="#ffffff" lightColor="#151414ff">
                 Aizvērt
               </ThemedText>
             </Pressable>
@@ -183,33 +195,29 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 999,
-    backgroundColor: "#6a4acb",
     marginTop: 8,
   },
   modalCloseButtonText: {
     fontFamily: "BalooBhai2_500Medium",
     fontSize: 16,
   },
-  watchAdButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 999,
-    backgroundColor: "#D81E5B",
-    marginTop: 8,
+  adButton: {
+    width: 280,
   },
-  watchAdButtonText: {
-    fontFamily: "BalooBhai2_500Medium",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  adLoadingSection: {
+  adButtonContent: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: 8,
   },
-  adLoadingText: {
-    fontSize: 14,
-    opacity: 0.7,
+  adIcon: {
+    width: 28,
+    height: 28,
+  },
+  heartIcon: {
+    width: 22,
+    height: 22,
+  },
+  buttonText: {
+    fontSize: 20,
   },
 });

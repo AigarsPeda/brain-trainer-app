@@ -77,7 +77,7 @@ export function MainButton({
   const shadowColors = (disabled ? disabledShadowColor : enabledShadowColor) as [string, string];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {/* Shadow stays still underneath */}
       <View
         style={[
@@ -85,6 +85,7 @@ export function MainButton({
           {
             backgroundColor: shadowColors[1],
           },
+          style?.width ? { width: style.width } : null,
         ]}
       />
 
@@ -100,13 +101,17 @@ export function MainButton({
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          style={[styles.buttonWrapper, style]}
+          style={styles.buttonWrapper}
         >
           <LinearGradient
             colors={gradientColors}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            style={[styles.button, disabled && { opacity: 1 }]}
+            style={[
+              styles.button,
+              disabled && { opacity: 1 },
+              style?.width ? { width: (style.width as number) - 5 } : null,
+            ]}
           >
             {children || <ThemedText style={[styles.text, textStyle]}>Continue</ThemedText>}
           </LinearGradient>
