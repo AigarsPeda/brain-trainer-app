@@ -13,7 +13,7 @@ import useAppContext from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { getLevelTaskData } from "@/utils/game";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet } from "react-native";
+import { StyleSheet, StatusBar, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
 
@@ -76,11 +76,11 @@ export default function GameLevelScreen() {
 
   return (
     <>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <InfoModal visible={isInfoModalVisible} onClose={closeInfoModal} />
       <ThemedView
         style={{
           ...styles.itemsWrap,
-          paddingTop: styles.itemsWrap.paddingTop + insets.top,
           paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
         }}
       >
@@ -126,7 +126,7 @@ export default function GameLevelScreen() {
 const styles = StyleSheet.create({
   itemsWrap: {
     flex: 1,
-    paddingTop: 16,
+    paddingTop: 0,
     paddingBottom: 25,
   },
   view: {
