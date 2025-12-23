@@ -5,8 +5,8 @@ import MobileAds, { RewardedAd, RewardedAdEventType, AdEventType, TestIds } from
 // These should be AD UNIT IDs (with /), not APP IDs (with ~)
 // Create these in your AdMob console under Apps > Ad Units > Add Ad Unit > Rewarded
 // For now, using test IDs until you create real ad unit IDs
-const iosAdUnitId = "ca-app-pub-5238286944896076/XXXXXXXXXX"; // Replace XXXXXXXXXX with your iOS rewarded ad unit ID
-const androidAdUnitId = "ca-app-pub-5238286944896076/XXXXXXXXXX"; // Replace XXXXXXXXXX with your Android rewarded ad unit ID
+const iosAdUnitId = "ca-app-pub-5238286944896076/3247709275";
+const androidAdUnitId = "ca-app-pub-5238286944896076/1886526145";
 
 // Always use test IDs in development, or if real IDs aren't set up yet
 const getAdUnitId = () => {

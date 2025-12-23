@@ -28,7 +28,7 @@ const config: ExpoConfig = {
     [
       "react-native-google-mobile-ads",
       {
-        androidAppId: "ca-app-pub-5238286944896076~1145903580",
+        androidAppId: "ca-app-pub-5238286944896076~6398230265",
         iosAppId: "ca-app-pub-5238286944896076~6398230265",
       },
     ],
@@ -38,7 +38,7 @@ const config: ExpoConfig = {
       {
         backgroundColor: "#E6E3E0",
         image: "./assets/images/brain-splash.png",
-        imageWidth: 200,
+        imageWidth: 180,
       },
     ],
   ],
