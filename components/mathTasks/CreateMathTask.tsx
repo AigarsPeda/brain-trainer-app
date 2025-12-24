@@ -90,6 +90,16 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const initializedRef = useRef(false);
   const isBothValuesSet = leftValue !== null && rightValue !== null;
 
+  const {
+    dispatch,
+    state: { availableLevels, lives },
+  } = useAppContext();
+  const router = useRouter();
+  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
+
+  const levelNumber = Number(level);
+  const hasNextLevel = levelNumber < availableLevels;
+
   const isPositionOccupied = useCallback(
     (newPosition: NumberPosition, existingPositions: Map<number, NumberPosition>, excludeNumber?: number): boolean => {
       for (const [num, position] of existingPositions) {
@@ -247,16 +257,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     [leftValue, rightValue, containerLayout, animateNumberToRandomPosition, getDropZonePosition]
   );
 
-  const {
-    dispatch,
-    state: { availableLevels, lives },
-  } = useAppContext();
-  const router = useRouter();
-  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
-
-  const levelNumber = Number(level);
-  const hasNextLevel = levelNumber < availableLevels;
-
   const getCorrectnessPercentage = useCallback(() => {
     const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
     if (maxLevelStep <= 0) return isCorrect ? 100 : 0;
@@ -401,12 +401,12 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
         </ThemedView>
       ) : (
         <ShowResults
-          isAllAnswersCorrect={isAllAnswersCorrect}
-          onNextTaskPress={goToNextTask}
-          onTryAgainPress={handleTryAgain}
           lives={lives}
           adLoaded={adLoaded}
           onGoHomePress={handleGoHome}
+          isAllAnswersCorrect={isAllAnswersCorrect}
+          onNextTaskPress={goToNextTask}
+          onTryAgainPress={handleTryAgain}
           onWatchAdPress={() => {
             showAdForReward(() => {
               dispatch({ type: "RESTORE_LIFE_FROM_AD" });

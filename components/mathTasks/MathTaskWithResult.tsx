@@ -239,12 +239,12 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
         </ThemedView>
       ) : (
         <ShowResults
-          isAllAnswersCorrect={isAllAnswersCorrect}
-          onNextTaskPress={goToNextTask}
-          onTryAgainPress={handleTryAgain}
           lives={lives}
           adLoaded={adLoaded}
           onGoHomePress={handleGoHome}
+          onNextTaskPress={goToNextTask}
+          onTryAgainPress={handleTryAgain}
+          isAllAnswersCorrect={isAllAnswersCorrect}
           onWatchAdPress={() => {
             showAdForReward(() => {
               dispatch({ type: "RESTORE_LIFE_FROM_AD" });

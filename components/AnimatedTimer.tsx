@@ -6,10 +6,10 @@ type AnimationDirection = "up" | "down" | "auto" | "countdown" | "countup";
 
 interface AnimatedDigitProps {
   digit: string;
-  style?: TextStyle;
-  height?: number;
-  direction?: AnimationDirection;
   delay?: number;
+  height?: number;
+  style?: TextStyle;
+  direction?: AnimationDirection;
 }
 
 function AnimatedDigit({ digit, style, height = 36, direction = "countdown", delay = 0 }: AnimatedDigitProps) {
@@ -22,8 +22,8 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
 
   useEffect(() => {
     if (previousDigitRef.current !== digit) {
-      const prevNum = parseInt(previousDigitRef.current, 10);
       const newNum = parseInt(digit, 10);
+      const prevNum = parseInt(previousDigitRef.current, 10);
 
       // Determine animation direction
       const resolvedDirection: "up" | "down" = (() => {

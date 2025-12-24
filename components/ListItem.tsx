@@ -3,10 +3,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import { SETTINGS } from "@/hardcoded";
+import useAppContext from "@/hooks/useAppContext";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { type FC, memo } from "react";
-import { Pressable, StyleSheet, useColorScheme, View, ViewToken } from "react-native";
+import { Pressable, StyleSheet, View, ViewToken } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -14,7 +16,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
 
 const DARK_STAR_COLOR = "#e8ae4a";
 const LIGHT_STAR_COLOR = "#1C274C";
@@ -29,8 +30,9 @@ type ListItemProps = {
 };
 
 const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, handleClick, viewableItems }) => {
-  const theme = useColorScheme();
   const scale = useSharedValue(1);
+  const { state } = useAppContext();
+  const theme = state.theme ?? "light";
 
   const rStyle = useAnimatedStyle(() => {
     const isVisible = Boolean(

@@ -54,10 +54,13 @@ export type TaskResultType = {
   correctnessPercentage: number;
 };
 
+export type ThemeType = "light" | "dark";
+
 export type AppContextStateType = {
   gems: number;
   name: string;
   lives: number;
+  theme: ThemeType;
   daysInARow: number;
   lastLifeLostAt: number | null; // Timestamp when the last life was lost (for restoration timer)
   results: {
@@ -73,6 +76,7 @@ export type AppContextStateType = {
 export type AppContextActionType =
   | GetNextLevel
   | SetNameActionType
+  | SetThemeActionType
   | CreateNextLevelActionType
   | SetIsCheckedForTaskActionType
   | LoseLifeActionType
@@ -124,6 +128,7 @@ const initializeLevels = (): TaskInfoType[] => {
 export const initialState: AppContextStateType = {
   gems: 0,
   lives: INITIAL_LIVES,
+  theme: "light",
   results: {
     "1": {
       tasksResults: [],
@@ -147,6 +152,11 @@ export const AppContext = createContext<AppContextType>(initialContext);
 interface SetNameActionType {
   type: "SET_NAME";
   payload: string;
+}
+
+interface SetThemeActionType {
+  type: "SET_THEME";
+  payload: ThemeType;
 }
 
 interface SetIsCheckedForTaskActionType {
@@ -194,6 +204,9 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
   switch (action.type) {
     case "SET_NAME":
       return { ...state, name: action.payload };
+
+    case "SET_THEME":
+      return { ...state, theme: action.payload };
 
     case "GET_NEXT_TASK": {
       const { correctnessPercentage, maxLevelStep } = action.payload;
@@ -380,6 +393,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       // Restore the entire state from persisted storage
       return {
         ...action.payload,
+        // Ensure theme has a default value for older persisted states
+        theme: action.payload.theme ?? "light",
         // Ensure availableLevels is always current (in case new levels were added)
         availableLevels: Object.keys(ALL_TASKS).length,
       };

@@ -9,7 +9,9 @@
     "ios": "expo run:ios --device",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "licenses": "node scripts/licenses.mjs",
+    "dependencies": "npm run licenses"
   },
   "jest": {
     "preset": "jest-expo"

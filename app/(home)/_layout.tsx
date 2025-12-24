@@ -1,37 +1,11 @@
-import { Tabs } from "expo-router";
-import { TabBarIcon } from "@/components/navigation/TabBarIcon";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { Stack } from "expo-router";
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function HomeLayout() {
   return (
-    <Tabs
+    <Stack
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
       }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home 1",
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name={focused ? "home" : "home-outline"} color={color} />,
-        }}
-      />
-      {/* <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "code-slash" : "code-slash-outline"}
-              color={color}
-            />
-          ),
-        }}
-      /> */}
-    </Tabs>
+    />
   );
 }

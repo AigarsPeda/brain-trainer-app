@@ -1,46 +1,47 @@
-import { useThemeColor } from "@/hooks/useThemeColor";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { useRef, useMemo, useCallback, useEffect } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import AdIcon from "@/assets/images/ad.png";
+import CircleX from "@/assets/images/circle-x.png";
+import FireColors from "@/assets/images/fire-colors.png";
+import Heart from "@/assets/images/heart.png";
 import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import BottomSheet, { BottomSheetView, useBottomSheetTimingConfigs } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
-import CircleX from "@/assets/images/circle-x.png";
-import FireColors from "@/assets/images/fire-colors.png";
-import AdIcon from "@/assets/images/ad.png";
-import Heart from "@/assets/images/heart.png";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Easing } from "react-native-reanimated";
 
 interface LevelCompletionState {
-  isCompleted: boolean;
-  onGoHomePress: () => void;
-  onNextLevelPress?: () => void;
-  hasNextLevel?: boolean;
   title?: string;
   description?: string;
+  isCompleted: boolean;
+  hasNextLevel?: boolean;
+  onGoHomePress: () => void;
+  onNextLevelPress?: () => void;
 }
 
 interface ShowResultsProps {
-  onNextTaskPress: () => void;
-  isAllAnswersCorrect: boolean;
-  levelCompletionState?: LevelCompletionState;
-  onTryAgainPress?: () => void;
   lives?: number;
+  adLoaded?: boolean;
   onGoHomePress?: () => void;
   onWatchAdPress?: () => void;
-  adLoaded?: boolean;
+  onNextTaskPress: () => void;
+  isAllAnswersCorrect: boolean;
+  onTryAgainPress?: () => void;
+  levelCompletionState?: LevelCompletionState;
 }
 
 export function ShowResults({
+  lives,
+  adLoaded,
+  onGoHomePress,
+  onWatchAdPress,
+  onTryAgainPress,
   onNextTaskPress,
   isAllAnswersCorrect,
   levelCompletionState,
-  onTryAgainPress,
-  lives,
-  onGoHomePress,
-  onWatchAdPress,
-  adLoaded,
 }: ShowResultsProps) {
   const sheetRef = useRef<BottomSheet>(null);
   const { background, text } = useThemeColor();
@@ -50,15 +51,15 @@ export function ShowResults({
     return [levelCompletionState?.isCompleted ? "55%" : "35%"];
   }, [levelCompletionState?.isCompleted, lives]);
 
-  const handleSheetChange = useCallback((index: number) => {
-    console.log("handleSheetChange", index);
-  }, []);
+  // const handleSheetChange = useCallback((index: number) => {
+  //   console.log("handleSheetChange", index);
+  // }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      sheetRef.current?.snapToIndex(0);
-    }, 100);
-  }, []);
+  // Slow down bottom sheet animations for better UX
+  const animationConfigs = useBottomSheetTimingConfigs({
+    duration: 600,
+    easing: Easing.out(Easing.cubic),
+  });
 
   // This will hide the handle indicator at the top of the bottom sheet
   const EmptyHandle = () => <></>;
@@ -71,8 +72,9 @@ export function ShowResults({
         snapPoints={snapPoints}
         handleStyle={{ height: 0 }}
         enableDynamicSizing={false}
-        onChange={handleSheetChange}
         handleComponent={EmptyHandle}
+        animationConfigs={animationConfigs}
+        // onChange={handleSheetChange}
       >
         <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>
           {isAllAnswersCorrect ? (

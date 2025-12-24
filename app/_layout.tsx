@@ -1,6 +1,5 @@
 import { AppContextProvider } from "@/context/app.context";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import useAppContext from "@/hooks/useAppContext";
 // import {
 //   Nunito_400Regular,
 //   Nunito_600SemiBold,
@@ -23,12 +22,46 @@ import {
   useFonts,
 } from "@expo-google-fonts/baloo-bhai-2";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Colors } from "@/constants/Colors";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+function AppContent() {
+  const { state } = useAppContext();
+  const theme = state.theme ?? "light";
+  const backgroundColor = Colors[theme].background;
+
+  return (
+    <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(home)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="game/[level]"
+          options={() => {
+            return {
+              headerShown: false,
+              title: "",
+              headerBackTitle: "Atpakaļ",
+              headerTintColor: theme === "dark" ? "white" : "black",
+              headerBackground: () => (
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor,
+                  }}
+                />
+              ),
+            };
+          }}
+        />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+    </ThemeProvider>
+  );
+}
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     BalooBhai2_400Regular,
     BalooBhai2_500Medium,
@@ -36,8 +69,6 @@ export default function RootLayout() {
     BalooBhai2_700Bold,
     BalooBhai2_800ExtraBold,
   });
-
-  const backgroundColor = useThemeColor({}, "background");
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -52,57 +83,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView>
       <AppContextProvider>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(home)" options={{ headerShown: false }} />
-            {/* <Stack.Screen name="game" options={{ headerShown: false }} /> */}
-            {/* <Stack.Screen
-            name="GameScreen"
-            options={(opt) => {
-              // const { level } = opt.route.params as { level: string };
-              return {
-                headerShown: true,
-                // title: level ?? "Spēle",
-                title: "",
-                headerBackTitle: "Atpakaļ",
-                headerTintColor: colorScheme === "dark" ? "white" : "black",
-                headerBackground: () => (
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor,
-                    }}
-                  />
-                ),
-              };
-            }}
-          /> */}
-
-            <Stack.Screen
-              name="game/[level]"
-              options={() => {
-                // const { level } = opt.route.params as { level: string };
-                return {
-                  headerShown: false,
-                  // title: level ?? "Spēle",
-                  title: "",
-                  headerBackTitle: "Atpakaļ",
-                  headerTintColor: colorScheme === "dark" ? "white" : "black",
-                  headerBackground: () => (
-                    <View
-                      style={{
-                        flex: 1,
-                        backgroundColor,
-                      }}
-                    />
-                  ),
-                };
-              }}
-            />
-
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </ThemeProvider>
+        <AppContent />
       </AppContextProvider>
     </GestureHandlerRootView>
   );

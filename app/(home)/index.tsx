@@ -35,8 +35,8 @@ export default function HomeScreen() {
         lives={state.lives}
         onWatchAd={handleWatchAd}
         visible={isLivesModalVisible}
-        lastLifeLostAt={state.lastLifeLostAt}
         onClose={handleOpenLivesModalClose}
+        lastLifeLostAt={state.lastLifeLostAt}
       />
       <SafeAreaView>
         <UserStatistics onLivesPress={handleOpenLivesModalClose} />

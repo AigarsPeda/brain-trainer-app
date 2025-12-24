@@ -1,13 +1,17 @@
 import FireGray from "@/assets/images/fire-gray.png";
 import FireOrange from "@/assets/images/fire-orange.png";
 import FireRed from "@/assets/images/fire-red.png";
-import Gem from "@/assets/images/gem.png";
+// import Gem from "@/assets/images/gem.png";
 import Heart from "@/assets/images/heart.png";
+import { SettingsModal } from "@/components/SettingsModal";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedView } from "@/components/ThemedView";
 import useAppContext from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
-import { useWindowDimensions } from "react-native";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { useState } from "react";
+import { Pressable, useWindowDimensions } from "react-native";
+import Settings from "@/assets/images/settings.png";
 
 interface UserStatisticsProps {
   onLivesPress?: () => void;
@@ -16,7 +20,9 @@ interface UserStatisticsProps {
 export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
   const { state } = useAppContext();
   const { width } = useWindowDimensions();
+  const iconColor = useThemeColor({}, "icon");
 
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const livesAnimatedStyle = usePulseOnChange(state.lives);
 
   const itemWidth = width / 3;
@@ -34,15 +40,17 @@ export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
   };
 
   return (
-    <ThemedView
-      style={{
-        gap: 8,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <StatisticsItem
+    <>
+      <ThemedView
+        style={{
+          gap: 8,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          paddingHorizontal: 16,
+        }}
+      >
+        {/* <StatisticsItem
         src={getFireImage()}
         width={itemWidth}
         stat={state.daysInARow}
@@ -51,18 +59,28 @@ export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
           height: 38,
         }}
       />
-      <StatisticsItem src={Gem} width={itemWidth} stat={state.gems} />
-      <StatisticsItem
-        src={Heart}
-        width={itemWidth}
-        stat={state.lives}
-        size={{
-          width: 36,
-          height: 36,
-        }}
-        animation={livesAnimatedStyle}
-        onPress={onLivesPress}
-      />
-    </ThemedView>
+      <StatisticsItem src={Gem} width={itemWidth} stat={state.gems} /> */}
+        <StatisticsItem
+          src={Heart}
+          stat={state.lives}
+          size={{
+            width: 36,
+            height: 36,
+          }}
+          animation={livesAnimatedStyle}
+          onPress={onLivesPress}
+        />
+        <StatisticsItem
+          src={Settings}
+          size={{
+            width: 36,
+            height: 36,
+          }}
+          animation={livesAnimatedStyle}
+          onPress={() => setSettingsVisible(true)}
+        />
+      </ThemedView>
+      <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+    </>
   );
 }

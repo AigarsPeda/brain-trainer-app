@@ -98,9 +98,9 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
 
             <Animated.View style={styles.heartsRow}>{renderHearts()}</Animated.View>
 
-            <ThemedText style={styles.livesCount}>
+            {/* <ThemedText style={styles.livesCount}>
               {lives} / {MAX_LIVES}
-            </ThemedText>
+            </ThemedText> */}
 
             {!isFullLives && lastLifeLostAt !== null ? (
               <ThemedView style={styles.timerSection}>
