@@ -201,9 +201,11 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     });
   };
 
-  const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayout: LayoutRectangle): NumberPosition => {
-    const relativeX = zoneLayout.x - containerLayout.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
-    const relativeY = zoneLayout.y - containerLayout.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
+  const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayoutRect: LayoutRectangle): NumberPosition => {
+    // Calculate position so the number's center aligns with the drop zone's center
+    // Since transform scales from center, we just need to center the original bounds
+    const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
+    const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
 
     return { x: relativeX, y: relativeY };
   };
@@ -221,12 +223,14 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
         height: DRAGGABLE_NUMBER_SIZE,
       };
 
-      const [leftZoneLayout, rightZoneLayout] = await Promise.all([
+      // Measure all refs fresh at drop time for accurate positioning
+      const [leftZoneLayout, rightZoneLayout, freshContainerLayout] = await Promise.all([
         measureView(leftZoneRef),
         measureView(rightZoneRef),
+        measureView(containerRef),
       ]);
 
-      if (!containerLayout) {
+      if (freshContainerLayout.width === 0 || freshContainerLayout.height === 0) {
         animateNumberToRandomPosition(number);
         return;
       }
@@ -235,7 +239,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
       if (doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
         if (leftValue !== null) animateNumberToRandomPosition(leftValue);
         setLeftValue(number);
-        const dropPosition = getDropZonePosition(leftZoneLayout, containerLayout);
+        const dropPosition = getDropZonePosition(leftZoneLayout, freshContainerLayout);
         setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         return;
@@ -245,7 +249,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
       if (doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
         if (rightValue !== null) animateNumberToRandomPosition(rightValue);
         setRightValue(number);
-        const dropPosition = getDropZonePosition(rightZoneLayout, containerLayout);
+        const dropPosition = getDropZonePosition(rightZoneLayout, freshContainerLayout);
         setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         return;
@@ -254,7 +258,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
       // Not snapped to any zone
       animateNumberToRandomPosition(number);
     },
-    [leftValue, rightValue, containerLayout, animateNumberToRandomPosition, getDropZonePosition]
+    [leftValue, rightValue, animateNumberToRandomPosition, getDropZonePosition]
   );
 
   const getCorrectnessPercentage = useCallback(() => {
@@ -543,6 +547,7 @@ const styles = StyleSheet.create({
     height: CONTAINER_HEIGHT,
     marginTop: 50,
     position: "relative",
+    overflow: "visible",
   },
   operationText: {
     fontSize: 40,

@@ -1,17 +1,9 @@
 import { ThemedText } from "@/components/ThemedText";
+import useAppContext from "@/hooks/useAppContext";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  StyleSheet,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-  useColorScheme,
-} from "react-native";
+import { Animated, Dimensions, StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
 
 const { width } = Dimensions.get("window");
 const BUTTON_WIDTH = width - 32;
@@ -35,8 +27,8 @@ export function MainButton({
   disabled = false,
   variant = "primary",
 }: MainButtonProps) {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === "dark";
+  const { state } = useAppContext();
+  const isDarkMode = state.theme === "dark";
   const [translateY] = useState(new Animated.Value(0));
 
   const handlePressIn = () => {
@@ -61,8 +53,8 @@ export function MainButton({
     ]).start();
   };
 
-  const disabledBgColor = isDarkMode ? ["#6b7280", "#4b5563"] : ["#f3f4f9", "#e4e6f3"];
-  const disabledShadowColor = isDarkMode ? ["#1e1e1e", "#374151"] : ["#e4e6f3", "#f3f4f6"];
+  const disabledBgColor = isDarkMode ? ["#4b5563", "#374151"] : ["#f3f4f9", "#e4e6f3"];
+  const disabledShadowColor = isDarkMode ? ["#1f2937", "#111827"] : ["#e4e6f3", "#f3f4f6"];
 
   const primaryBgColor = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
   const primaryShadowColor = isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"];

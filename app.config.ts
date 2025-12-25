@@ -7,7 +7,7 @@ const config: ExpoConfig = {
   orientation: "portrait",
   icon: "./assets/images/brain.png",
   scheme: "brain",
-  backgroundColor: "#E6E3E0",
+  backgroundColor: "#1C274C",
   userInterfaceStyle: "automatic",
   ios: {
     supportsTablet: true,
@@ -36,7 +36,7 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#E6E3E0",
+        backgroundColor: "#1C274C",
         image: "./assets/images/brain-splash.png",
         imageWidth: 180,
       },
