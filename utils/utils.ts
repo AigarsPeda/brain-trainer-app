@@ -83,3 +83,19 @@ export const getGradientColor = (
     shadow: isDarkMode ? ["#ea580c", "#c2410c"] : ["#fb923c", "#f97316"],
   };
 };
+
+export const interpolateColor = (color1: string, color2: string, factor: number): string => {
+  const hex = (x: string) => parseInt(x, 16);
+  const r1 = hex(color1.slice(1, 3));
+  const g1 = hex(color1.slice(3, 5));
+  const b1 = hex(color1.slice(5, 7));
+  const r2 = hex(color2.slice(1, 3));
+  const g2 = hex(color2.slice(3, 5));
+  const b2 = hex(color2.slice(5, 7));
+
+  const r = Math.round(r1 + (r2 - r1) * factor);
+  const g = Math.round(g1 + (g2 - g1) * factor);
+  const b = Math.round(b1 + (b2 - b1) * factor);
+
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+};

@@ -8,7 +8,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView, useBottomSheetTimingConfigs } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Easing } from "react-native-reanimated";
@@ -74,6 +74,7 @@ export function ShowResults({
         enableDynamicSizing={false}
         handleComponent={EmptyHandle}
         animationConfigs={animationConfigs}
+        backgroundStyle={{ backgroundColor: background }}
         // onChange={handleSheetChange}
       >
         <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>

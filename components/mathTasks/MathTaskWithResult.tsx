@@ -11,12 +11,13 @@ import type {
   TaskOptionType,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, useColorScheme } from "react-native";
+import { StyleSheet } from "react-native";
 
 interface MathTaskWithResultProps {
   level: LevelsEnum;
@@ -26,13 +27,14 @@ interface MathTaskWithResultProps {
 }
 
 export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalTaskInLevel }: MathTaskWithResultProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
   const {
     dispatch,
     state: { availableLevels, lives },
   } = useAppContext();
+
   const router = useRouter();
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
 

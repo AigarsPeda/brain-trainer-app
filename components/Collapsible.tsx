@@ -5,10 +5,11 @@ import { StyleSheet, TouchableOpacity, useColorScheme } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const theme = useColorScheme() ?? "light";
+  const theme = useAppColorScheme() ?? "light";
 
   return (
     <ThemedView>

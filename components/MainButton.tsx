@@ -1,8 +1,9 @@
 import { ThemedText } from "@/components/ThemedText";
-import useAppContext from "@/hooks/useAppContext";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
+import { interpolateColor } from "@/utils/utils";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -27,9 +28,30 @@ export function MainButton({
   disabled = false,
   variant = "primary",
 }: MainButtonProps) {
-  const { state } = useAppContext();
-  const isDarkMode = state.theme === "dark";
+  const colorScheme = useAppColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const [translateY] = useState(new Animated.Value(0));
+  const [animProgress, setAnimProgress] = useState(disabled ? 1 : 0);
+  const colorAnim = useRef(new Animated.Value(disabled ? 1 : 0)).current;
+
+  useEffect(() => {
+    const animation = Animated.timing(colorAnim, {
+      toValue: disabled ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    });
+
+    animation.start();
+
+    // Update animProgress during animation
+    const listener = colorAnim.addListener(({ value }) => {
+      setAnimProgress(value);
+    });
+
+    return () => {
+      colorAnim.removeListener(listener);
+    };
+  }, [disabled, colorAnim]);
 
   const handlePressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -65,8 +87,15 @@ export function MainButton({
   const enabledBgColor = variant === "secondary" ? secondaryBgColor : primaryBgColor;
   const enabledShadowColor = variant === "secondary" ? secondaryShadowColor : primaryShadowColor;
 
-  const gradientColors = (disabled ? disabledBgColor : enabledBgColor) as [string, string];
-  const shadowColors = (disabled ? disabledShadowColor : enabledShadowColor) as [string, string];
+  // Interpolate colors based on animation progress
+  const gradientColors: [string, string] = [
+    interpolateColor(enabledBgColor[0], disabledBgColor[0], animProgress),
+    interpolateColor(enabledBgColor[1], disabledBgColor[1], animProgress),
+  ];
+  const shadowColors: [string, string] = [
+    interpolateColor(enabledShadowColor[0], disabledShadowColor[0], animProgress),
+    interpolateColor(enabledShadowColor[1], disabledShadowColor[1], animProgress),
+  ];
 
   return (
     <View style={[styles.container, style]}>

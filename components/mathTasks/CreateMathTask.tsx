@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { checkAnswers } from "@/utils/game";
@@ -12,7 +13,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LayoutRectangle, StyleSheet, View, useColorScheme } from "react-native";
+import { LayoutRectangle, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
@@ -446,7 +447,7 @@ interface DraggableNumberProps {
 }
 
 const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: DraggableNumberProps) => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
   const positionX = useSharedValue(initialPosition.x);
