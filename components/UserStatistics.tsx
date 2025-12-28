@@ -5,12 +5,12 @@ import FireRed from "@/assets/images/fire-red.png";
 import Heart from "@/assets/images/heart.png";
 import { SettingsModal } from "@/components/SettingsModal";
 import { StatisticsItem } from "@/components/StatisticsItem";
-import { ThemedView } from "@/components/ThemedView";
+
 import useAppContext from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useState } from "react";
-import { Pressable, useWindowDimensions } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import Settings from "@/assets/images/settings.png";
 
 interface UserStatisticsProps {
@@ -41,13 +41,14 @@ export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
 
   return (
     <>
-      <ThemedView
+      <View
         style={{
           gap: 8,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "flex-end",
           paddingHorizontal: 16,
+          backgroundColor: "transparent",
         }}
       >
         {/* <StatisticsItem
@@ -79,7 +80,7 @@ export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
           animation={livesAnimatedStyle}
           onPress={() => setSettingsVisible(true)}
         />
-      </ThemedView>
+      </View>
       <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
     </>
   );
