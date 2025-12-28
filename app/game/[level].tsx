@@ -1,6 +1,6 @@
 import Close from "@/assets/images/close.png";
 import Heart from "@/assets/images/heart.png";
-import Info from "@/assets/images/exclamation-mark.png";
+import { HintModal } from "@/components/HintModal";
 import { InfoModal } from "@/components/InfoModal";
 import { LivesModal } from "@/components/LivesModal";
 import { CreateMathTask } from "@/components/mathTasks/CreateMathTask";
@@ -15,9 +15,9 @@ import useGoogleAd from "@/hooks/useGoogleAd";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { getLevelTaskData } from "@/utils/game";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, StatusBar, Platform } from "react-native";
+import { StyleSheet, StatusBar, Platform, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function GameLevelScreen() {
   const {
@@ -28,18 +28,26 @@ export default function GameLevelScreen() {
       game: { currentTaskInLevel },
     },
     dispatch,
+    getTaskExplanation,
   } = useAppContext();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { loaded, showAdForReward } = useGoogleAd();
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
   const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
+  const [isHintModalVisible, setIsHintModalVisible] = useState(false);
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
   const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
 
   const livesAnimation = usePulseOnChange(lives);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
+
+  // Get explanation for the current task
+  const currentTaskExplanation = useMemo(() => {
+    if (!currentTask) return null;
+    return getTaskExplanation(currentTask);
+  }, [currentTask, getTaskExplanation]);
 
   const openInfoModal = () => {
     setIsInfoModalVisible(true);
@@ -55,6 +63,14 @@ export default function GameLevelScreen() {
 
   const closeLivesModal = () => {
     setIsLivesModalVisible(false);
+  };
+
+  const openHintModal = () => {
+    setIsHintModalVisible(true);
+  };
+
+  const closeHintModal = () => {
+    setIsHintModalVisible(false);
   };
 
   const handleWatchAd = () => {
@@ -107,6 +123,7 @@ export default function GameLevelScreen() {
         adLoaded={loaded}
         onWatchAd={handleWatchAd}
       />
+      <HintModal visible={isHintModalVisible} onClose={closeHintModal} explanation={currentTaskExplanation} />
       <ThemedView
         style={{
           ...styles.itemsWrap,
@@ -130,12 +147,13 @@ export default function GameLevelScreen() {
             onPress={openLivesModal}
           />
         </ThemedView>
-        {/* TODO: Where should I put the info row? */}
-        {/* <ThemedView style={styles.infoRow}>
-          <ThemedText style={styles.infoText} type="subtitle" onPress={openInfoModal}>
-            Uzzini vairak par so uzdevumu
+        {/* Hint button row */}
+        <Pressable style={styles.hintRow} onPress={openHintModal}>
+          <ThemedText style={styles.hintEmoji}>💡</ThemedText>
+          <ThemedText style={styles.hintText} type="subtitle">
+            Palīdzība
           </ThemedText>
-        </ThemedView> */}
+        </Pressable>
         <ThemedView style={styles.levelView}>
           {isMultiAnswerMathTask(currentTask) && (
             <MathTaskWithResult
@@ -182,6 +200,22 @@ const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  hintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  hintEmoji: {
+    fontSize: 18,
+  },
+  hintText: {
+    fontSize: 14,
+    opacity: 0.8,
   },
   infoRow: {
     flexDirection: "row",
