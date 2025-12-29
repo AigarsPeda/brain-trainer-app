@@ -12,6 +12,7 @@ import { useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Easing } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface LevelCompletionState {
   title?: string;
@@ -45,10 +46,11 @@ export function ShowResults({
 }: ShowResultsProps) {
   const sheetRef = useRef<BottomSheet>(null);
   const { background, text } = useThemeColor();
+  const { bottom: bottomInset } = useSafeAreaInsets();
 
   const snapPoints = useMemo(() => {
-    if (lives === 0) return ["50%"];
-    return [levelCompletionState?.isCompleted ? "55%" : "35%"];
+    // if (lives === 0) return ["50%"];
+    return [levelCompletionState?.isCompleted ? "55%" : "55%"];
   }, [levelCompletionState?.isCompleted, lives]);
 
   // const handleSheetChange = useCallback((index: number) => {
@@ -69,6 +71,7 @@ export function ShowResults({
       <BottomSheet
         index={0}
         ref={sheetRef}
+        bottomInset={-(bottomInset + 30)} // Todo fix hack to prevent extra space at bottom
         snapPoints={snapPoints}
         handleStyle={{ height: 0 }}
         enableDynamicSizing={false}
@@ -77,7 +80,9 @@ export function ShowResults({
         backgroundStyle={{ backgroundColor: background }}
         // onChange={handleSheetChange}
       >
-        <BottomSheetView style={{ ...styles.contentContainer, backgroundColor: background }}>
+        <BottomSheetView
+          style={{ ...styles.contentContainer, backgroundColor: background, paddingBottom: 36 + bottomInset + 10 }}
+        >
           {isAllAnswersCorrect ? (
             <DisplayResults title="Pareizi!" description="Visas atbildes ir pareizas! Turpini tā!" />
           ) : lives === 0 ? (
@@ -206,11 +211,7 @@ function DisplayResults({ title, description, isIncorrectAnswer }: DisplayResult
   const { incorrectAnswer } = useThemeColor();
 
   return (
-    <ThemedView
-      style={{
-        marginBottom: 10,
-      }}
-    >
+    <ThemedView>
       <ThemedView
         style={{
           gap: 10,
@@ -238,7 +239,6 @@ function DisplayResults({ title, description, isIncorrectAnswer }: DisplayResult
       <ThemedText
         style={{
           fontSize: 16,
-          marginBottom: 20,
           textAlign: "left",
         }}
       >
@@ -261,7 +261,10 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    padding: 36,
+    paddingTop: 24,
+    paddingBottom: 36,
+    paddingHorizontal: 36,
+    gap: 24,
   },
   imgContainer: {
     width: 30,
@@ -272,17 +275,15 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   buttonsStack: {
+    gap: 10,
     width: "100%",
     alignItems: "center",
   },
   buttonContainer: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 16,
   },
-  lastButton: {
-    marginBottom: 0,
-  },
+  lastButton: {},
   levelCompletionContainer: {
     width: "100%",
     marginBottom: 16,

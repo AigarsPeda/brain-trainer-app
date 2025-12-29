@@ -88,8 +88,8 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
   const numbers = useMemo(() => task.options.map((item) => Number(item.number)), [task.options]);
 
-  // ensure we only initialize once after container layout is available
   const initializedRef = useRef(false);
+  const [resetKey, setResetKey] = useState(0);
   const isBothValuesSet = leftValue !== null && rightValue !== null;
 
   const {
@@ -192,7 +192,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
 
     setNumberPositions(initialPositions);
     initializedRef.current = true;
-  }, [containerLayout, numbers, generateRandomPosition]);
+  }, [containerLayout, numbers, generateRandomPosition, resetKey]);
 
   const animateNumberToRandomPosition = (num: number) => {
     setNumberPositions((prev) => {
@@ -317,6 +317,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     setRightValue(null);
     setDisplayTaskResults(false);
     initializedRef.current = false;
+    setResetKey((prev) => prev + 1);
   }, [dispatch]);
 
   return (
@@ -440,6 +441,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
               setDisplayTaskResults(false);
               initializedRef.current = false;
               setHasAppliedLifePenalty(false);
+              setResetKey((prev) => prev + 1);
             });
           }}
           levelCompletionState={
