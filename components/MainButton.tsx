@@ -112,17 +112,17 @@ export function MainButton({
         }}
       >
         <TouchableOpacity
+          onPress={onPress}
           activeOpacity={0.9}
           disabled={disabled}
-          onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           style={styles.buttonWrapper}
         >
           <LinearGradient
+            end={{ x: 0.5, y: 1 }}
             colors={gradientColors}
             start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
             style={[
               styles.button,
               disabled && { opacity: 1 },

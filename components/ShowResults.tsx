@@ -49,13 +49,8 @@ export function ShowResults({
   const { bottom: bottomInset } = useSafeAreaInsets();
 
   const snapPoints = useMemo(() => {
-    // if (lives === 0) return ["50%"];
     return [levelCompletionState?.isCompleted ? "55%" : "55%"];
   }, [levelCompletionState?.isCompleted, lives]);
-
-  // const handleSheetChange = useCallback((index: number) => {
-  //   console.log("handleSheetChange", index);
-  // }, []);
 
   // Slow down bottom sheet animations for better UX
   const animationConfigs = useBottomSheetTimingConfigs({
@@ -71,11 +66,11 @@ export function ShowResults({
       <BottomSheet
         index={0}
         ref={sheetRef}
-        bottomInset={-(bottomInset + 30)} // Todo fix hack to prevent extra space at bottom
         snapPoints={snapPoints}
         handleStyle={{ height: 0 }}
         enableDynamicSizing={false}
         handleComponent={EmptyHandle}
+        bottomInset={-(bottomInset + 30)} // Todo fix hack to prevent extra space at bottom
         animationConfigs={animationConfigs}
         backgroundStyle={{ backgroundColor: background }}
         // onChange={handleSheetChange}

@@ -9,13 +9,13 @@ import type {
   TaskAnswerType,
   TaskOptionType,
 } from "@/context/app.context.reducer";
-import useAppContext from "@/hooks/useAppContext";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
+import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface MathTaskWithResultProps {
@@ -37,9 +37,10 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   const router = useRouter();
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
 
-  const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
+  const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
+  const hasAppliedLifePenaltyRef = useRef(false);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
@@ -76,6 +77,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
     setAnswer([]);
     setDisplayTaskResults(false);
     setHasAppliedLifePenalty(false);
+    hasAppliedLifePenaltyRef.current = false;
   };
 
   const nextLevelValue = (levelNumber + 1).toString();
@@ -119,9 +121,16 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   const isAllAnswersCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
 
   const handleCheckAnswers = () => {
+    // Use ref for synchronous check to prevent double life loss on rapid taps
+    if (hasAppliedLifePenaltyRef.current) {
+      setDisplayTaskResults(true);
+      return;
+    }
+
     const isCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
 
-    if (!isCorrect && !hasAppliedLifePenalty) {
+    if (!isCorrect) {
+      hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
       setHasAppliedLifePenalty(true);
     }
@@ -130,9 +139,9 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   };
 
   const handleTryAgain = () => {
-    dispatch({ type: "LOSE_LIFE" });
     setAnswer([]);
     setDisplayTaskResults(false);
+    hasAppliedLifePenaltyRef.current = false;
   };
 
   return (
@@ -146,10 +155,10 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
       >
         <View
           style={{
+            gap: 6,
             width: "100%",
             display: "flex",
             flexDirection: "row",
-            gap: 6,
           }}
         >
           <ThemedText type="subtitle">Izvēlies</ThemedText>
@@ -253,13 +262,14 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
               setAnswer([]);
               setDisplayTaskResults(false);
               setHasAppliedLifePenalty(false);
+              hasAppliedLifePenaltyRef.current = false;
             });
           }}
           levelCompletionState={
             isFinalTaskInLevel
               ? {
-                  isCompleted: true,
                   hasNextLevel,
+                  isCompleted: true,
                   onGoHomePress: handleGoHome,
                   onNextLevelPress: handleNextLevel,
                 }

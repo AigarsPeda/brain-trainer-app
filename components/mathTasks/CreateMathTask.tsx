@@ -1,11 +1,10 @@
 import { MainButton } from "@/components/MainButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { DropZoneColors } from "@/constants/Colors";
 import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
-import useAppContext from "@/hooks/useAppContext";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
+import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { checkAnswers } from "@/utils/game";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
@@ -83,6 +82,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const [rightValue, setRightValue] = useState<number | null>(null);
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
+  const hasAppliedLifePenaltyRef = useRef(false);
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
@@ -287,6 +287,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     setRightValue(null);
     initializedRef.current = false;
     setHasAppliedLifePenalty(false);
+    hasAppliedLifePenaltyRef.current = false;
   }, [getCorrectnessPercentage, dispatch, maxLevelStep]);
 
   const nextLevelValue = (levelNumber + 1).toString();
@@ -301,34 +302,41 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   });
 
   const handleCheckAnswers = useCallback(() => {
+    // Use ref for synchronous check to prevent double life loss on rapid taps
+    if (hasAppliedLifePenaltyRef.current) {
+      setDisplayTaskResults(true);
+      return;
+    }
+
     const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
 
-    if (!isCorrect && !hasAppliedLifePenalty) {
+    if (!isCorrect) {
+      hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
       setHasAppliedLifePenalty(true);
     }
 
     setDisplayTaskResults(true);
-  }, [leftValue, rightValue, task.operation, task.result, hasAppliedLifePenalty, dispatch]);
+  }, [leftValue, rightValue, task.operation, task.result, dispatch]);
 
   const handleTryAgain = useCallback(() => {
-    dispatch({ type: "LOSE_LIFE" });
     setLeftValue(null);
     setRightValue(null);
     setDisplayTaskResults(false);
     initializedRef.current = false;
+    hasAppliedLifePenaltyRef.current = false;
     setResetKey((prev) => prev + 1);
-  }, [dispatch]);
+  }, []);
 
   return (
     <>
       <View>
         <View
           style={{
+            gap: 6,
             width: "100%",
             display: "flex",
             flexDirection: "row",
-            gap: 6,
           }}
         >
           <ThemedText type="subtitle">Izveido</ThemedText>
@@ -339,9 +347,9 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
 
         <View
           style={{
-            flexDirection: "row",
             gap: 16,
             paddingTop: 30,
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
           }}
@@ -441,14 +449,15 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
               setDisplayTaskResults(false);
               initializedRef.current = false;
               setHasAppliedLifePenalty(false);
+              hasAppliedLifePenaltyRef.current = false;
               setResetKey((prev) => prev + 1);
             });
           }}
           levelCompletionState={
             isFinalTaskInLevel
               ? {
-                  isCompleted: true,
                   hasNextLevel,
+                  isCompleted: true,
                   onGoHomePress: handleGoHome,
                   onNextLevelPress: handleNextLevel,
                 }
@@ -462,21 +471,21 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
 
 interface DraggableNumberProps {
   number: number;
+  isSnapped: boolean;
   initialPosition: NumberPosition;
   onDrop: (x: number, y: number) => void;
-  isSnapped: boolean;
 }
 
 const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: DraggableNumberProps) => {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
+  const scale = useSharedValue(1);
+  const zIndex = useSharedValue(0);
+  const isDragging = useSharedValue(false);
+  const context = useSharedValue({ x: 0, y: 0 });
   const positionX = useSharedValue(initialPosition.x);
   const positionY = useSharedValue(initialPosition.y);
-  const scale = useSharedValue(1);
-  const context = useSharedValue({ x: 0, y: 0 });
-  const isDragging = useSharedValue(false);
-  const zIndex = useSharedValue(0);
 
   // use a shared value (not a React ref) for data accessed in worklets
   const isSnappedSV = useSharedValue(isSnapped);
@@ -541,10 +550,10 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     <GestureDetector gesture={panGesture}>
       <Animated.View style={animatedStyle}>
         <LinearGradient
-          colors={gradientColors as [string, string]}
-          start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
+          start={{ x: 0.5, y: 0 }}
           style={styles.numberContainer}
+          colors={gradientColors as [string, string]}
         >
           <Animated.View style={overlayStyle} pointerEvents="none" />
           <ThemedText type="defaultSemiBold" style={{ fontSize: 32, color: textColor, textAlign: "center" }}>

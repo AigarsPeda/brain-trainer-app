@@ -2,17 +2,16 @@ import AnimatedFlatList from "@/components/AnimatedFlatList";
 import { BackgroundPattern } from "@/components/BackgroundPattern";
 import ListItem from "@/components/ListItem";
 import { LivesModal } from "@/components/LivesModal";
-
 import { UserStatistics } from "@/components/UserStatistics";
+import { LevelBackgrounds } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
-import { LevelBackgrounds } from "@/constants/Colors";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
