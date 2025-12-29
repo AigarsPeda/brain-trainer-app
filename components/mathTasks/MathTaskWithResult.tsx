@@ -2,7 +2,6 @@ import { MainButton } from "@/components/MainButton";
 import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import type {
   CreateMathTaskOptionType,
   LevelsEnum,
@@ -17,7 +16,7 @@ import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 interface MathTaskWithResultProps {
   level: LevelsEnum;
@@ -138,14 +137,14 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
   return (
     <>
-      <ThemedView
+      <View
         style={{
           paddingVertical: 16,
           alignItems: "center",
           paddingHorizontal: 16,
         }}
       >
-        <ThemedView
+        <View
           style={{
             width: "100%",
             display: "flex",
@@ -163,8 +162,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
             visas
           </ThemedText>
           <ThemedText type="subtitle">pareizās atbildes</ThemedText>
-        </ThemedView>
-        <ThemedView
+        </View>
+        <View
           style={{
             paddingTop: 10,
             display: "flex",
@@ -181,8 +180,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
           >
             {task.result}
           </ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.itemsWrap}>
+        </View>
+        <View style={styles.itemsWrap}>
           {task.options.map((option, i) => {
             const gradientColor = getGradientColor(option, answers, isDarkMode, displayTaskResults);
 
@@ -217,10 +216,10 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
               </MathTaskButton>
             );
           })}
-        </ThemedView>
-      </ThemedView>
+        </View>
+      </View>
       {!displayTaskResults ? (
-        <ThemedView
+        <View
           style={{
             display: "flex",
             marginBottom: 26,
@@ -238,7 +237,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
               {displayTaskResults ? "Nākamais uzdevums" : "Pārbaudīt"}
             </ThemedText>
           </MainButton>
-        </ThemedView>
+        </View>
       ) : (
         <ShowResults
           lives={lives}

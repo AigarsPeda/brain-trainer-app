@@ -14,16 +14,20 @@ import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { getLevelTaskData } from "@/utils/game";
+import { getTaskBackground } from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, StatusBar, Platform, Pressable } from "react-native";
+import { StyleSheet, StatusBar, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useMemo } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { BackgroundPattern } from "@/components/BackgroundPattern";
 
 export default function GameLevelScreen() {
   const {
     state: {
       lives,
       results,
+      theme,
       lastLifeLostAt,
       game: { currentTaskInLevel },
     },
@@ -42,6 +46,12 @@ export default function GameLevelScreen() {
   const livesAnimation = usePulseOnChange(lives);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
+
+  // Get background gradient based on current task type
+  const backgroundColors = useMemo(() => {
+    const taskType = currentTask?.taskType ?? "home";
+    return getTaskBackground(taskType as "mathTaskWithResult" | "createMathTask", theme);
+  }, [currentTask?.taskType, theme]);
 
   // Get explanation for the current task
   const currentTaskExplanation = useMemo(() => {
@@ -112,8 +122,13 @@ export default function GameLevelScreen() {
   }
 
   return (
-    <>
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+    <LinearGradient end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} colors={[...backgroundColors]} style={styles.gradient}>
+      <BackgroundPattern />
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle={theme === "dark" ? "light-content" : "dark-content"}
+      />
       <InfoModal visible={isInfoModalVisible} onClose={closeInfoModal} />
       <LivesModal
         visible={isLivesModalVisible}
@@ -124,14 +139,14 @@ export default function GameLevelScreen() {
         onWatchAd={handleWatchAd}
       />
       <HintModal visible={isHintModalVisible} onClose={closeHintModal} explanation={currentTaskExplanation} />
-      <ThemedView
+      <View
         style={{
           ...styles.itemsWrap,
           paddingTop: styles.itemsWrap.paddingTop + insets.top + 12,
           paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
         }}
       >
-        <ThemedView style={styles.view}>
+        <View style={styles.view}>
           <StatisticsItem
             src={Close}
             onPress={() => {
@@ -146,7 +161,7 @@ export default function GameLevelScreen() {
             animation={livesAnimation}
             onPress={openLivesModal}
           />
-        </ThemedView>
+        </View>
         {/* Hint button row */}
         <Pressable style={styles.hintRow} onPress={openHintModal}>
           <ThemedText style={styles.hintEmoji}>💡</ThemedText>
@@ -154,7 +169,7 @@ export default function GameLevelScreen() {
             Palīdzība
           </ThemedText>
         </Pressable>
-        <ThemedView style={styles.levelView}>
+        <View style={styles.levelView}>
           {isMultiAnswerMathTask(currentTask) && (
             <MathTaskWithResult
               level={level}
@@ -171,13 +186,16 @@ export default function GameLevelScreen() {
               isFinalTaskInLevel={isFinalTaskInLevel}
             />
           )}
-        </ThemedView>
-      </ThemedView>
-    </>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   itemsWrap: {
     flex: 1,
     paddingTop: 0,

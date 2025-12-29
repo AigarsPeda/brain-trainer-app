@@ -2,11 +2,11 @@ import { MainButton } from "@/components/MainButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { DropZoneColors } from "@/constants/Colors";
 import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useGoogleAd from "@/hooks/useGoogleAd";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { checkAnswers } from "@/utils/game";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import * as Haptics from "expo-haptics";
@@ -73,10 +73,11 @@ interface CreateMathTaskProps {
 }
 
 export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }: CreateMathTaskProps) {
-  const theme = useThemeColor();
+  const colorScheme = useAppColorScheme();
   const leftZoneRef = useRef<View | null>(null);
   const rightZoneRef = useRef<View | null>(null);
   const containerRef = useRef<View | null>(null);
+  const dropZoneColors = DropZoneColors[colorScheme ?? "dark"];
 
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
@@ -320,8 +321,8 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
 
   return (
     <>
-      <ThemedView>
-        <ThemedView
+      <View>
+        <View
           style={{
             width: "100%",
             display: "flex",
@@ -333,7 +334,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
           <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
             vienādojumu
           </ThemedText>
-        </ThemedView>
+        </View>
 
         <View
           style={{
@@ -344,13 +345,31 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
             justifyContent: "space-between",
           }}
         >
-          <View ref={leftZoneRef} style={[styles.dropZone, { borderColor: theme.border }]} />
+          <View
+            ref={leftZoneRef}
+            style={[
+              styles.dropZone,
+              {
+                borderColor: dropZoneColors.border,
+                backgroundColor: dropZoneColors.background,
+              },
+            ]}
+          />
 
           <ThemedText type="defaultSemiBold" style={styles.operationText}>
             {task.operation}
           </ThemedText>
 
-          <View ref={rightZoneRef} style={[styles.dropZone, { borderColor: theme.border }]} />
+          <View
+            ref={rightZoneRef}
+            style={[
+              styles.dropZone,
+              {
+                borderColor: dropZoneColors.border,
+                backgroundColor: dropZoneColors.background,
+              },
+            ]}
+          />
 
           <ThemedText type="defaultSemiBold" style={styles.operationText}>
             = {task.result}
@@ -382,9 +401,9 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
             );
           })}
         </View>
-      </ThemedView>
+      </View>
       {!displayTaskResults ? (
-        <ThemedView
+        <View
           style={{
             display: "flex",
             marginBottom: 26,
@@ -403,7 +422,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
               {displayTaskResults ? "Nākamais uzdevums" : "Pārbaudīt"}
             </ThemedText>
           </MainButton>
-        </ThemedView>
+        </View>
       ) : (
         <ShowResults
           lives={lives}

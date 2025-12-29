@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
+import { ButtonColors } from "@/constants/Colors";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import { interpolateColor } from "@/utils/utils";
 import * as Haptics from "expo-haptics";
@@ -30,9 +31,14 @@ export function MainButton({
 }: MainButtonProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const theme = isDarkMode ? "dark" : "light";
   const [translateY] = useState(new Animated.Value(0));
   const [animProgress, setAnimProgress] = useState(disabled ? 1 : 0);
   const colorAnim = useRef(new Animated.Value(disabled ? 1 : 0)).current;
+
+  // Get colors from centralized ButtonColors
+  const variantColors = ButtonColors[variant][theme];
+  const disabledColors = ButtonColors.disabled[theme];
 
   useEffect(() => {
     const animation = Animated.timing(colorAnim, {
@@ -75,27 +81,16 @@ export function MainButton({
     ]).start();
   };
 
-  const disabledBgColor = isDarkMode ? ["#4b5563", "#374151"] : ["#f3f4f9", "#e4e6f3"];
-  const disabledShadowColor = isDarkMode ? ["#1f2937", "#111827"] : ["#e4e6f3", "#f3f4f6"];
-
-  const primaryBgColor = isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"];
-  const primaryShadowColor = isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"];
-
-  const secondaryBgColor = isDarkMode ? ["#374151", "#1f2937"] : ["#f9fafb", "#e5e7eb"];
-  const secondaryShadowColor = isDarkMode ? ["#111827", "#111827"] : ["#d1d5db", "#d1d5db"];
-
-  const enabledBgColor = variant === "secondary" ? secondaryBgColor : primaryBgColor;
-  const enabledShadowColor = variant === "secondary" ? secondaryShadowColor : primaryShadowColor;
-
   // Interpolate colors based on animation progress
   const gradientColors: [string, string] = [
-    interpolateColor(enabledBgColor[0], disabledBgColor[0], animProgress),
-    interpolateColor(enabledBgColor[1], disabledBgColor[1], animProgress),
+    interpolateColor(variantColors.background[0], disabledColors.background[0], animProgress),
+    interpolateColor(variantColors.background[1], disabledColors.background[1], animProgress),
   ];
   const shadowColors: [string, string] = [
-    interpolateColor(enabledShadowColor[0], disabledShadowColor[0], animProgress),
-    interpolateColor(enabledShadowColor[1], disabledShadowColor[1], animProgress),
+    interpolateColor(variantColors.shadow[0], disabledColors.shadow[0], animProgress),
+    interpolateColor(variantColors.shadow[1], disabledColors.shadow[1], animProgress),
   ];
+  const textColor = disabled ? disabledColors.text : variantColors.text;
 
   return (
     <View style={[styles.container, style]}>
@@ -134,7 +129,7 @@ export function MainButton({
               style?.width ? { width: (style.width as number) - 5 } : null,
             ]}
           >
-            {children || <ThemedText style={[styles.text, textStyle]}>Continue</ThemedText>}
+            {children || <ThemedText style={[styles.text, { color: textColor }, textStyle]}>Continue</ThemedText>}
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
@@ -175,6 +170,5 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20,
     fontWeight: "500",
-    color: "#6a4acb",
   },
 });

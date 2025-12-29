@@ -7,6 +7,7 @@ import { UserStatistics } from "@/components/UserStatistics";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
+import { LevelBackgrounds } from "@/constants/Colors";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, ViewToken } from "react-native";
@@ -32,14 +33,10 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={
-        state.theme === "dark"
-          ? ["#2E1065", "#1e1b4b", "#0F172A"] // Deep Violet -> Indigo -> Slate (Rich Dark)
-          : ["#E0E7FF", "#EEF2FF", "#FAE8FF"] // Indigo -> Light Blue -> Fuchsia (Playful Light)
-      }
-      start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
+      start={{ x: 0, y: 0 }}
       style={{ flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }}
+      colors={[...(state.theme === "dark" ? LevelBackgrounds.home.dark : LevelBackgrounds.home.light)]}
     >
       <BackgroundPattern />
       <LivesModal
