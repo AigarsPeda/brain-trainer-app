@@ -1,4 +1,10 @@
-import { MathOperation, TaskType, isCreateMathTask, isMultiAnswerMathTask } from "@/context/app.context.reducer";
+import {
+  MathOperation,
+  TaskType,
+  isCreateMathTask,
+  isMultiAnswerMathTask,
+  isTextTask,
+} from "@/context/app.context.reducer";
 
 export type MathExplanation = {
   title: string;
@@ -22,6 +28,11 @@ export type MathExplanation = {
  * The explanation includes a simple example with visual representation.
  */
 export const getMathExplanation = (task: TaskType): MathExplanation => {
+  // For "textTask" type - provide a generic reading comprehension hint
+  if (isTextTask(task)) {
+    return getTextTaskExplanation(task.result);
+  }
+
   // For "createMathTask" type - we know the operation
   if (isCreateMathTask(task)) {
     return getExplanationForOperation(task.operation, task.result);
@@ -38,6 +49,28 @@ export const getMathExplanation = (task: TaskType): MathExplanation => {
 
   // Default fallback
   return getExplanationForOperation("+", 5);
+};
+
+/**
+ * Returns an explanation for text-based tasks
+ */
+const getTextTaskExplanation = (result: number): MathExplanation => {
+  return {
+    title: "📖 Teksta uzdevums",
+    description: "Izlasi uzdevumu uzmanīgi un atrodi pareizo atbildi!",
+    example: {
+      left: 3,
+      right: 2,
+      operation: "+",
+      result: result,
+    },
+    visualItems: {
+      leftItems: ["📚", "📚", "📚"],
+      rightItems: ["📚", "📚"],
+      operationSymbol: "+",
+    },
+    tip: "Izlasi vēlreiz un padomā, kas notiek uzdevumā!",
+  };
 };
 
 /**

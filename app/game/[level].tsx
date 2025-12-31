@@ -6,12 +6,13 @@ import { InfoModal } from "@/components/InfoModal";
 import { LivesModal } from "@/components/LivesModal";
 import { CreateMathTask } from "@/components/mathTasks/CreateMathTask";
 import MathTaskWithResult from "@/components/mathTasks/MathTaskWithResult";
+import { TextTask } from "@/components/mathTasks/TextTask";
 import Progressbar from "@/components/Progressbar";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
-import { isCreateMathTask, isMultiAnswerMathTask, LevelsEnum } from "@/context/app.context.reducer";
+import { isCreateMathTask, isMultiAnswerMathTask, isTextTask, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
@@ -177,6 +178,14 @@ export default function GameLevelScreen() {
           )}
           {isCreateMathTask(currentTask) && (
             <CreateMathTask
+              level={level}
+              task={currentTask}
+              maxLevelStep={maxLevelStep}
+              isFinalTaskInLevel={isFinalTaskInLevel}
+            />
+          )}
+          {isTextTask(currentTask) && (
+            <TextTask
               level={level}
               task={currentTask}
               maxLevelStep={maxLevelStep}

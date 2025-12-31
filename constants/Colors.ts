@@ -17,6 +17,10 @@ export const LevelBackgrounds = {
     dark: ["#14532D", "#134E4A", "#1E3A3A"] as const,
     light: ["#F0FDF4", "#ECFDF5", "#F8FAFC"] as const,
   },
+  textTask: {
+    dark: ["#4C1D95", "#3730A3", "#312E81"] as const,
+    light: ["#EDE9FE", "#E0E7FF", "#F5F3FF"] as const,
+  },
   challenge: {
     dark: ["#7C2D12", "#78350F", "#451A03"] as const,
     light: ["#FED7AA", "#FEF3C7", "#FFF7ED"] as const,
@@ -85,7 +89,7 @@ export const ButtonColors = {
 } as const;
 
 export const getTaskBackground = (
-  taskType: "mathTaskWithResult" | "createMathTask" | "challenge" | "bonus" | "practice" | "home",
+  taskType: "mathTaskWithResult" | "createMathTask" | "textTask" | "challenge" | "bonus" | "practice" | "home",
   theme: "light" | "dark"
 ): GradientColors => {
   return LevelBackgrounds[taskType]?.[theme] ?? LevelBackgrounds.home[theme];
@@ -96,6 +100,8 @@ export const Colors = {
     icon: "#687076",
     text: "#1f2937",
     background: "#fff",
+    inputBackground: "#FFFFFF",
+    placeholder: "#AAAAAA",
     tint: tintColorLight,
     tabIconDefault: "#687076",
     tabIconSelected: tintColorLight,
@@ -109,6 +115,8 @@ export const Colors = {
     icon: "#9BA1A6",
     text: "#ECEDEE",
     background: "#1f2937",
+    inputBackground: "#2A2A2A",
+    placeholder: "#666666",
     tint: tintColorDark,
     tabIconDefault: "#9BA1A6",
     tabIconSelected: tintColorDark,

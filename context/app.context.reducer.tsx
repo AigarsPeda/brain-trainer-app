@@ -3,10 +3,11 @@ import { LEVEL_2 } from "@/data/math-2-level";
 import { LEVEL_3 } from "@/data/math-3-level";
 import { INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
 import { createContext } from "react";
+import type { ImageSourcePropType } from "react-native";
 
 // Level -> Multiple tasks -> One task -> Multiple answers
 
-export type MathTypeType = "mathTaskWithResult" | "createMathTask";
+export type MathTypeType = "mathTaskWithResult" | "createMathTask" | "textTask";
 
 export type TaskOptionType = {
   id: number;
@@ -42,6 +43,11 @@ export type MathOperation = "+" | "-" | "×" | "÷" | "*" | "/";
 export type CreateMathTaskType = BaseMathTaskType & {
   operation: MathOperation;
   options: CreateMathTaskOptionType[];
+};
+
+export type TextTaskType = BaseMathTaskType & {
+  question: string; // The question text to display
+  icon: ImageSourcePropType; // Icon image to display with the question
 };
 
 export type TaskAnswerType = {
@@ -95,14 +101,18 @@ export enum LevelsEnum {
   LEVEL_3 = "3",
 }
 
-export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType;
+export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType | TextTaskType;
 
 export const isMultiAnswerMathTask = (task: TaskType): task is MultiAnswerMathTaskType => {
-  return (task as MultiAnswerMathTaskType).options?.length > 0 && !("operation" in task);
+  return (task as MultiAnswerMathTaskType).options?.length > 0 && !("operation" in task) && !("question" in task);
 };
 
 export const isCreateMathTask = (task: TaskType): task is CreateMathTaskType => {
-  return "operation" in task;
+  return "operation" in task && !("question" in task);
+};
+
+export const isTextTask = (task: TaskType): task is TextTaskType => {
+  return "question" in task && "icon" in task;
 };
 
 export const ALL_TASKS: Record<LevelsEnum, TaskType[]> = {
