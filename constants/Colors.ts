@@ -88,6 +88,52 @@ export const ButtonColors = {
   },
 } as const;
 
+export const ToggleColors = {
+  dark: {
+    containerBackground: "rgba(196, 181, 253, 0.15)",
+    indicatorBackground: "#8b5cf6",
+    activeText: "#ffffff",
+  },
+  light: {
+    containerBackground: "rgba(106, 74, 203, 0.1)",
+    indicatorBackground: "#6a4acb",
+    activeText: "#ffffff",
+  },
+} as const;
+
+export const HintModalColors = {
+  dark: {
+    boxBackground: "rgba(255, 255, 255, 0.1)",
+    boxBorder: "rgba(196, 181, 253, 0.3)",
+    visualSectionBackground: "rgba(106, 74, 203, 0.15)",
+    modalBackdrop: "rgba(0, 0, 0, 0.5)",
+    closeButtonBackground: "#6a4acb",
+    closeButtonText: "#ffffff",
+    exampleLabel: "#c4b5fd",
+    equationText: "#c4b5fd",
+    operationText: "#c4b5fd",
+    subtractionLabel: "#c4b5fd",
+    resultCount: "#c4b5fd",
+    equalsText: "#c4b5fd",
+    groupBoxBorder: "#c4b5fd",
+  },
+  light: {
+    boxBackground: "rgba(255, 255, 255, 0.6)",
+    boxBorder: "rgba(106, 74, 203, 0.2)",
+    visualSectionBackground: "rgba(106, 74, 203, 0.25)",
+    modalBackdrop: "rgba(0, 0, 0, 0.5)",
+    closeButtonBackground: "#6a4acb",
+    closeButtonText: "#ffffff",
+    exampleLabel: "#5a3d9e",
+    equationText: "#6a4acb",
+    operationText: "#6a4acb",
+    subtractionLabel: "#5a3d9e",
+    resultCount: "#5a3d9e",
+    equalsText: "#6a4acb",
+    groupBoxBorder: "#6a4acb",
+  },
+} as const;
+
 export const getTaskBackground = (
   taskType: "mathTaskWithResult" | "createMathTask" | "textTask" | "challenge" | "bonus" | "practice" | "home",
   theme: "light" | "dark"

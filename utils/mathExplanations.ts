@@ -8,7 +8,6 @@ import {
 
 export type MathExplanation = {
   title: string;
-  description: string;
   example: {
     left: number;
     right: number;
@@ -20,34 +19,26 @@ export type MathExplanation = {
     rightItems: string[];
     operationSymbol: string;
   };
-  tip: string;
 };
 
-/**
- * Generates a kid-friendly explanation for a math task based on its type and operation.
- * The explanation includes a simple example with visual representation.
- */
 export const getMathExplanation = (task: TaskType): MathExplanation => {
-  // For "textTask" type - provide a generic reading comprehension hint
   if (isTextTask(task)) {
     return getTextTaskExplanation(task.result);
   }
 
-  // For "createMathTask" type - we know the operation
   if (isCreateMathTask(task)) {
     return getExplanationForOperation(task.operation, task.result);
   }
 
-  // For "mathTaskWithResult" type - we need to detect the operation from the equations
   if (isMultiAnswerMathTask(task)) {
     const firstOption = task.options[0];
+
     if (firstOption) {
       const operation = detectOperationFromEquation(firstOption.equation);
       return getExplanationForOperation(operation, task.result);
     }
   }
 
-  // Default fallback
   return getExplanationForOperation("+", 5);
 };
 
@@ -56,8 +47,7 @@ export const getMathExplanation = (task: TaskType): MathExplanation => {
  */
 const getTextTaskExplanation = (result: number): MathExplanation => {
   return {
-    title: "📖 Teksta uzdevums",
-    description: "Izlasi uzdevumu uzmanīgi un atrodi pareizo atbildi!",
+    title: "Ja kaut ko iedod vai pievieno - saskaiti!",
     example: {
       left: 3,
       right: 2,
@@ -69,7 +59,6 @@ const getTextTaskExplanation = (result: number): MathExplanation => {
       rightItems: ["📚", "📚"],
       operationSymbol: "+",
     },
-    tip: "Izlasi vēlreiz un padomā, kas notiek uzdevumā!",
   };
 };
 
@@ -111,8 +100,7 @@ const getAdditionExplanation = (targetResult?: number): MathExplanation => {
   const result = left + right;
 
   return {
-    title: "Saskaitīšana (+)",
-    description: "Saskaitot mēs saliekam visu kopā! Iedomājies, ka tev ir āboli un tu dabū vēl.",
+    title: "Saskaiti abus skaitļus kopā!",
     example: {
       left,
       right,
@@ -124,7 +112,6 @@ const getAdditionExplanation = (targetResult?: number): MathExplanation => {
       rightItems: Array(right).fill("🍎"),
       operationSymbol: "+",
     },
-    tip: "Pamēģini saskaitīt visus ābolus!",
   };
 };
 
@@ -134,8 +121,7 @@ const getSubtractionExplanation = (targetResult?: number): MathExplanation => {
   const result = left - right;
 
   return {
-    title: "Atņemšana (-)",
-    description: "Atņemot mēs kaut ko atdodam vai apēdam! Tev ir 5 banāni 🍌, bet 2 atdod draugam.",
+    title: "Atņem otro skaitli no pirmā!",
     example: {
       left,
       right,
@@ -143,12 +129,10 @@ const getSubtractionExplanation = (targetResult?: number): MathExplanation => {
       result,
     },
     visualItems: {
-      // First show all items, then show which ones are "going away"
       leftItems: ["🍌", "🍌", "🍌", "🍌", "🍌"],
-      rightItems: ["🍌", "🍌"], // These will be shown as "taken away"
+      rightItems: ["🍌", "🍌"],
       operationSymbol: "-",
     },
-    tip: "Saskaiti, cik banānu tev vēl paliek!",
   };
 };
 
@@ -158,8 +142,7 @@ const getMultiplicationExplanation = (targetResult?: number): MathExplanation =>
   const result = left * right;
 
   return {
-    title: "Reizināšana (×)",
-    description: "Reizinot mēs ņemam vairākas grupas! Iedomājies, ka tev ir 3 maisiņi ar 2 cepumiem katrā.",
+    title: "Saskaiti skaitli vairākas reizes!",
     example: {
       left,
       right,
@@ -171,7 +154,6 @@ const getMultiplicationExplanation = (targetResult?: number): MathExplanation =>
       rightItems: [],
       operationSymbol: "×",
     },
-    tip: "Saskaiti visus cepumus no visiem maisiņiem!",
   };
 };
 
@@ -181,8 +163,7 @@ const getDivisionExplanation = (targetResult?: number): MathExplanation => {
   const result = left / right;
 
   return {
-    title: "Dalīšana (÷)",
-    description: "Dalot mēs sadalām vienādi! Iedomājies, ka 6 picas šķēles jāsadala 2 draugiem.",
+    title: "Sadali vienādās daļās!",
     example: {
       left,
       right,
@@ -190,10 +171,9 @@ const getDivisionExplanation = (targetResult?: number): MathExplanation => {
       result,
     },
     visualItems: {
-      leftItems: ["🍕🍕🍕", "🍕🍕🍕"],
+      leftItems: Array(left).fill("🍕"),
       rightItems: [],
       operationSymbol: "÷",
     },
-    tip: "Cik šķēles katrs draugs dabūs?",
   };
 };

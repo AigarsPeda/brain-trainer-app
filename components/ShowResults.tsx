@@ -49,7 +49,7 @@ export function ShowResults({
   const { bottom: bottomInset } = useSafeAreaInsets();
 
   const snapPoints = useMemo(() => {
-    return [levelCompletionState?.isCompleted ? "55%" : "55%"];
+    return [levelCompletionState?.isCompleted ? "65%" : "55%"];
   }, [levelCompletionState?.isCompleted, lives]);
 
   // Slow down bottom sheet animations for better UX
