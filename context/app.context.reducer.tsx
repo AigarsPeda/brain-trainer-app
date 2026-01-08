@@ -68,7 +68,8 @@ export type AppContextStateType = {
   lives: number;
   theme: ThemeType;
   daysInARow: number;
-  lastLifeLostAt: number | null; // Timestamp when the last life was lost (for restoration timer)
+  lastLifeLostAt: number | null;
+  currentTaskAttemptCount: number;
   results: {
     [level: string]: {
       tasksResults: TaskResultType[];
@@ -146,6 +147,7 @@ export const initialState: AppContextStateType = {
   },
   daysInARow: 0,
   lastLifeLostAt: null,
+  currentTaskAttemptCount: 0,
   name: "Aigars",
   game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
   availableLevels: Object.keys(ALL_TASKS).length,
@@ -277,6 +279,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
             currentLevel: nextLevel,
           },
           results: finalResults,
+          currentTaskAttemptCount: 0, // Reset attempt count for next task
           levels: state.levels.map((level) =>
             level.levelNumber === currentLevel
               ? {
@@ -303,6 +306,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
           currentTaskInLevel: nextTaskInLevel,
         },
         results: newResults,
+        currentTaskAttemptCount: 0, // Reset attempt count for next task
       };
     }
 
@@ -350,6 +354,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
           currentLevel: nextLevel, // Update the current level to the next level
         },
         results: newResults,
+        currentTaskAttemptCount: 0, // Reset attempt count for next level
         levels: state.levels.map((level) =>
           level.levelNumber === currentLevel
             ? {
@@ -376,6 +381,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         lives: newLives,
         // Set timestamp when life is lost (only if we actually lost a life and timer isn't already running)
         lastLifeLostAt: newLives < state.lives && state.lastLifeLostAt === null ? Date.now() : state.lastLifeLostAt,
+        // Increment attempt count when user loses a life (meaning they got it wrong)
+        currentTaskAttemptCount: state.currentTaskAttemptCount + 1,
       };
     }
 
@@ -407,6 +414,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         theme: action.payload.theme ?? "light",
         // Ensure availableLevels is always current (in case new levels were added)
         availableLevels: Object.keys(ALL_TASKS).length,
+        // Ensure currentTaskAttemptCount has a default value for older persisted states
+        currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
       };
     }
 

@@ -31,7 +31,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
   const {
     dispatch,
-    state: { availableLevels, lives },
+    state: { availableLevels, lives, currentTaskAttemptCount },
   } = useAppContext();
 
   const router = useRouter();
@@ -48,7 +48,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   const calculatePercentageInTask = (
     answers: TaskAnswerType[],
     options: TaskOptionType[],
-    maxLevelStep: number
+    maxLevelStep: number,
+    attempts: number
   ): number => {
     const totalCorrectOptions = options.filter((o) => isEquationCorrect(o.equation, task.result)).length;
     const correctAnswers = answers.filter((a) => a.isCorrect).length;
@@ -57,14 +58,22 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
       return 0;
     }
 
-    const taskPercentage = (correctAnswers / totalCorrectOptions) * 100;
+    // Calculate base percentage
+    let taskPercentage = (correctAnswers / totalCorrectOptions) * 100;
+
+    // Apply penalty for multiple attempts (reduce by 20% per additional attempt, minimum 0%)
+    if (attempts > 1) {
+      const penalty = (attempts - 1) * 20;
+      taskPercentage = Math.max(0, taskPercentage - penalty);
+    }
+
     const weightedPercentage = taskPercentage / maxLevelStep;
 
     return parseFloat(weightedPercentage.toFixed(2));
   };
 
   const finalizeTaskProgress = () => {
-    const correctnessPercentage = calculatePercentageInTask(answers, task.options, maxLevelStep);
+    const correctnessPercentage = calculatePercentageInTask(answers, task.options, maxLevelStep, currentTaskAttemptCount);
 
     dispatch({
       type: "GET_NEXT_TASK",
@@ -131,7 +140,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
     if (!isCorrect) {
       hasAppliedLifePenaltyRef.current = true;
-      dispatch({ type: "LOSE_LIFE" });
+      dispatch({ type: "LOSE_LIFE" }); // This will increment currentTaskAttemptCount in the reducer
       setHasAppliedLifePenalty(true);
     }
 
