@@ -5,13 +5,12 @@ import FireRed from "@/assets/images/fire-red.png";
 import Heart from "@/assets/images/heart.png";
 import { SettingsModal } from "@/components/SettingsModal";
 import { StatisticsItem } from "@/components/StatisticsItem";
-
+import Settings from "@/assets/images/settings.png";
 import useAppContext from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useState } from "react";
-import { Pressable, useWindowDimensions, View } from "react-native";
-import Settings from "@/assets/images/settings.png";
+import { useWindowDimensions, View } from "react-native";
 
 interface UserStatisticsProps {
   onLivesPress?: () => void;
@@ -45,41 +44,42 @@ export function UserStatistics({ onLivesPress }: UserStatisticsProps) {
         style={{
           gap: 8,
           flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-end",
+          justifyContent: "flex-start",
           paddingHorizontal: 16,
           backgroundColor: "transparent",
         }}
       >
-        {/* <StatisticsItem
-        src={getFireImage()}
-        width={itemWidth}
-        stat={state.daysInARow}
-        size={{
-          width: 38,
-          height: 38,
-        }}
-      />
-      <StatisticsItem src={Gem} width={itemWidth} stat={state.gems} /> */}
         <StatisticsItem
-          src={Heart}
-          stat={state.lives}
+          src={getFireImage()}
+          width={itemWidth}
+          stat={state.daysInARow}
           size={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
           }}
-          animation={livesAnimatedStyle}
-          onPress={onLivesPress}
         />
-        <StatisticsItem
-          src={Settings}
-          size={{
-            width: 36,
-            height: 36,
-          }}
-          animation={livesAnimatedStyle}
-          onPress={() => setSettingsVisible(true)}
-        />
+        {/* <StatisticsItem src={Gem} width={itemWidth} stat={state.gems} /> */}
+        <View style={{ flexDirection: "row", marginLeft: "auto" }}>
+          <StatisticsItem
+            src={Heart}
+            stat={state.lives}
+            size={{
+              width: 36,
+              height: 36,
+            }}
+            animation={livesAnimatedStyle}
+            onPress={onLivesPress}
+          />
+          <StatisticsItem
+            src={Settings}
+            size={{
+              width: 36,
+              height: 36,
+            }}
+            animation={livesAnimatedStyle}
+            onPress={() => setSettingsVisible(true)}
+          />
+        </View>
       </View>
       <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
     </>

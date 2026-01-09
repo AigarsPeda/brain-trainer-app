@@ -1,3 +1,4 @@
+import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
 import { TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
 
 // export const calculateStars = (taskResults: number, usedStars: number): number => {
@@ -124,4 +125,60 @@ export const calculateTaskCorrectnessPercentage = (
   const weightedPercentage = taskPercentage / maxLevelStep;
 
   return parseFloat(weightedPercentage.toFixed(2));
+};
+
+export const updateDaysInARow = (
+  lastPlayedDate: string | null,
+  currentDaysInARow: number
+): { daysInARow: number; lastPlayedDate: string } => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayString = today.toISOString().split("T")[0];
+
+  if (lastPlayedDate === todayString) {
+    return { daysInARow: currentDaysInARow, lastPlayedDate: todayString };
+  }
+
+  if (!lastPlayedDate) {
+    return { daysInARow: 0, lastPlayedDate: todayString };
+  }
+
+  const lastPlayed = new Date(lastPlayedDate);
+  lastPlayed.setHours(0, 0, 0, 0);
+  const diffInMs = today.getTime() - lastPlayed.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 1) {
+    return { daysInARow: currentDaysInARow + 1, lastPlayedDate: todayString };
+  }
+
+  return { daysInARow: 0, lastPlayedDate: todayString };
+};
+
+export const calculateRestoredLives = (
+  currentLives: number,
+  lastLifeLostAt: number | null
+): { lives: number; newLastLifeLostAt: number | null } => {
+  if (lastLifeLostAt === null || currentLives >= MAX_LIVES) {
+    return { lives: currentLives, newLastLifeLostAt: null };
+  }
+
+  const elapsed = Date.now() - lastLifeLostAt;
+  const livesToRestore = Math.floor(elapsed / LIFE_RESTORE_INTERVAL_MS);
+
+  if (livesToRestore <= 0) {
+    return { lives: currentLives, newLastLifeLostAt: lastLifeLostAt };
+  }
+
+  const newLives = Math.min(MAX_LIVES, currentLives + livesToRestore);
+
+  if (newLives >= MAX_LIVES) {
+    return { lives: newLives, newLastLifeLostAt: null };
+  }
+
+  // Otherwise, update timestamp to account for partial intervals
+  const remainingTime = elapsed % LIFE_RESTORE_INTERVAL_MS;
+  const newLastLifeLostAt = Date.now() - remainingTime;
+
+  return { lives: newLives, newLastLifeLostAt };
 };

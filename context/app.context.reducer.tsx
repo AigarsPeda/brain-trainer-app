@@ -2,7 +2,7 @@ import { INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { LEVEL_3 } from "@/data/math-3-level";
-import { calculateTaskCorrectnessPercentage } from "@/utils/utils";
+import { calculateTaskCorrectnessPercentage, updateDaysInARow } from "@/utils/utils";
 import { createContext } from "react";
 import type { ImageSourcePropType } from "react-native";
 
@@ -69,6 +69,7 @@ export type AppContextStateType = {
   lives: number;
   theme: ThemeType;
   daysInARow: number;
+  lastPlayedDate: string | null;
   lastLifeLostAt: number | null;
   currentTaskAttemptCount: number;
   results: {
@@ -147,6 +148,7 @@ export const initialState: AppContextStateType = {
     },
   },
   daysInARow: 0,
+  lastPlayedDate: null,
   lastLifeLostAt: null,
   currentTaskAttemptCount: 0,
   name: "Aigars",
@@ -225,10 +227,14 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       const { isCorrect, maxLevelStep } = action.payload;
       const currentLevel = state.game.currentLevel;
       const currentTaskInLevel = state.game.currentTaskInLevel;
-      const nextTaskInLevel = currentTaskInLevel + 1;
       const updatedLives = state.lives;
+      const nextTaskInLevel = currentTaskInLevel + 1;
       const finalAttemptCount = isCorrect ? state.currentTaskAttemptCount + 1 : state.currentTaskAttemptCount;
       const correctnessPercentage = calculateTaskCorrectnessPercentage(isCorrect, finalAttemptCount, maxLevelStep);
+      const { daysInARow: newDaysInARow, lastPlayedDate: newLastPlayedDate } = updateDaysInARow(
+        state.lastPlayedDate,
+        state.daysInARow
+      );
 
       const newResults = {
         ...state.results,
@@ -274,6 +280,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         return {
           ...state,
           lives: updatedLives,
+          daysInARow: newDaysInARow,
+          lastPlayedDate: newLastPlayedDate,
           game: {
             currentTaskInLevel: 1,
             currentLevel: nextLevel,
@@ -300,6 +308,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...state,
         lives: updatedLives,
+        daysInARow: newDaysInARow,
+        lastPlayedDate: newLastPlayedDate,
         game: {
           ...state.game,
           currentTaskInLevel: nextTaskInLevel,
@@ -313,6 +323,12 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       const { nextLevel, correctnessPercentage } = action.payload;
       const currentLevel = state.game.currentLevel;
       const currentTaskInLevel = state.game.currentTaskInLevel;
+
+      // Update days in a row and lastPlayedDate
+      const { daysInARow: newDaysInARow, lastPlayedDate: newLastPlayedDate } = updateDaysInARow(
+        state.lastPlayedDate,
+        state.daysInARow
+      );
 
       const calculateStars = (tasksResults: TaskResultType[]): number => {
         const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
@@ -348,6 +364,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       const newState = {
         ...state,
+        daysInARow: newDaysInARow,
+        lastPlayedDate: newLastPlayedDate,
         game: {
           currentTaskInLevel: 1,
           currentLevel: nextLevel,
@@ -407,6 +425,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         ...action.payload,
         theme: action.payload.theme ?? "light",
         availableLevels: Object.keys(ALL_TASKS).length,
+        lastPlayedDate: action.payload.lastPlayedDate ?? null,
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
       };
     }

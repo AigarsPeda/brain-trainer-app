@@ -1,5 +1,4 @@
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
@@ -26,7 +25,7 @@ export function StatisticsItem({ src, stat, size, width, onPress, animation }: S
         gap: 2,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: width ? "flex-start" : "center",
       }}
     >
       <Animated.View style={animation}>
