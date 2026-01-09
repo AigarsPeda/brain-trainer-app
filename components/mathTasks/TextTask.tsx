@@ -26,7 +26,7 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
 
   const {
     dispatch,
-    state: { availableLevels, lives, currentTaskAttemptCount },
+    state: { availableLevels, lives },
   } = useAppContext();
 
   const router = useRouter();
@@ -43,27 +43,11 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
   const isAnswerCorrect = Number(userAnswer) === task.result;
   const hasAnswer = userAnswer.trim().length > 0;
 
-  const calculatePercentageInTask = (): number => {
-    let taskPercentage = isAnswerCorrect ? 100 : 0;
-
-    // Apply penalty for multiple attempts (reduce by 20% per additional attempt, minimum 0%)
-    if (taskPercentage > 0 && currentTaskAttemptCount > 1) {
-      const penalty = (currentTaskAttemptCount - 1) * 20;
-      taskPercentage = Math.max(0, taskPercentage - penalty);
-    }
-
-    const weightedPercentage = taskPercentage / maxLevelStep;
-
-    return parseFloat(weightedPercentage.toFixed(2));
-  };
-
   const finalizeTaskProgress = () => {
-    const correctnessPercentage = calculatePercentageInTask();
-
     dispatch({
       type: "GET_NEXT_TASK",
       payload: {
-        correctnessPercentage,
+        isCorrect: isAnswerCorrect,
         maxLevelStep,
       },
     });

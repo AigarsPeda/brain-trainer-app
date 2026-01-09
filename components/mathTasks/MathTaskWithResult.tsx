@@ -3,11 +3,9 @@ import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import type {
-  CreateMathTaskOptionType,
   LevelsEnum,
   MultiAnswerMathTaskType,
   TaskAnswerType,
-  TaskOptionType,
 } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useAppContext from "@/hooks/useAppContext";
@@ -31,7 +29,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
 
   const {
     dispatch,
-    state: { availableLevels, lives, currentTaskAttemptCount },
+    state: { availableLevels, lives },
   } = useAppContext();
 
   const router = useRouter();
@@ -45,40 +43,21 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
 
-  const calculatePercentageInTask = (
-    answers: TaskAnswerType[],
-    options: TaskOptionType[],
-    maxLevelStep: number,
-    attempts: number
-  ): number => {
-    const totalCorrectOptions = options.filter((o) => isEquationCorrect(o.equation, task.result)).length;
+  const checkIfAllAnswersCorrect = (): boolean => {
+    const totalCorrectOptions = task.options.filter((o) => isEquationCorrect(o.equation, task.result)).length;
     const correctAnswers = answers.filter((a) => a.isCorrect).length;
+    const wrongAnswers = answers.filter((a) => !a.isCorrect).length;
 
-    if (totalCorrectOptions === 0) {
-      return 0;
-    }
-
-    // Calculate base percentage
-    let taskPercentage = (correctAnswers / totalCorrectOptions) * 100;
-
-    // Apply penalty for multiple attempts (reduce by 20% per additional attempt, minimum 0%)
-    if (attempts > 1) {
-      const penalty = (attempts - 1) * 20;
-      taskPercentage = Math.max(0, taskPercentage - penalty);
-    }
-
-    const weightedPercentage = taskPercentage / maxLevelStep;
-
-    return parseFloat(weightedPercentage.toFixed(2));
+    return totalCorrectOptions === correctAnswers && wrongAnswers === 0;
   };
 
   const finalizeTaskProgress = () => {
-    const correctnessPercentage = calculatePercentageInTask(answers, task.options, maxLevelStep, currentTaskAttemptCount);
+    const isCorrect = checkIfAllAnswersCorrect();
 
     dispatch({
       type: "GET_NEXT_TASK",
       payload: {
-        correctnessPercentage,
+        isCorrect,
         maxLevelStep,
       },
     });
@@ -99,35 +78,8 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
     nextLevelValue,
   });
 
-  const getCountOfCorrectAnswersAndWrong = (options: TaskOptionType[] | CreateMathTaskOptionType[]) => {
-    const currentTaskCorrectAnswers = (options as TaskOptionType[]).filter((o) =>
-      "equation" in o ? isEquationCorrect(o.equation, task.result) : false
-    ).length;
-    const currentTaskWrongAnswers = (options as TaskOptionType[]).filter((o) =>
-      "equation" in o ? !isEquationCorrect(o.equation, task.result) : false
-    ).length;
-
-    return {
-      currentTaskWrongAnswers,
-      currentTaskCorrectAnswers,
-    };
-  };
-
-  const getCountOfLevelCorrectAnswersAndWrong = (answers: TaskAnswerType[]) => {
-    const levelAnswerCorrectAnswers = answers.filter((o) => o.isCorrect).length;
-    const levelAnswerWrongAnswers = answers.filter((o) => !o.isCorrect).length;
-
-    return {
-      levelAnswerWrongAnswers,
-      levelAnswerCorrectAnswers,
-    };
-  };
-
-  const { currentTaskCorrectAnswers } = getCountOfCorrectAnswersAndWrong(task?.options || []);
-  const { levelAnswerWrongAnswers } = getCountOfLevelCorrectAnswersAndWrong(answers);
-
   const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;
-  const isAllAnswersCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
+  const isAllAnswersCorrect = checkIfAllAnswersCorrect();
 
   const handleCheckAnswers = () => {
     // Use ref for synchronous check to prevent double life loss on rapid taps
@@ -136,7 +88,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
       return;
     }
 
-    const isCorrect = currentTaskCorrectAnswers === answers.length && levelAnswerWrongAnswers === 0;
+    const isCorrect = checkIfAllAnswersCorrect();
 
     if (!isCorrect) {
       hasAppliedLifePenaltyRef.current = true;

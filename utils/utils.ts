@@ -99,3 +99,29 @@ export const interpolateColor = (color1: string, color2: string, factor: number)
 
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 };
+
+export const calculateTaskCorrectnessPercentage = (
+  isCorrect: boolean,
+  attemptCount: number,
+  maxLevelStep: number
+): number => {
+  if (!isCorrect || maxLevelStep <= 0) {
+    return 0;
+  }
+
+  let taskPercentage = 100;
+
+  if (attemptCount === 2) {
+    taskPercentage = 30;
+  } else if (attemptCount === 3) {
+    taskPercentage = 15;
+  } else if (attemptCount === 4) {
+    taskPercentage = 5;
+  } else if (attemptCount >= 5) {
+    taskPercentage = 0;
+  }
+
+  const weightedPercentage = taskPercentage / maxLevelStep;
+
+  return parseFloat(weightedPercentage.toFixed(2));
+};

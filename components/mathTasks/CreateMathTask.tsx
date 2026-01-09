@@ -94,7 +94,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
 
   const {
     dispatch,
-    state: { availableLevels, lives, currentTaskAttemptCount },
+    state: { availableLevels, lives },
   } = useAppContext();
   const router = useRouter();
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
@@ -263,31 +263,13 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     [leftValue, rightValue, animateNumberToRandomPosition, getDropZonePosition]
   );
 
-  const getCorrectnessPercentage = useCallback(() => {
-    const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
-
-    if (maxLevelStep <= 0) {
-      return isCorrect ? 100 : 0;
-    }
-
-    let perTaskScore = Number((100 / maxLevelStep).toFixed(2));
-
-    // Apply penalty for multiple attempts (reduce by 20% per additional attempt, minimum 0%)
-    if (isCorrect && currentTaskAttemptCount > 1) {
-      const penalty = (currentTaskAttemptCount - 1) * 20;
-      perTaskScore = Math.max(0, perTaskScore - penalty);
-    }
-
-    return isCorrect ? perTaskScore : 0;
-  }, [leftValue, rightValue, task.operation, task.result, maxLevelStep, currentTaskAttemptCount]);
-
   const finalizeTaskProgress = useCallback(() => {
-    const correctnessPercentage = getCorrectnessPercentage();
+    const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
 
     dispatch({
       type: "GET_NEXT_TASK",
       payload: {
-        correctnessPercentage,
+        isCorrect,
         maxLevelStep,
       },
     });
@@ -298,7 +280,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     initializedRef.current = false;
     setHasAppliedLifePenalty(false);
     hasAppliedLifePenaltyRef.current = false;
-  }, [getCorrectnessPercentage, dispatch, maxLevelStep]);
+  }, [leftValue, rightValue, task.operation, task.result, dispatch, maxLevelStep]);
 
   const nextLevelValue = (levelNumber + 1).toString();
   const isAllAnswersCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);

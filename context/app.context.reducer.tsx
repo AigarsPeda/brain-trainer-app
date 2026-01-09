@@ -1,7 +1,8 @@
+import { INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { LEVEL_3 } from "@/data/math-3-level";
-import { INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
+import { calculateTaskCorrectnessPercentage } from "@/utils/utils";
 import { createContext } from "react";
 import type { ImageSourcePropType } from "react-native";
 
@@ -46,8 +47,8 @@ export type CreateMathTaskType = BaseMathTaskType & {
 };
 
 export type TextTaskType = BaseMathTaskType & {
-  question: string; // The question text to display
-  icon: ImageSourcePropType; // Icon image to display with the question
+  question: string;
+  icon: ImageSourcePropType;
 };
 
 export type TaskAnswerType = {
@@ -182,8 +183,8 @@ interface SetIsCheckedForTaskActionType {
 interface CreateNextLevelActionType {
   type: "GET_NEXT_TASK";
   payload: {
-    correctnessPercentage: number; // Percentage of correct answers
-    maxLevelStep: number; // Total tasks in current level
+    isCorrect: boolean;
+    maxLevelStep: number;
   };
 }
 
@@ -208,7 +209,7 @@ interface GetNextLevel {
   type: "GET_NEXT_LEVEL";
   payload: {
     nextLevel: number;
-    correctnessPercentage: number; // Percentage of correct answers
+    correctnessPercentage: number;
   };
 }
 
@@ -221,13 +222,14 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return { ...state, theme: action.payload };
 
     case "GET_NEXT_TASK": {
-      const { correctnessPercentage, maxLevelStep } = action.payload;
+      const { isCorrect, maxLevelStep } = action.payload;
       const currentLevel = state.game.currentLevel;
       const currentTaskInLevel = state.game.currentTaskInLevel;
       const nextTaskInLevel = currentTaskInLevel + 1;
       const updatedLives = state.lives;
+      const finalAttemptCount = isCorrect ? state.currentTaskAttemptCount + 1 : state.currentTaskAttemptCount;
+      const correctnessPercentage = calculateTaskCorrectnessPercentage(isCorrect, finalAttemptCount, maxLevelStep);
 
-      // Add current task result to results
       const newResults = {
         ...state.results,
         [currentLevel.toString()]: {
@@ -241,11 +243,9 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         },
       };
 
-      // Check if this is the last task in the level
       const isLastTaskInLevel = nextTaskInLevel > maxLevelStep;
 
       if (isLastTaskInLevel) {
-        // Auto-advance to next level
         const nextLevel = currentLevel + 1;
 
         const calculateStars = (tasksResults: TaskResultType[]): number => {
@@ -279,7 +279,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
             currentLevel: nextLevel,
           },
           results: finalResults,
-          currentTaskAttemptCount: 0, // Reset attempt count for next task
+          currentTaskAttemptCount: 0,
           levels: state.levels.map((level) =>
             level.levelNumber === currentLevel
               ? {
@@ -297,7 +297,6 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         };
       }
 
-      // Move to next task in same level
       return {
         ...state,
         lives: updatedLives,
@@ -306,7 +305,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
           currentTaskInLevel: nextTaskInLevel,
         },
         results: newResults,
-        currentTaskAttemptCount: 0, // Reset attempt count for next task
+        currentTaskAttemptCount: 0,
       };
     }
 
@@ -343,29 +342,29 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
           ],
         },
         [nextLevel.toString()]: {
-          tasksResults: [], // Initialize the next level's tasksResults as an empty array
+          tasksResults: [],
         },
       };
 
       const newState = {
         ...state,
         game: {
-          currentTaskInLevel: 1, // Reset the task number for the next level (use number, not string)
-          currentLevel: nextLevel, // Update the current level to the next level
+          currentTaskInLevel: 1,
+          currentLevel: nextLevel,
         },
         results: newResults,
-        currentTaskAttemptCount: 0, // Reset attempt count for next level
+        currentTaskAttemptCount: 0,
         levels: state.levels.map((level) =>
           level.levelNumber === currentLevel
             ? {
                 ...level,
                 stars: calculateStars(newResults[currentLevel.toString()].tasksResults),
-                isLevelCompleted: true, // Mark the current level as completed
+                isLevelCompleted: true,
               }
             : level.levelNumber === nextLevel
               ? {
                   ...level,
-                  isLevelLocked: false, // Unlock the next level
+                  isLevelLocked: false,
                 }
               : level
         ),
@@ -379,9 +378,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...state,
         lives: newLives,
-        // Set timestamp when life is lost (only if we actually lost a life and timer isn't already running)
         lastLifeLostAt: newLives < state.lives && state.lastLifeLostAt === null ? Date.now() : state.lastLifeLostAt,
-        // Increment attempt count when user loses a life (meaning they got it wrong)
         currentTaskAttemptCount: state.currentTaskAttemptCount + 1,
       };
     }
@@ -391,7 +388,6 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...state,
         lives: newLives,
-        // Clear timestamp if we're back to max lives, otherwise keep it for next restoration
         lastLifeLostAt: newLives >= MAX_LIVES ? null : Date.now(),
       };
     }
@@ -401,7 +397,6 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...state,
         lives: newLives,
-        // Clear timestamp if we're back to max lives, otherwise keep it to continue timer
         lastLifeLostAt: newLives >= MAX_LIVES ? null : state.lastLifeLostAt,
       };
     }
@@ -410,11 +405,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       // Restore the entire state from persisted storage
       return {
         ...action.payload,
-        // Ensure theme has a default value for older persisted states
         theme: action.payload.theme ?? "light",
-        // Ensure availableLevels is always current (in case new levels were added)
         availableLevels: Object.keys(ALL_TASKS).length,
-        // Ensure currentTaskAttemptCount has a default value for older persisted states
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
       };
     }
