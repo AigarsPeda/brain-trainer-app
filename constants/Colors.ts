@@ -49,6 +49,53 @@ export const DropZoneColors = {
   },
 } as const;
 
+export const TaskButtonStateColors = {
+  dark: {
+    // Not selected - gray
+    unselected: {
+      background: ["#64748b", "#475569"] as const,
+      shadow: ["#334155", "#1e293b"] as const,
+    },
+    // Selected but not checked - orange
+    selected: {
+      background: ["#fb923c", "#f97316"] as const,
+      shadow: ["#ea580c", "#c2410c"] as const,
+    },
+    // Correct answer - green
+    correct: {
+      background: ["#22c55e", "#16a34a"] as const,
+      shadow: ["#15803d", "#166534"] as const,
+    },
+    // Wrong answer - red
+    incorrect: {
+      background: ["#ef4444", "#dc2626"] as const,
+      shadow: ["#b91c1c", "#991b1b"] as const,
+    },
+  },
+  light: {
+    // Not selected - gray
+    unselected: {
+      background: ["#f1f5f9", "#e2e8f0"] as const,
+      shadow: ["#cbd5e1", "#94a3b8"] as const,
+    },
+    // Selected but not checked - orange
+    selected: {
+      background: ["#fed7aa", "#fdba74"] as const,
+      shadow: ["#fb923c", "#f97316"] as const,
+    },
+    // Correct answer - green
+    correct: {
+      background: ["#bbf7d0", "#86efac"] as const,
+      shadow: ["#4ade80", "#22c55e"] as const,
+    },
+    // Wrong answer - red
+    incorrect: {
+      background: ["#fecaca", "#fca5a5"] as const,
+      shadow: ["#f87171", "#ef4444"] as const,
+    },
+  },
+} as const;
+
 export const ButtonColors = {
   primary: {
     dark: {

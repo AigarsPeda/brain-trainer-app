@@ -15,8 +15,8 @@ interface MathTaskButtonProps {
   textStyle?: TextStyle;
   children?: React.ReactNode;
   gradientColor: {
-    background: string[];
-    shadow: string[];
+    background: readonly string[] | string[];
+    shadow: readonly string[] | string[];
   };
 }
 

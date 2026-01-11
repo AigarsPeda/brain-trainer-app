@@ -21,9 +21,10 @@ interface MathTaskWithResultProps {
   maxLevelStep: number;
   isFinalTaskInLevel: boolean;
   task: MultiAnswerMathTaskType;
+  removedAnswerIds?: number[];
 }
 
-export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalTaskInLevel }: MathTaskWithResultProps) {
+export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalTaskInLevel, removedAnswerIds = [] }: MathTaskWithResultProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
@@ -152,40 +153,45 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
           </ThemedText>
         </View>
         <View style={styles.itemsWrap}>
-          {task.options.map((option, i) => {
-            const gradientColor = getGradientColor(option, answers, isDarkMode, displayTaskResults);
+          {task.options
+            .filter((option) => !removedAnswerIds.includes(option.id))
+            .map((option, i) => {
+              const gradientColor = getGradientColor(option, answers, isDarkMode, displayTaskResults);
 
-            if (isDarkMode) {
-              gradientColor.background.reverse();
-              gradientColor.shadow.reverse();
-            }
-
-            return (
-              <MathTaskButton
-                key={`${option.id}-${i}`}
-                gradientColor={gradientColor}
-                onPress={() => {
-                  const foundAnswer = getAnswersOfTask(answers, option);
-
-                  if (foundAnswer) {
-                    setAnswer((prev) => prev.filter((a) => a.optionId !== option.id));
-                  } else {
-                    const isCorrect = isEquationCorrect(option.equation, task.result);
-                    setAnswer((prev) => [...prev, { optionId: option.id, isCorrect }]);
+              // Create a new object with reversed arrays for dark mode
+              const finalGradientColor = isDarkMode
+                ? {
+                    background: [...gradientColor.background].reverse(),
+                    shadow: [...gradientColor.shadow].reverse(),
                   }
-                }}
-              >
-                <ThemedText
-                  type="defaultSemiBold"
-                  style={{
-                    fontSize: 30,
+                : gradientColor;
+
+              return (
+                <MathTaskButton
+                  key={`${option.id}-${i}`}
+                  gradientColor={finalGradientColor}
+                  onPress={() => {
+                    const foundAnswer = getAnswersOfTask(answers, option);
+
+                    if (foundAnswer) {
+                      setAnswer((prev) => prev.filter((a) => a.optionId !== option.id));
+                    } else {
+                      const isCorrect = isEquationCorrect(option.equation, task.result);
+                      setAnswer((prev) => [...prev, { optionId: option.id, isCorrect }]);
+                    }
                   }}
                 >
-                  {option.equation}
-                </ThemedText>
-              </MathTaskButton>
-            );
-          })}
+                  <ThemedText
+                    type="defaultSemiBold"
+                    style={{
+                      fontSize: 30,
+                    }}
+                  >
+                    {option.equation}
+                  </ThemedText>
+                </MathTaskButton>
+              );
+            })}
         </View>
       </View>
       {!displayTaskResults ? (

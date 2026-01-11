@@ -4,7 +4,7 @@ import { AnimatedTimer } from "@/components/AnimatedTimer";
 import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { GEMS_FROM_AD, HINT_COST } from "@/constants/GameSettings";
+import { GEMS_FROM_AD, HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -16,6 +16,8 @@ interface HelpModalProps {
   onClose: () => void;
   currentGems: number;
   onPurchaseHint: () => void;
+  onRemoveWrongAnswer?: () => void;
+  canRemoveAnswer?: boolean;
   adLoaded?: boolean;
   onWatchAdForGems?: () => void;
   showAnimation?: boolean;
@@ -27,6 +29,8 @@ export function HelpModal({
   onClose,
   currentGems,
   onPurchaseHint,
+  onRemoveWrongAnswer,
+  canRemoveAnswer = false,
   adLoaded = false,
   onWatchAdForGems,
   showAnimation = false,
@@ -34,6 +38,7 @@ export function HelpModal({
 }: HelpModalProps) {
   const { text, tint } = useThemeColor();
   const canAffordHint = currentGems >= HINT_COST;
+  const canAffordRemoveAnswer = currentGems >= REMOVE_WRONG_ANSWER_COST;
   const [animatedGems, setAnimatedGems] = useState(currentGems);
   const animationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -107,6 +112,62 @@ export function HelpModal({
           <ThemedText style={styles.description}>Izmanto dimantus, lai iegūtu palīdzību risinot uzdevumus!</ThemedText>
 
           <View style={styles.optionsContainer}>
+            {/* Remove Wrong Answer Option */}
+            {canRemoveAnswer && (
+              <View style={styles.optionCard}>
+                <View style={styles.optionHeader}>
+                  <ThemedText type="defaultSemiBold" style={styles.optionTitle}>
+                    ❌ Noņemt atbildi
+                  </ThemedText>
+                  <View style={styles.costBadge}>
+                    <Image source={Gem} style={styles.costGemIcon} contentFit="contain" />
+                    <ThemedText type="defaultSemiBold" style={styles.costText}>
+                      {REMOVE_WRONG_ANSWER_COST}
+                    </ThemedText>
+                  </View>
+                </View>
+                <ThemedText style={styles.optionDescription}>
+                  Noņem vienu nepareizu atbildi no uzdevuma
+                </ThemedText>
+                <View style={styles.buttonWrapper}>
+                  {canAffordRemoveAnswer ? (
+                    <MainButton
+                      onPress={() => {
+                        onRemoveWrongAnswer?.();
+                        onClose();
+                      }}
+                      style={styles.purchaseButton}
+                    >
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        Iegādāties
+                      </ThemedText>
+                    </MainButton>
+                  ) : onWatchAdForGems ? (
+                    <MainButton onPress={onWatchAdForGems} disabled={!adLoaded} style={styles.purchaseButton}>
+                      <View style={styles.adButtonContent}>
+                        {adLoaded && <Image source={AdIcon} style={styles.adIcon} contentFit="contain" />}
+                        <ThemedText type="defaultSemiBold" style={styles.buttonText} numberOfLines={1}>
+                          {adLoaded ? `Skatīties (+${GEMS_FROM_AD}` : "⏳ Ielādē..."}
+                        </ThemedText>
+                        {adLoaded && <Image source={Gem} style={styles.gemIconSmall} contentFit="contain" />}
+                        {adLoaded && (
+                          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                            )
+                          </ThemedText>
+                        )}
+                      </View>
+                    </MainButton>
+                  ) : (
+                    <MainButton disabled onPress={() => {}} style={styles.purchaseButton}>
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        Nav pietiekami daudz 💎
+                      </ThemedText>
+                    </MainButton>
+                  )}
+                </View>
+              </View>
+            )}
+
             {/* Hint Option */}
             <View style={styles.optionCard}>
               <View style={styles.optionHeader}>

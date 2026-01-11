@@ -1,3 +1,4 @@
+import { TaskButtonStateColors } from "@/constants/Colors";
 import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
 import { TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
 
@@ -47,32 +48,45 @@ export const getGradientColor = (
   displayTaskResults: boolean
 ) => {
   const foundAnswer = getAnswersOfTask(answers, option);
+  const theme = isDarkMode ? "dark" : "light";
 
   if (!foundAnswer) {
-    return {
-      background: isDarkMode ? ["#64748b", "#475569"] : ["#f1f5f9", "#e2e8f0"],
-      shadow: isDarkMode ? ["#334155", "#1e293b"] : ["#cbd5e1", "#94a3b8"],
-    };
+    return TaskButtonStateColors[theme].unselected;
   }
 
   if (foundAnswer.isCorrect && displayTaskResults) {
-    return {
-      background: isDarkMode ? ["#22c55e", "#16a34a"] : ["#bbf7d0", "#86efac"],
-      shadow: isDarkMode ? ["#15803d", "#166534"] : ["#4ade80", "#22c55e"],
-    };
+    return TaskButtonStateColors[theme].correct;
   }
 
   if (!foundAnswer.isCorrect && displayTaskResults) {
-    return {
-      background: isDarkMode ? ["#ef4444", "#dc2626"] : ["#fecaca", "#fca5a5"],
-      shadow: isDarkMode ? ["#b91c1c", "#991b1b"] : ["#f87171", "#ef4444"],
-    };
+    return TaskButtonStateColors[theme].incorrect;
   }
 
-  return {
-    background: isDarkMode ? ["#fb923c", "#f97316"] : ["#fed7aa", "#fdba74"],
-    shadow: isDarkMode ? ["#ea580c", "#c2410c"] : ["#fb923c", "#f97316"],
-  };
+  return TaskButtonStateColors[theme].selected;
+};
+
+// Generic helper for getting button colors based on selection state
+export const getButtonStateColor = (
+  isSelected: boolean,
+  isCorrect: boolean,
+  showResult: boolean,
+  isDarkMode: boolean
+) => {
+  const theme = isDarkMode ? "dark" : "light";
+
+  if (!isSelected) {
+    return TaskButtonStateColors[theme].unselected;
+  }
+
+  if (isSelected && showResult && isCorrect) {
+    return TaskButtonStateColors[theme].correct;
+  }
+
+  if (isSelected && showResult && !isCorrect) {
+    return TaskButtonStateColors[theme].incorrect;
+  }
+
+  return TaskButtonStateColors[theme].selected;
 };
 
 export const interpolateColor = (color1: string, color2: string, factor: number): string => {

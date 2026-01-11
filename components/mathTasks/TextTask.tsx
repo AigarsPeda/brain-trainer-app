@@ -1,4 +1,5 @@
 import { MainButton } from "@/components/MainButton";
+import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -7,19 +8,29 @@ import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
+import { getButtonStateColor } from "@/utils/utils";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
 
 interface TextTaskProps {
   level: LevelsEnum;
-  maxLevelStep: number;
   task: TextTaskType;
+  maxLevelStep: number;
+  removedAnswerIds?: number[];
   isFinalTaskInLevel: boolean;
+  showAsMultipleChoice?: boolean;
 }
 
-export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: TextTaskProps) {
+export function TextTask({
+  task,
+  level,
+  maxLevelStep,
+  isFinalTaskInLevel,
+  removedAnswerIds = [],
+  showAsMultipleChoice = false,
+}: TextTaskProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
   const colors = Colors[isDarkMode ? "dark" : "light"];
@@ -33,15 +44,33 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
 
   const [userAnswer, setUserAnswer] = useState("");
+  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
-  const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
   const hasAppliedLifePenaltyRef = useRef(false);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
 
-  const isAnswerCorrect = Number(userAnswer) === task.result;
-  const hasAnswer = userAnswer.trim().length > 0;
+  // Generate multiple choice options based on the correct result
+  const multipleChoiceOptions = useMemo(() => {
+    if (!showAsMultipleChoice) return [];
+
+    const correctAnswer = task.result;
+    const options = [
+      { id: 1, value: correctAnswer, isCorrect: true },
+      { id: 2, value: correctAnswer + Math.floor(Math.random() * 5) + 1, isCorrect: false },
+      { id: 3, value: correctAnswer - Math.floor(Math.random() * 5) - 1, isCorrect: false },
+      { id: 4, value: correctAnswer + Math.floor(Math.random() * 10) + 6, isCorrect: false },
+    ];
+
+    // Filter out removed options and shuffle
+    return options.filter((opt) => !removedAnswerIds.includes(opt.id)).sort(() => Math.random() - 0.5);
+  }, [showAsMultipleChoice, task.result, removedAnswerIds]);
+
+  const isAnswerCorrect = showAsMultipleChoice
+    ? (multipleChoiceOptions.find((opt) => opt.id === selectedOptionId)?.isCorrect ?? false)
+    : Number(userAnswer) === task.result;
+  const hasAnswer = showAsMultipleChoice ? selectedOptionId !== null : userAnswer.trim().length > 0;
 
   const finalizeTaskProgress = () => {
     dispatch({
@@ -53,8 +82,8 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
     });
 
     setUserAnswer("");
+    setSelectedOptionId(null);
     setDisplayTaskResults(false);
-    setHasAppliedLifePenalty(false);
     hasAppliedLifePenaltyRef.current = false;
   };
 
@@ -71,7 +100,6 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
   const handleCheckAnswer = () => {
     Keyboard.dismiss();
 
-    // Use ref for synchronous check to prevent double life loss on rapid taps
     if (hasAppliedLifePenaltyRef.current) {
       setDisplayTaskResults(true);
       return;
@@ -80,7 +108,6 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
     if (!isAnswerCorrect) {
       hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
-      setHasAppliedLifePenalty(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -91,6 +118,7 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
 
   const handleTryAgain = () => {
     setUserAnswer("");
+    setSelectedOptionId(null);
     setDisplayTaskResults(false);
     hasAppliedLifePenaltyRef.current = false;
   };
@@ -111,49 +139,65 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
       >
         <View style={{ flex: 1, justifyContent: "space-between" }}>
           <View>
-            {/* Icon display */}
             <View style={styles.iconContainer}>
               <Image source={task.icon} style={styles.icon} resizeMode="contain" />
             </View>
 
-            {/* Question text */}
             <View style={styles.questionContainer}>
               <ThemedText type="subtitle" style={styles.questionText}>
                 {task.question}
               </ThemedText>
             </View>
 
-            {/* Answer input */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                value={userAnswer}
-                onChangeText={setUserAnswer}
-                style={[
-                  styles.input,
-                  {
-                    borderColor: getInputBorderColor(),
-                    backgroundColor: colors.inputBackground,
-                    color: colors.text,
-                  },
-                ]}
-                keyboardType="numeric"
-                placeholder="?"
-                placeholderTextColor={colors.placeholder}
-                maxLength={10}
-                editable={!displayTaskResults}
-                onSubmitEditing={hasAnswer ? handleCheckAnswer : undefined}
-                // returnKeyType="done"
-                autoFocus={true}
-              />
-            </View>
+            {showAsMultipleChoice ? (
+              <View style={styles.multipleChoiceContainer}>
+                {multipleChoiceOptions.map((option) => {
+                  const isSelected = selectedOptionId === option.id;
+                  const showResult = displayTaskResults;
+                  const isCorrectOption = option.isCorrect;
 
-            {/* Show correct answer when wrong */}
-            {/* {displayTaskResults && !isAnswerCorrect && (
-              <View style={styles.correctAnswerContainer}>
-                <ThemedText style={styles.correctAnswerLabel}>Pareizā atbilde:</ThemedText>
-                <ThemedText style={[styles.correctAnswerValue, { color: colors.correctAnswer }]}>{task.result}</ThemedText>
+                  const gradientColor = getButtonStateColor(isSelected, isCorrectOption, showResult, isDarkMode);
+
+                  return (
+                    <MathTaskButton
+                      key={option.id}
+                      gradientColor={gradientColor}
+                      onPress={() => {
+                        if (!displayTaskResults) {
+                          setSelectedOptionId(isSelected ? null : option.id);
+                        }
+                      }}
+                    >
+                      <ThemedText type="defaultSemiBold" style={{ fontSize: 30 }}>
+                        {option.value}
+                      </ThemedText>
+                    </MathTaskButton>
+                  );
+                })}
               </View>
-            )} */}
+            ) : (
+              <View style={styles.inputContainer}>
+                <TextInput
+                  value={userAnswer}
+                  onChangeText={setUserAnswer}
+                  style={[
+                    styles.input,
+                    {
+                      color: colors.text,
+                      borderColor: getInputBorderColor(),
+                      backgroundColor: colors.inputBackground,
+                    },
+                  ]}
+                  maxLength={10}
+                  placeholder="?"
+                  autoFocus={true}
+                  keyboardType="numeric"
+                  editable={!displayTaskResults}
+                  placeholderTextColor={colors.placeholder}
+                  onSubmitEditing={hasAnswer ? handleCheckAnswer : undefined}
+                />
+              </View>
+            )}
           </View>
 
           {!displayTaskResults && (
@@ -181,7 +225,7 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
               () => {
                 dispatch({ type: "RESTORE_LIFE_FROM_AD" });
                 setUserAnswer("");
-                setHasAppliedLifePenalty(false);
+                setSelectedOptionId(null);
                 hasAppliedLifePenaltyRef.current = false;
               },
               () => {
@@ -239,10 +283,18 @@ const styles = StyleSheet.create({
     width: 150,
     height: 80,
     fontSize: 40,
+    borderWidth: 3,
+    borderRadius: 16,
     fontWeight: "bold",
     textAlign: "center",
-    borderRadius: 16,
-    borderWidth: 3,
+  },
+  multipleChoiceContainer: {
+    rowGap: 20,
+    flexWrap: "wrap",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginBottom: 20,
   },
   correctAnswerContainer: {
     flexDirection: "row",

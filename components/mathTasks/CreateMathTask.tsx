@@ -60,9 +60,10 @@ interface CreateMathTaskProps {
   maxLevelStep: number;
   task: CreateMathTaskType;
   isFinalTaskInLevel: boolean;
+  removedAnswerIds?: number[];
 }
 
-export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }: CreateMathTaskProps) {
+export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, removedAnswerIds = [] }: CreateMathTaskProps) {
   const colorScheme = useAppColorScheme();
   const leftZoneRef = useRef<View | null>(null);
   const rightZoneRef = useRef<View | null>(null);
@@ -77,7 +78,10 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
-  const numbers = useMemo(() => task.options.map((item) => Number(item.number)), [task.options]);
+  const numbers = useMemo(
+    () => task.options.filter((option) => !removedAnswerIds.includes(option.id)).map((item) => Number(item.number)),
+    [task.options, removedAnswerIds]
+  );
 
   const initializedRef = useRef(false);
   const [resetKey, setResetKey] = useState(0);
