@@ -17,3 +17,6 @@ export const LIFE_RESTORE_INTERVAL_MS = LIFE_RESTORE_INTERVAL_MINUTES * 60 * 100
 
 // Number of gems earned from watching an ad
 export const GEMS_FROM_AD = 10;
+
+// Cost in gems to purchase a hint
+export const HINT_COST = 5;

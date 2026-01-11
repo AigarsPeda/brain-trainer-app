@@ -1,6 +1,7 @@
 import Close from "@/assets/images/close.png";
 import Heart from "@/assets/images/heart.png";
 import { BackgroundPattern } from "@/components/BackgroundPattern";
+import { HelpModal } from "@/components/HelpModal";
 import { HintModal } from "@/components/HintModal";
 import { InfoModal } from "@/components/InfoModal";
 import { LivesModal } from "@/components/LivesModal";
@@ -12,6 +13,7 @@ import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
+import { HINT_COST } from "@/constants/GameSettings";
 import { isCreateMathTask, isMultiAnswerMathTask, isTextTask, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
@@ -27,6 +29,7 @@ export default function GameLevelScreen() {
   const {
     state: {
       lives,
+      gems,
       theme,
       lastLifeLostAt,
       game: { currentTaskInLevel },
@@ -37,6 +40,7 @@ export default function GameLevelScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { loaded, showAdForReward } = useGoogleAd();
+  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
   const [isHintModalVisible, setIsHintModalVisible] = useState(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
   const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
@@ -75,24 +79,31 @@ export default function GameLevelScreen() {
     setIsLivesModalVisible(false);
   };
 
-  const openHintModal = () => {
-    setIsHintModalVisible(true);
+  const openHelpModal = () => {
+    setIsHelpModalVisible(true);
+  };
+
+  const closeHelpModal = () => {
+    setIsHelpModalVisible(false);
   };
 
   const closeHintModal = () => {
     setIsHintModalVisible(false);
   };
 
+  const handlePurchaseHint = () => {
+    dispatch({ type: "SPEND_GEMS", payload: HINT_COST });
+    setIsHintModalVisible(true);
+  };
+
   const handleWatchAd = () => {
     showAdForReward(
       () => {
-        // Called when user earns reward
         dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-      },
-      () => {
-        // Called when ad closes (regardless of reward)
-        setIsLivesModalVisible(false);
       }
+      // () => {
+      //   setIsLivesModalVisible(false);
+      // }
     );
   };
 
@@ -103,11 +114,6 @@ export default function GameLevelScreen() {
       </ThemedView>
     );
   }
-
-  // i need to see nested object in console
-  // for (const [levelKey, levelValue] of Object.entries(results)) {
-  //   console.log("levelValue.tasksResults:", levelValue.tasksResults);
-  // }
 
   if (!levelTasks || levelTasks.length === 0) {
     return (
@@ -142,6 +148,12 @@ export default function GameLevelScreen() {
         visible={isLivesModalVisible}
         lastLifeLostAt={lastLifeLostAt}
       />
+      <HelpModal
+        currentGems={gems}
+        onClose={closeHelpModal}
+        visible={isHelpModalVisible}
+        onPurchaseHint={handlePurchaseHint}
+      />
       <HintModal visible={isHintModalVisible} onClose={closeHintModal} explanation={currentTaskExplanation} />
       <View
         style={{
@@ -167,8 +179,8 @@ export default function GameLevelScreen() {
           />
         </View>
         {/* Hint button row */}
-        <Pressable style={styles.hintRow} onPress={openHintModal}>
-          <ThemedText style={styles.hintEmoji}>💡</ThemedText>
+        <Pressable style={styles.hintRow} onPress={openHelpModal}>
+          <ThemedText style={styles.hintEmoji}>💎</ThemedText>
           <ThemedText style={styles.hintText} type="subtitle">
             Palīdzība
           </ThemedText>

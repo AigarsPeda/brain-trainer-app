@@ -82,9 +82,9 @@ export function GemModal({
         <ThemedView style={[styles.container, { borderColor: tint }]}>
           <View style={styles.header}>
             <ThemedText type="title">Dimanti</ThemedText>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={28} color={text} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <View style={[styles.gemCountContainer]}>

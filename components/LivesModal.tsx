@@ -7,10 +7,9 @@ import { ThemedView } from "@/components/ThemedView";
 import { LIFE_RESTORE_INTERVAL_MS, MAX_LIVES } from "@/constants/GameSettings";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 interface LivesModalProps {
@@ -97,9 +96,9 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
           {/* Header with close button */}
           <View style={styles.header}>
             <ThemedText type="title">Dzīvības</ThemedText>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={28} color={text} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* Hearts display */}
@@ -223,7 +222,7 @@ const styles = StyleSheet.create({
   },
   fullLivesText: {
     fontSize: 16,
-    color: "#09E85E",
+    // color: "#09E85E",
     textAlign: "center",
     marginBottom: 20,
     lineHeight: 22,

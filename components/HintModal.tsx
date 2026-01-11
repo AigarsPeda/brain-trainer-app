@@ -1,12 +1,14 @@
 import { AnimatedMathVisual } from "@/components/AnimatedMathVisual";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
+import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { HintModalColors } from "@/constants/Colors";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { MathExplanation } from "@/utils/mathExplanations";
 import { useCallback, useEffect, useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 interface HintModalProps {
@@ -18,6 +20,7 @@ interface HintModalProps {
 export function HintModal({ visible, onClose, explanation }: HintModalProps) {
   const colorScheme = useAppColorScheme();
   const isDark = colorScheme === "dark";
+  const { text } = useThemeColor();
   const [isAnimationPlaying, setIsAnimationPlaying] = useState(false);
   const [selectedView, setSelectedView] = useState<"animation" | "description">("animation");
 
@@ -92,9 +95,9 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
   const visualSectionBackground = colors.visualSectionBackground;
 
   return (
-    <Modal visible={visible} animationType="fade" transparent statusBarTranslucent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" transparent statusBarTranslucent onRequestClose={() => {}}>
       <View style={styles.modalOverlay}>
-        <Pressable style={styles.modalBackdrop} onPress={onClose} />
+        <View style={styles.modalBackdrop} />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContent}>
           <ThemedView style={styles.modalBox}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -260,15 +263,13 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
               </View>
             </ScrollView>
 
-            <Pressable style={styles.modalCloseButton} onPress={onClose}>
-              <ThemedText
-                style={styles.modalCloseButtonText}
-                darkColor={HintModalColors.dark.closeButtonText}
-                lightColor={HintModalColors.light.closeButtonText}
-              >
-                Sapratu! 👍
-              </ThemedText>
-            </Pressable>
+            <View style={styles.closeButtonContainer}>
+              <MainButton variant="secondary" onPress={onClose} style={styles.modalCloseButton}>
+                <ThemedText type="defaultSemiBold" style={[styles.modalCloseButtonText, { color: text }]}>
+                  Sapratu! 👍
+                </ThemedText>
+              </MainButton>
+            </View>
           </ThemedView>
         </KeyboardAvoidingView>
       </View>
@@ -429,16 +430,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: "500",
   },
-  modalCloseButton: {
+  closeButtonContainer: {
+    width: "100%",
+    alignItems: "center",
     marginTop: 12,
-    borderRadius: 16,
-    alignSelf: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    backgroundColor: HintModalColors.light.closeButtonBackground,
+    marginBottom: 10,
+  },
+  modalCloseButton: {
+    height: 55,
+    width: 300,
   },
   modalCloseButtonText: {
-    fontSize: 16,
-    fontFamily: "BalooBhai2_500Medium",
+    fontSize: 17,
   },
 });

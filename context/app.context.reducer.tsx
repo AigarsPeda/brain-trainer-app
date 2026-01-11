@@ -195,6 +195,11 @@ interface AddGemsFromAdActionType {
   type: "ADD_GEMS_FROM_AD";
 }
 
+interface SpendGemsActionType {
+  type: "SPEND_GEMS";
+  payload: number;
+}
+
 interface HydrateStateActionType {
   type: "HYDRATE_STATE";
   payload: AppContextStateType;
@@ -218,6 +223,7 @@ export type AppContextActionType =
   | RestoreLifeActionType
   | RestoreLifeFromAdActionType
   | AddGemsFromAdActionType
+  | SpendGemsActionType
   | HydrateStateActionType;
 
 export const appReducer = (state: AppContextStateType, action: AppContextActionType): AppContextStateType => {
@@ -428,6 +434,13 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...state,
         gems: state.gems + GEMS_FROM_AD,
+      };
+    }
+
+    case "SPEND_GEMS": {
+      return {
+        ...state,
+        gems: Math.max(0, state.gems - action.payload),
       };
     }
 
