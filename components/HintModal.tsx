@@ -355,6 +355,8 @@ const styles = StyleSheet.create({
   contentSwitcher: {
     height: 180,
     width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   switchableContent: {
     height: 180,

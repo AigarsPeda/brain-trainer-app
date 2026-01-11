@@ -1,3 +1,8 @@
+import books from "@/assets/images/books.png";
+import banana from "@/assets/images/banana.png";
+import apple from "@/assets/images/apple.png";
+import cookie from "@/assets/images/cookie.png";
+import pica from "@/assets/images/pica.png";
 import {
   MathOperation,
   TaskType,
@@ -55,8 +60,8 @@ const getTextTaskExplanation = (result: number): MathExplanation => {
       result: result,
     },
     visualItems: {
-      leftItems: ["📚", "📚", "📚"],
-      rightItems: ["📚", "📚"],
+      leftItems: [books, books, books],
+      rightItems: [books, books],
       operationSymbol: "+",
     },
   };
@@ -108,8 +113,8 @@ const getAdditionExplanation = (targetResult?: number): MathExplanation => {
       result,
     },
     visualItems: {
-      leftItems: Array(left).fill("🍎"),
-      rightItems: Array(right).fill("🍎"),
+      leftItems: Array(left).fill(apple),
+      rightItems: Array(right).fill(apple),
       operationSymbol: "+",
     },
   };
@@ -129,8 +134,8 @@ const getSubtractionExplanation = (targetResult?: number): MathExplanation => {
       result,
     },
     visualItems: {
-      leftItems: ["🍌", "🍌", "🍌", "🍌", "🍌"],
-      rightItems: ["🍌", "🍌"],
+      leftItems: Array(left).fill(banana),
+      rightItems: Array(right).fill(banana),
       operationSymbol: "-",
     },
   };
@@ -150,7 +155,7 @@ const getMultiplicationExplanation = (targetResult?: number): MathExplanation =>
       result,
     },
     visualItems: {
-      leftItems: ["🍪🍪", "🍪🍪", "🍪🍪"],
+      leftItems: Array(left).fill(cookie.repeat(right)),
       rightItems: [],
       operationSymbol: "×",
     },
@@ -171,7 +176,7 @@ const getDivisionExplanation = (targetResult?: number): MathExplanation => {
       result,
     },
     visualItems: {
-      leftItems: Array(left).fill("🍕"),
+      leftItems: Array(left).fill(pica),
       rightItems: [],
       operationSymbol: "÷",
     },
