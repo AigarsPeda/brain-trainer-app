@@ -148,6 +148,19 @@ export const ToggleColors = {
   },
 } as const;
 
+export const SwitchColors = {
+  dark: {
+    thumb: "#ffffff",
+    trackFalse: "#d1d5db",
+    trackTrue: "#4338ca",
+  },
+  light: {
+    thumb: "#f4f3f4",
+    trackFalse: "#d1d5db",
+    trackTrue: "#4338ca",
+  },
+} as const;
+
 export const HintModalColors = {
   dark: {
     boxBackground: "rgba(255, 255, 255, 0.1)",

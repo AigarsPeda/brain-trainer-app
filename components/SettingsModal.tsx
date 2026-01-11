@@ -5,6 +5,7 @@ import { SunIcon } from "@/components/icons/SunIcon";
 import { SecondaryButton } from "@/components/SecondaryButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { SwitchColors } from "@/constants/Colors";
 import licensesData from "@/data/licenses.json";
 import useAppContext from "@/hooks/useAppContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -65,8 +66,8 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
               <Switch
                 value={isDarkMode}
                 onValueChange={handleThemeToggle}
-                thumbColor={isDarkMode ? "#fff" : "#f4f3f4"}
-                trackColor={{ false: "#d1d5db", true: "#4338ca" }}
+                thumbColor={isDarkMode ? SwitchColors.dark.thumb : SwitchColors.light.thumb}
+                trackColor={{ false: SwitchColors.light.trackFalse, true: SwitchColors.dark.trackTrue }}
               />
             </View>
 
