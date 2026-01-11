@@ -2,6 +2,7 @@ import { Expandable } from "@/components/Expandable";
 import { DocumentIcon } from "@/components/icons/DocumentIcon";
 import { MoonIcon } from "@/components/icons/MoonIcon";
 import { SunIcon } from "@/components/icons/SunIcon";
+import { SecondaryButton } from "@/components/SecondaryButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import licensesData from "@/data/licenses.json";
@@ -119,7 +120,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
               <ThemedText style={styles.versionText}>Versija {Constants.expoConfig?.version}</ThemedText>
             </View>
 
-            <Pressable style={styles.modalCloseButton} onPress={handleClose}>
+            <SecondaryButton onPress={handleClose}>
               <ThemedText
                 type="subtitle"
                 darkColor="#ffffff"
@@ -128,7 +129,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
               >
                 Aizvērt
               </ThemedText>
-            </Pressable>
+            </SecondaryButton>
           </ThemedView>
         </Pressable>
       </Pressable>
@@ -184,15 +185,12 @@ const styles = StyleSheet.create({
   versionContainer: {
     marginTop: "auto",
     alignItems: "center",
-    paddingTop: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   versionText: {
     fontSize: 12,
     opacity: 0.5,
-  },
-  modalCloseButton: {
-    alignItems: "center",
-    paddingVertical: 12,
   },
   modalCloseButtonText: {
     fontSize: 16,

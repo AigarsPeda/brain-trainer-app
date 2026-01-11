@@ -6,10 +6,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { GEMS_FROM_AD, HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
 
 interface HelpModalProps {
   visible: boolean;
@@ -90,16 +89,13 @@ export function HelpModal({
         <ThemedView style={[styles.container, { borderColor: tint }]}>
           <View style={styles.header}>
             <ThemedText type="title">Palīdzība</ThemedText>
-            {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color={text} />
-            </TouchableOpacity> */}
           </View>
 
           <View style={styles.gemsDisplay}>
             <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
             {showAnimation ? (
               <AnimatedTimer
-                digitHeight={24}
+                digitHeight={42}
                 direction="countup"
                 style={styles.gemCountText}
                 time={animatedGems.toString()}
@@ -126,9 +122,7 @@ export function HelpModal({
                     </ThemedText>
                   </View>
                 </View>
-                <ThemedText style={styles.optionDescription}>
-                  Noņem vienu nepareizu atbildi no uzdevuma
-                </ThemedText>
+                <ThemedText style={styles.optionDescription}>Noņem vienu nepareizu atbildi no uzdevuma</ThemedText>
                 <View style={styles.buttonWrapper}>
                   {canAffordRemoveAnswer ? (
                     <MainButton
@@ -258,34 +252,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  closeButton: {
-    padding: 4,
-  },
   gemsDisplay: {
     gap: 8,
-    padding: 12,
+    // padding: 12,
     borderRadius: 12,
     marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(106, 74, 203, 0.1)",
+    // backgroundColor: "rgba(106, 74, 203, 0.1)",
   },
   gemIcon: {
-    width: 32,
-    height: 32,
+    width: 42,
+    height: 42,
   },
   gemCountText: {
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: 32,
+    lineHeight: 42,
     fontFamily: "BalooBhai2_700Bold",
   },
   description: {
+    opacity: 0.8,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
     textAlign: "center",
-    opacity: 0.8,
   },
   optionsContainer: {
     gap: 12,
@@ -293,27 +284,27 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     padding: 16,
-    borderRadius: 16,
-    backgroundColor: "rgba(106, 74, 203, 0.08)",
     borderWidth: 1,
+    borderRadius: 16,
     borderColor: "rgba(106, 74, 203, 0.2)",
+    backgroundColor: "rgba(106, 74, 203, 0.08)",
   },
   optionHeader: {
+    marginBottom: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
   },
   optionTitle: {
     fontSize: 18,
   },
   costBadge: {
+    gap: 4,
+    borderRadius: 12,
+    paddingVertical: 4,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
     backgroundColor: "rgba(106, 74, 203, 0.15)",
   },
   costGemIcon: {
@@ -324,16 +315,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   optionDescription: {
+    opacity: 0.7,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 12,
-    opacity: 0.7,
   },
   buttonWrapper: {
     gap: 8,
     width: "100%",
-    alignItems: "center",
     paddingBottom: 12,
+    alignItems: "center",
   },
   purchaseButton: {
     height: 48,
@@ -341,12 +332,12 @@ const styles = StyleSheet.create({
   },
   footerButtonContainer: {
     width: "100%",
-    alignItems: "center",
     marginBottom: 10,
+    alignItems: "center",
   },
   closeButtonBottom: {
     height: 55,
-    width: 300,
+    width: 315,
   },
   buttonText: {
     fontSize: 17,

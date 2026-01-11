@@ -93,12 +93,9 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
       <View style={styles.overlay}>
         <ThemedView style={[styles.container, { borderColor: tint }]}>
-          {/* Header with close button */}
+          {/* Header */}
           <View style={styles.header}>
             <ThemedText type="title">Dzīvības</ThemedText>
-            {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color={text} />
-            </TouchableOpacity> */}
           </View>
 
           {/* Hearts display */}
@@ -177,9 +174,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
-  },
-  closeButton: {
-    padding: 4,
   },
   heartsContainer: {
     paddingVertical: 24,

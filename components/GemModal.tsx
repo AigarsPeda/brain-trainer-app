@@ -6,10 +6,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { GEMS_FROM_AD } from "@/constants/GameSettings";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
 
 interface GemModalProps {
   visible: boolean;
@@ -82,9 +81,6 @@ export function GemModal({
         <ThemedView style={[styles.container, { borderColor: tint }]}>
           <View style={styles.header}>
             <ThemedText type="title">Dimanti</ThemedText>
-            {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color={text} />
-            </TouchableOpacity> */}
           </View>
 
           <View style={[styles.gemCountContainer]}>
@@ -158,9 +154,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  closeButton: {
-    padding: 4,
   },
   gemCountContainer: {
     gap: 12,
