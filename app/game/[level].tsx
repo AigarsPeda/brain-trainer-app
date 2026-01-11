@@ -107,6 +107,21 @@ export default function GameLevelScreen() {
     );
   };
 
+  const handleWatchAdForGems = () => {
+    let rewardEarned = false;
+
+    showAdForReward(
+      () => {
+        rewardEarned = true;
+      },
+      () => {
+        if (rewardEarned) {
+          dispatch({ type: "ADD_GEMS_FROM_AD" });
+        }
+      }
+    );
+  };
+
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {
     return (
       <ThemedView>
@@ -153,6 +168,8 @@ export default function GameLevelScreen() {
         onClose={closeHelpModal}
         visible={isHelpModalVisible}
         onPurchaseHint={handlePurchaseHint}
+        adLoaded={loaded}
+        onWatchAdForGems={handleWatchAdForGems}
       />
       <HintModal visible={isHintModalVisible} onClose={closeHintModal} explanation={currentTaskExplanation} />
       <View

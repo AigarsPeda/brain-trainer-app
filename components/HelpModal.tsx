@@ -1,8 +1,9 @@
+import AdIcon from "@/assets/images/ad.png";
 import Gem from "@/assets/images/gem.png";
 import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { HINT_COST } from "@/constants/GameSettings";
+import { GEMS_FROM_AD, HINT_COST } from "@/constants/GameSettings";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -13,9 +14,18 @@ interface HelpModalProps {
   onClose: () => void;
   currentGems: number;
   onPurchaseHint: () => void;
+  adLoaded?: boolean;
+  onWatchAdForGems?: () => void;
 }
 
-export function HelpModal({ visible, onClose, currentGems, onPurchaseHint }: HelpModalProps) {
+export function HelpModal({
+  visible,
+  onClose,
+  currentGems,
+  onPurchaseHint,
+  adLoaded = false,
+  onWatchAdForGems,
+}: HelpModalProps) {
   const { text, tint } = useThemeColor();
   const canAffordHint = currentGems >= HINT_COST;
 
@@ -55,18 +65,44 @@ export function HelpModal({ visible, onClose, currentGems, onPurchaseHint }: Hel
                 Aplūko detalizētu skaidrojumu ar vizuāliem piemēriem
               </ThemedText>
               <View style={styles.buttonWrapper}>
-                <MainButton
-                  onPress={() => {
-                    onPurchaseHint();
-                    onClose();
-                  }}
-                  disabled={!canAffordHint}
-                  style={styles.purchaseButton}
-                >
-                  <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                    {canAffordHint ? "Iegādāties" : "Nav pietiekami daudz 💎"}
-                  </ThemedText>
-                </MainButton>
+                {canAffordHint ? (
+                  <MainButton
+                    onPress={() => {
+                      onPurchaseHint();
+                      onClose();
+                    }}
+                    style={styles.purchaseButton}
+                  >
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      Iegādāties
+                    </ThemedText>
+                  </MainButton>
+                ) : onWatchAdForGems ? (
+                  <MainButton
+                    onPress={onWatchAdForGems}
+                    disabled={!adLoaded}
+                    style={styles.purchaseButton}
+                  >
+                    <View style={styles.adButtonContent}>
+                      {adLoaded && <Image source={AdIcon} style={styles.adIcon} contentFit="contain" />}
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText} numberOfLines={1}>
+                        {adLoaded ? `Skatīties (+${GEMS_FROM_AD}` : "⏳ Ielādē..."}
+                      </ThemedText>
+                      {adLoaded && <Image source={Gem} style={styles.gemIconSmall} contentFit="contain" />}
+                      {adLoaded && (
+                        <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                          )
+                        </ThemedText>
+                      )}
+                    </View>
+                  </MainButton>
+                ) : (
+                  <MainButton disabled onPress={() => {}} style={styles.purchaseButton}>
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      Nav pietiekami daudz 💎
+                    </ThemedText>
+                  </MainButton>
+                )}
               </View>
             </View>
           </View>
@@ -173,6 +209,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonWrapper: {
+    gap: 8,
     width: "100%",
     alignItems: "center",
     paddingBottom: 12,
@@ -192,5 +229,18 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 17,
+  },
+  adButtonContent: {
+    gap: 6,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  adIcon: {
+    width: 20,
+    height: 20,
+  },
+  gemIconSmall: {
+    width: 18,
+    height: 18,
   },
 });
