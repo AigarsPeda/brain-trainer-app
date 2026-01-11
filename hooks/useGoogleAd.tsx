@@ -36,6 +36,7 @@ class AdManager {
   private static instance: AdManager | null = null;
   private listeners: Set<AdStateListener> = new Set();
   private onRewardCallback: (() => void) | null = null;
+  private onAdClosedCallback: (() => void) | null = null;
   private retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {}
@@ -122,6 +123,16 @@ class AdManager {
         console.log("Ad closed, loading new ad");
         this.isLoaded = false;
         this.notifyListeners();
+        // Call the onAdClosed callback regardless of whether reward was earned
+        if (this.onAdClosedCallback) {
+          this.onAdClosedCallback();
+          this.onAdClosedCallback = null;
+        }
+        // Clear the reward callback if ad closed without earning reward
+        if (this.onRewardCallback) {
+          console.log("Ad closed without earning reward, clearing callback");
+          this.onRewardCallback = null;
+        }
         // Load next ad after this one closes
         this.loadAd();
       });
@@ -149,9 +160,10 @@ class AdManager {
     }
   }
 
-  showAd(onReward: () => void): boolean {
+  showAd(onReward: () => void, onAdClosed?: () => void): boolean {
     if (this.isLoaded && this.rewardedAd) {
       this.onRewardCallback = onReward;
+      this.onAdClosedCallback = onAdClosed || null;
       try {
         this.rewardedAd.show();
         return true;
@@ -194,8 +206,8 @@ function useGoogleAd() {
     return unsubscribe;
   }, []);
 
-  const showAdForReward = useCallback((onReward: () => void) => {
-    return adManager.showAd(onReward);
+  const showAdForReward = useCallback((onReward: () => void, onAdClosed?: () => void) => {
+    return adManager.showAd(onReward, onAdClosed);
   }, []);
 
   return {

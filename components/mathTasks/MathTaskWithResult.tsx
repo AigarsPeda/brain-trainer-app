@@ -217,14 +217,20 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
           onTryAgainPress={handleTryAgain}
           isAllAnswersCorrect={isAllAnswersCorrect}
           onWatchAdPress={() => {
-            showAdForReward(() => {
-              dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-              // Reset task and close modal - free retry after watching ad
-              setAnswer([]);
-              setDisplayTaskResults(false);
-              setHasAppliedLifePenalty(false);
-              hasAppliedLifePenaltyRef.current = false;
-            });
+            showAdForReward(
+              () => {
+                // Called when user earns reward
+                dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+                // Reset task - free retry after watching ad
+                setAnswer([]);
+                setHasAppliedLifePenalty(false);
+                hasAppliedLifePenaltyRef.current = false;
+              },
+              () => {
+                // Called when ad closes (regardless of reward)
+                setDisplayTaskResults(false);
+              }
+            );
           }}
           levelCompletionState={
             isFinalTaskInLevel

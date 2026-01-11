@@ -433,17 +433,23 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
           onNextTaskPress={goToNextTask}
           onTryAgainPress={handleTryAgain}
           onWatchAdPress={() => {
-            showAdForReward(() => {
-              dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-              // Reset task and close modal - free retry after watching ad
-              setLeftValue(null);
-              setRightValue(null);
-              setDisplayTaskResults(false);
-              initializedRef.current = false;
-              setHasAppliedLifePenalty(false);
-              hasAppliedLifePenaltyRef.current = false;
-              setResetKey((prev) => prev + 1);
-            });
+            showAdForReward(
+              () => {
+                // Called when user earns reward
+                dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+                // Reset task - free retry after watching ad
+                setLeftValue(null);
+                setRightValue(null);
+                initializedRef.current = false;
+                setHasAppliedLifePenalty(false);
+                hasAppliedLifePenaltyRef.current = false;
+                setResetKey((prev) => prev + 1);
+              },
+              () => {
+                // Called when ad closes (regardless of reward)
+                setDisplayTaskResults(false);
+              }
+            );
           }}
           levelCompletionState={
             isFinalTaskInLevel

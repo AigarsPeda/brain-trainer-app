@@ -1,4 +1,4 @@
-import { INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
+import { GEMS_FROM_AD, INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
 import { LEVEL_1 } from "@/data/math-1-level";
 import { LEVEL_2 } from "@/data/math-2-level";
 import { LEVEL_3 } from "@/data/math-3-level";
@@ -81,17 +81,6 @@ export type AppContextStateType = {
   availableLevels: number;
   game: { currentLevel: number; currentTaskInLevel: number };
 };
-
-export type AppContextActionType =
-  | GetNextLevel
-  | SetNameActionType
-  | SetThemeActionType
-  | CreateNextLevelActionType
-  | SetIsCheckedForTaskActionType
-  | LoseLifeActionType
-  | RestoreLifeActionType
-  | RestoreLifeFromAdActionType
-  | HydrateStateActionType;
 
 export type AppContextType = {
   state: AppContextStateType;
@@ -202,6 +191,10 @@ interface RestoreLifeFromAdActionType {
   type: "RESTORE_LIFE_FROM_AD";
 }
 
+interface AddGemsFromAdActionType {
+  type: "ADD_GEMS_FROM_AD";
+}
+
 interface HydrateStateActionType {
   type: "HYDRATE_STATE";
   payload: AppContextStateType;
@@ -214,6 +207,18 @@ interface GetNextLevel {
     correctnessPercentage: number;
   };
 }
+
+export type AppContextActionType =
+  | GetNextLevel
+  | SetNameActionType
+  | SetThemeActionType
+  | CreateNextLevelActionType
+  | SetIsCheckedForTaskActionType
+  | LoseLifeActionType
+  | RestoreLifeActionType
+  | RestoreLifeFromAdActionType
+  | AddGemsFromAdActionType
+  | HydrateStateActionType;
 
 export const appReducer = (state: AppContextStateType, action: AppContextActionType): AppContextStateType => {
   switch (action.type) {
@@ -416,6 +421,13 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         ...state,
         lives: newLives,
         lastLifeLostAt: newLives >= MAX_LIVES ? null : state.lastLifeLostAt,
+      };
+    }
+
+    case "ADD_GEMS_FROM_AD": {
+      return {
+        ...state,
+        gems: state.gems + GEMS_FROM_AD,
       };
     }
 

@@ -1,16 +1,6 @@
 import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
 import { TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
 
-// export const calculateStars = (taskResults: number, usedStars: number): number => {
-//   if (taskResults === 0) {
-//     return 0;
-//   }
-
-//   const stars = Math.floor(taskResults / usedStars);
-
-//   return Math.max(0, Math.min(stars, 3));
-// };
-
 export const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
   const foundTask = answers?.find((r) => r.optionId === option.id);
   return foundTask;
@@ -136,11 +126,12 @@ export const updateDaysInARow = (
   const todayString = today.toISOString().split("T")[0];
 
   if (lastPlayedDate === todayString) {
-    return { daysInARow: currentDaysInARow, lastPlayedDate: todayString };
+    const fixedDaysInARow = currentDaysInARow === 0 ? 1 : currentDaysInARow;
+    return { daysInARow: fixedDaysInARow, lastPlayedDate: todayString };
   }
 
   if (!lastPlayedDate) {
-    return { daysInARow: 0, lastPlayedDate: todayString };
+    return { daysInARow: 1, lastPlayedDate: todayString };
   }
 
   const lastPlayed = new Date(lastPlayedDate);
@@ -152,7 +143,7 @@ export const updateDaysInARow = (
     return { daysInARow: currentDaysInARow + 1, lastPlayedDate: todayString };
   }
 
-  return { daysInARow: 0, lastPlayedDate: todayString };
+  return { daysInARow: 1, lastPlayedDate: todayString };
 };
 
 export const calculateRestoredLives = (

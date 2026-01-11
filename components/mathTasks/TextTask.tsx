@@ -166,14 +166,20 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
           onTryAgainPress={handleTryAgain}
           isAllAnswersCorrect={isAnswerCorrect}
           onWatchAdPress={() => {
-            showAdForReward(() => {
-              dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-              // Reset task and close modal - free retry after watching ad
-              setUserAnswer("");
-              setDisplayTaskResults(false);
-              setHasAppliedLifePenalty(false);
-              hasAppliedLifePenaltyRef.current = false;
-            });
+            showAdForReward(
+              () => {
+                // Called when user earns reward
+                dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+                // Reset task - free retry after watching ad
+                setUserAnswer("");
+                setHasAppliedLifePenalty(false);
+                hasAppliedLifePenaltyRef.current = false;
+              },
+              () => {
+                // Called when ad closes (regardless of reward)
+                setDisplayTaskResults(false);
+              }
+            );
           }}
           levelCompletionState={
             isFinalTaskInLevel

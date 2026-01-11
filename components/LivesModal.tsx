@@ -6,9 +6,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LIFE_RESTORE_INTERVAL_MS, MAX_LIVES } from "@/constants/GameSettings";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 interface LivesModalProps {
@@ -31,6 +33,7 @@ const formatTime = (ms: number): string => {
 };
 
 export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, onWatchAd }: LivesModalProps) {
+  const { text, tint } = useThemeColor();
   const lastLivesRef = useRef(lives);
   const isFullLives = lives >= MAX_LIVES;
   const livesAnimation = usePulseOnChange(lives);
@@ -88,103 +91,112 @@ export function LivesModal({ visible, onClose, lives, lastLifeLostAt, adLoaded, 
   };
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalContent} onPress={(event) => event.stopPropagation()}>
-          <ThemedView style={styles.modalBox}>
-            <ThemedText type="subtitle" style={styles.title}>
-              Dzīvības
-            </ThemedText>
+    <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <ThemedView style={[styles.container, { borderColor: tint }]}>
+          {/* Header with close button */}
+          <View style={styles.header}>
+            <ThemedText type="title">Dzīvības</ThemedText>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={28} color={text} />
+            </TouchableOpacity>
+          </View>
 
+          {/* Hearts display */}
+          <View style={[styles.heartsContainer]}>
             <Animated.View style={styles.heartsRow}>{renderHearts()}</Animated.View>
+          </View>
 
-            {/* <ThemedText style={styles.livesCount}>
-              {lives} / {MAX_LIVES}
-            </ThemedText> */}
+          {/* Timer or full lives message */}
+          {!isFullLives && lastLifeLostAt !== null ? (
+            <View style={styles.timerSection}>
+              <ThemedText style={styles.timerLabel}>Nākamā dzīvība pēc:</ThemedText>
+              <AnimatedTimer time={formatTime(timeRemaining)} style={styles.timerValue} direction="down" />
+            </View>
+          ) : (
+            <ThemedText style={styles.fullLivesText}>Visas dzīvības ir pilnas!</ThemedText>
+          )}
 
-            {!isFullLives && lastLifeLostAt !== null ? (
-              <ThemedView style={styles.timerSection}>
-                <ThemedText style={styles.timerLabel}>Nākamā dzīvība pēc:</ThemedText>
-                <AnimatedTimer time={formatTime(timeRemaining)} style={styles.timerValue} direction="down" />
-              </ThemedView>
-            ) : (
-              <ThemedText style={styles.fullLivesText}>Visas dzīvības ir pilnas!</ThemedText>
-            )}
-
-            {!isFullLives && onWatchAd && (
-              <MainButton onPress={onWatchAd} disabled={!adLoaded} style={styles.adButton}>
+          {/* Watch ad button */}
+          {!isFullLives && onWatchAd && (
+            <View style={{ ...styles.buttonContainer, marginBottom: 20 }}>
+              <MainButton onPress={onWatchAd} disabled={!adLoaded} style={styles.compactButton}>
                 <View style={styles.adButtonContent}>
                   {adLoaded ? (
                     <>
                       <Image source={AdIcon} style={styles.adIcon} contentFit="contain" />
-                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                        Skatīties reklāmu (+1
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText} numberOfLines={1}>
+                        Skatīties (+1
                       </ThemedText>
-                      <Image source={Heart} style={styles.heartIcon} contentFit="contain" />
+                      <Image source={Heart} style={styles.heartIconSmall} contentFit="contain" />
                       <ThemedText type="defaultSemiBold" style={styles.buttonText}>
                         )
                       </ThemedText>
                     </>
                   ) : (
-                    <>
-                      <ActivityIndicator size="small" color="#166534" />
-                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                        Ielādē reklāmu...
-                      </ThemedText>
-                    </>
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      ⏳ Ielādē...
+                    </ThemedText>
                   )}
                 </View>
               </MainButton>
-            )}
+            </View>
+          )}
 
-            <Pressable style={styles.modalCloseButton} onPress={onClose}>
-              <ThemedText
-                type="subtitle"
-                darkColor="#ffffff"
-                lightColor="#151414ff"
-                style={styles.modalCloseButtonText}
-              >
+          {/* Close button */}
+          <View style={styles.buttonContainer}>
+            <MainButton variant="secondary" onPress={onClose} style={styles.compactButton}>
+              <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
                 Aizvērt
               </ThemedText>
-            </Pressable>
-          </ThemedView>
-        </Pressable>
-      </Pressable>
+            </MainButton>
+          </View>
+        </ThemedView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  overlay: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 24,
+    padding: 20,
   },
-  modalContent: {
+  container: {
     width: "100%",
-    maxWidth: 360,
+    maxWidth: 400,
+    maxHeight: "90%",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 2,
   },
-  modalBox: {
-    borderRadius: 16,
-    padding: 24,
-    gap: 16,
-    width: "100%",
+  header: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 22,
-    textAlign: "center",
+  closeButton: {
+    padding: 4,
+  },
+  heartsContainer: {
+    paddingVertical: 24,
+    borderRadius: 16,
+    marginBottom: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   heartsRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
     justifyContent: "center",
   },
   heartContainer: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
   },
   heartEmpty: {
     opacity: 0.3,
@@ -193,58 +205,52 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  livesCount: {
-    fontSize: 16,
-    textAlign: "center",
-  },
   timerSection: {
     alignItems: "center",
     gap: 4,
-    paddingVertical: 8,
+    marginBottom: 20,
   },
   timerLabel: {
-    fontSize: 14,
+    fontSize: 16,
     opacity: 0.7,
+    textAlign: "center",
   },
   timerValue: {
-    fontSize: 28,
+    fontSize: 32,
     color: "#D81E5B",
     fontFamily: "BalooBhai2_700Bold",
-    lineHeight: 36,
+    lineHeight: 40,
   },
   fullLivesText: {
     fontSize: 16,
     color: "#09E85E",
     textAlign: "center",
-    paddingVertical: 8,
+    marginBottom: 20,
+    lineHeight: 22,
   },
-  modalCloseButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 999,
-    marginTop: 8,
+  buttonContainer: {
+    width: "100%",
+    marginBottom: 10,
+    alignItems: "center",
   },
-  modalCloseButtonText: {
-    // fontFamily: "BalooBhai2_500Medium",
-    fontSize: 16,
-  },
-  adButton: {
-    width: 280,
+  buttonText: {
+    fontSize: 17,
   },
   adButtonContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
   adIcon: {
-    width: 28,
-    height: 28,
+    width: 20,
+    height: 20,
   },
-  heartIcon: {
-    width: 22,
-    height: 22,
+  heartIconSmall: {
+    width: 18,
+    height: 18,
   },
-  buttonText: {
-    fontSize: 20,
+  compactButton: {
+    height: 55,
+    width: 300,
   },
 });

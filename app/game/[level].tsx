@@ -84,10 +84,16 @@ export default function GameLevelScreen() {
   };
 
   const handleWatchAd = () => {
-    showAdForReward(() => {
-      dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-      setIsLivesModalVisible(false);
-    });
+    showAdForReward(
+      () => {
+        // Called when user earns reward
+        dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+      },
+      () => {
+        // Called when ad closes (regardless of reward)
+        setIsLivesModalVisible(false);
+      }
+    );
   };
 
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {

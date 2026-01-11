@@ -1,5 +1,6 @@
 import AnimatedFlatList from "@/components/AnimatedFlatList";
 import { BackgroundPattern } from "@/components/BackgroundPattern";
+import { GemModal } from "@/components/GemModal";
 import ListItem from "@/components/ListItem";
 import { LivesModal } from "@/components/LivesModal";
 import { UserStatistics } from "@/components/UserStatistics";
@@ -18,16 +19,40 @@ export default function HomeScreen() {
   const { state, dispatch } = useAppContext();
   const { loaded, showAdForReward } = useGoogleAd();
   const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
+  const [isGemModalVisible, setIsGemModalVisible] = useState(false);
 
-  const handleWatchAd = () => {
-    showAdForReward(() => {
-      dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-      setIsLivesModalVisible(false);
-    });
+  const handleWatchAdForLife = () => {
+    showAdForReward(
+      () => {
+        // Called when user earns reward
+        dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+      },
+      () => {
+        // Called when ad closes (regardless of reward)
+        setIsLivesModalVisible(false);
+      }
+    );
+  };
+
+  const handleWatchAdForGems = () => {
+    showAdForReward(
+      () => {
+        // Called when user earns reward
+        dispatch({ type: "ADD_GEMS_FROM_AD" });
+      },
+      () => {
+        // Called when ad closes (regardless of reward)
+        setIsGemModalVisible(false);
+      }
+    );
   };
 
   const handleOpenLivesModalClose = () => {
     setIsLivesModalVisible((state) => !state);
+  };
+
+  const handleOpenGemsModalClose = () => {
+    setIsGemModalVisible((state) => !state);
   };
 
   return (
@@ -41,13 +66,19 @@ export default function HomeScreen() {
       <LivesModal
         adLoaded={loaded}
         lives={state.lives}
-        onWatchAd={handleWatchAd}
+        onWatchAd={handleWatchAdForLife}
         visible={isLivesModalVisible}
         onClose={handleOpenLivesModalClose}
         lastLifeLostAt={state.lastLifeLostAt}
       />
+      <GemModal
+        adLoaded={loaded}
+        visible={isGemModalVisible}
+        onClose={handleOpenGemsModalClose}
+        onWatchAd={handleWatchAdForGems}
+      />
       <SafeAreaView>
-        <UserStatistics onLivesPress={handleOpenLivesModalClose} />
+        <UserStatistics onLivesPress={handleOpenLivesModalClose} onGemsPress={handleOpenGemsModalClose} />
 
         <AnimatedFlatList
           paddingTop={0}
