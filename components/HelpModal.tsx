@@ -1,4 +1,6 @@
 import AdIcon from "@/assets/images/ad.png";
+import Bulb from "@/assets/images/bulb.png";
+import CloseRed from "@/assets/images/close_red.png";
 import Gem from "@/assets/images/gem.png";
 import { AnimatedTimer } from "@/components/AnimatedTimer";
 import { MainButton } from "@/components/MainButton";
@@ -112,9 +114,12 @@ export function HelpModal({
             {canRemoveAnswer && (
               <View style={styles.optionCard}>
                 <View style={styles.optionHeader}>
-                  <ThemedText type="defaultSemiBold" style={styles.optionTitle}>
-                    ❌ Noņemt atbildi
-                  </ThemedText>
+                  <View style={styles.optionTitleContainer}>
+                    <Image source={CloseRed} style={styles.closeRedIcon} contentFit="contain" />
+                    <ThemedText type="defaultSemiBold" style={styles.optionTitle}>
+                      Noņemt atbildi
+                    </ThemedText>
+                  </View>
                   <View style={styles.costBadge}>
                     <Image source={Gem} style={styles.costGemIcon} contentFit="contain" />
                     <ThemedText type="defaultSemiBold" style={styles.costText}>
@@ -165,9 +170,12 @@ export function HelpModal({
             {/* Hint Option */}
             <View style={styles.optionCard}>
               <View style={styles.optionHeader}>
-                <ThemedText type="defaultSemiBold" style={styles.optionTitle}>
-                  💡 Skaidrojums
-                </ThemedText>
+                <View style={styles.optionTitleContainer}>
+                  <Image source={Bulb} style={styles.bulbIcon} contentFit="contain" />
+                  <ThemedText type="defaultSemiBold" style={styles.optionTitle}>
+                    Skaidrojums
+                  </ThemedText>
+                </View>
                 <View style={styles.costBadge}>
                   <Image source={Gem} style={styles.costGemIcon} contentFit="contain" />
                   <ThemedText type="defaultSemiBold" style={styles.costText}>
@@ -295,6 +303,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  optionTitleContainer: {
+    gap: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bulbIcon: {
+    width: 32,
+    height: 32,
+  },
+  closeRedIcon: {
+    width: 32,
+    height: 32,
+  },
   optionTitle: {
     fontSize: 18,
   },
@@ -308,8 +329,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(106, 74, 203, 0.15)",
   },
   costGemIcon: {
-    width: 16,
-    height: 16,
+    width: 18,
+    height: 18,
   },
   costText: {
     fontSize: 14,

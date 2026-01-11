@@ -89,8 +89,8 @@ export function GemModal({
               <AnimatedTimer
                 digitHeight={40}
                 direction="countup"
-                style={styles.gemCountText}
                 time={animatedGems.toString()}
+                style={{ ...styles.gemCountText, color: text }}
               />
             ) : (
               <ThemedText type="title">{currentGems}</ThemedText>

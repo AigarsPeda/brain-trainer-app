@@ -1,3 +1,5 @@
+import Bulb from "@/assets/images/bulb.png";
+import ThumbsUp from "@/assets/images/thumbs_up.png";
 import { AnimatedMathVisual } from "@/components/AnimatedMathVisual";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { MainButton } from "@/components/MainButton";
@@ -7,6 +9,7 @@ import { HintModalColors } from "@/constants/Colors";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { MathExplanation } from "@/utils/mathExplanations";
+import { Image } from "expo-image";
 import { useCallback, useEffect, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
@@ -101,9 +104,12 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContent}>
           <ThemedView style={styles.modalBox}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-              <ThemedText type="subtitle" style={styles.title}>
-                💡 {title}
-              </ThemedText>
+              <View style={styles.titleContainer}>
+                <Image source={Bulb} style={styles.bulbIcon} contentFit="contain" />
+                <ThemedText type="subtitle" style={styles.title}>
+                  {title}
+                </ThemedText>
+              </View>
 
               <View style={[styles.visualSection, { backgroundColor: visualSectionBackground }]}>
                 <AnimatedToggle
@@ -265,9 +271,12 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
 
             <View style={styles.closeButtonContainer}>
               <MainButton variant="secondary" onPress={onClose} style={styles.modalCloseButton}>
-                <ThemedText type="defaultSemiBold" style={[styles.modalCloseButtonText, { color: text }]}>
-                  Sapratu! 👍
-                </ThemedText>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                  <ThemedText type="defaultSemiBold" style={[styles.modalCloseButtonText, { color: text }]}>
+                    Sapratu!
+                  </ThemedText>
+                  <Image source={ThumbsUp} style={{ width: 32, height: 32, marginLeft: 8 }} contentFit="contain" />
+                </View>
               </MainButton>
             </View>
           </ThemedView>
@@ -291,7 +300,6 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "100%",
     maxWidth: 380,
-    // maxHeight: "80%",
   },
   scrollContent: {
     flexGrow: 1,
@@ -302,10 +310,19 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 20,
   },
-  title: {
-    fontSize: 22,
+  titleContainer: {
+    gap: 8,
     marginBottom: 8,
-    textAlign: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  bulbIcon: {
+    width: 32,
+    height: 32,
+  },
+  title: {
+    flex: 1,
+    fontSize: 20,
   },
   visualSection: {
     padding: 16,
@@ -336,12 +353,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   contentSwitcher: {
-    width: "100%",
     height: 180,
+    width: "100%",
   },
   switchableContent: {
-    width: "100%",
     height: 180,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -432,9 +449,9 @@ const styles = StyleSheet.create({
   },
   closeButtonContainer: {
     width: "100%",
-    alignItems: "center",
     marginTop: 12,
-    marginBottom: 10,
+    marginBottom: 20,
+    alignItems: "center",
   },
   modalCloseButton: {
     height: 55,
