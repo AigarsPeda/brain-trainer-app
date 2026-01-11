@@ -1,5 +1,6 @@
 import AdIcon from "@/assets/images/ad.png";
 import Gem from "@/assets/images/gem.png";
+import { AnimatedTimer } from "@/components/AnimatedTimer";
 import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -7,6 +8,7 @@ import { GEMS_FROM_AD, HINT_COST } from "@/constants/GameSettings";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useEffect, useRef, useState } from "react";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface HelpModalProps {
@@ -16,6 +18,8 @@ interface HelpModalProps {
   onPurchaseHint: () => void;
   adLoaded?: boolean;
   onWatchAdForGems?: () => void;
+  showAnimation?: boolean;
+  animationStartValue?: number;
 }
 
 export function HelpModal({
@@ -25,9 +29,55 @@ export function HelpModal({
   onPurchaseHint,
   adLoaded = false,
   onWatchAdForGems,
+  showAnimation = false,
+  animationStartValue,
 }: HelpModalProps) {
   const { text, tint } = useThemeColor();
   const canAffordHint = currentGems >= HINT_COST;
+  const [animatedGems, setAnimatedGems] = useState(currentGems);
+  const animationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (showAnimation && visible && animationStartValue !== undefined) {
+      const targetGems = currentGems;
+      const startGems = animationStartValue;
+
+      setAnimatedGems(startGems);
+
+      const startDelay = setTimeout(() => {
+        let currentValue = startGems;
+        const step = 1;
+        const interval = 50;
+
+        animationTimerRef.current = setInterval(() => {
+          currentValue += step;
+          if (currentValue >= targetGems) {
+            setAnimatedGems(targetGems);
+            if (animationTimerRef.current) {
+              clearInterval(animationTimerRef.current);
+            }
+          } else {
+            setAnimatedGems(currentValue);
+          }
+        }, interval);
+      }, 300);
+
+      return () => {
+        clearTimeout(startDelay);
+        if (animationTimerRef.current) {
+          clearInterval(animationTimerRef.current);
+        }
+      };
+    } else {
+      setAnimatedGems(currentGems);
+    }
+
+    return () => {
+      if (animationTimerRef.current) {
+        clearInterval(animationTimerRef.current);
+      }
+    };
+  }, [showAnimation, visible, currentGems, animationStartValue]);
 
   return (
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
@@ -42,7 +92,16 @@ export function HelpModal({
 
           <View style={styles.gemsDisplay}>
             <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
-            <ThemedText type="subtitle">{currentGems}</ThemedText>
+            {showAnimation ? (
+              <AnimatedTimer
+                digitHeight={24}
+                direction="countup"
+                style={styles.gemCountText}
+                time={animatedGems.toString()}
+              />
+            ) : (
+              <ThemedText type="subtitle">{currentGems}</ThemedText>
+            )}
           </View>
 
           <ThemedText style={styles.description}>Izmanto dimantus, lai iegūtu palīdzību risinot uzdevumus!</ThemedText>
@@ -78,11 +137,7 @@ export function HelpModal({
                     </ThemedText>
                   </MainButton>
                 ) : onWatchAdForGems ? (
-                  <MainButton
-                    onPress={onWatchAdForGems}
-                    disabled={!adLoaded}
-                    style={styles.purchaseButton}
-                  >
+                  <MainButton onPress={onWatchAdForGems} disabled={!adLoaded} style={styles.purchaseButton}>
                     <View style={styles.adButtonContent}>
                       {adLoaded && <Image source={AdIcon} style={styles.adIcon} contentFit="contain" />}
                       <ThemedText type="defaultSemiBold" style={styles.buttonText} numberOfLines={1}>
@@ -158,6 +213,11 @@ const styles = StyleSheet.create({
   gemIcon: {
     width: 32,
     height: 32,
+  },
+  gemCountText: {
+    fontSize: 24,
+    lineHeight: 32,
+    fontFamily: "BalooBhai2_700Bold",
   },
   description: {
     fontSize: 14,

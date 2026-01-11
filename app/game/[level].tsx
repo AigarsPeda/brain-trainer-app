@@ -44,6 +44,8 @@ export default function GameLevelScreen() {
   const [isHintModalVisible, setIsHintModalVisible] = useState(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
   const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
+  const [showGemAnimation, setShowGemAnimation] = useState(false);
+  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
   const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
 
@@ -85,6 +87,8 @@ export default function GameLevelScreen() {
 
   const closeHelpModal = () => {
     setIsHelpModalVisible(false);
+    setShowGemAnimation(false);
+    setGemAnimationStartValue(undefined);
   };
 
   const closeHintModal = () => {
@@ -108,6 +112,7 @@ export default function GameLevelScreen() {
   };
 
   const handleWatchAdForGems = () => {
+    setGemAnimationStartValue(gems);
     let rewardEarned = false;
 
     showAdForReward(
@@ -117,6 +122,7 @@ export default function GameLevelScreen() {
       () => {
         if (rewardEarned) {
           dispatch({ type: "ADD_GEMS_FROM_AD" });
+          setShowGemAnimation(true);
         }
       }
     );
@@ -170,6 +176,8 @@ export default function GameLevelScreen() {
         onPurchaseHint={handlePurchaseHint}
         adLoaded={loaded}
         onWatchAdForGems={handleWatchAdForGems}
+        showAnimation={showGemAnimation}
+        animationStartValue={gemAnimationStartValue}
       />
       <HintModal visible={isHintModalVisible} onClose={closeHintModal} explanation={currentTaskExplanation} />
       <View
