@@ -19,14 +19,11 @@ import { scheduleOnRN } from "react-native-worklets";
 
 // Constants
 const DRAGGABLE_NUMBER_SIZE = 75;
-const COLLISION_BUFFER = 10;
 const DROP_ZONE_SIZE = 110;
-const CONTAINER_HEIGHT = 200;
-const GRID_COLS = 3;
-const GRID_ROWS = 3;
-const GRID_MARGIN = 25;
-const POSITION_MARGIN = 20;
-const MAX_POSITION_ATTEMPTS = 50;
+const CONTAINER_HEIGHT = 220;
+const GRID_COLS = 2;
+const GRID_ROWS = 2;
+const GRID_MARGIN = 20;
 const DRAG_SCALE = 1.7;
 const SNAPPED_SCALE = 1.4;
 const NORMAL_SCALE = 1;
@@ -53,12 +50,6 @@ const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   );
 };
 
-const doPositionsOverlap = (pos1: NumberPosition, pos2: NumberPosition): boolean => {
-  const size = DRAGGABLE_NUMBER_SIZE + COLLISION_BUFFER;
-  const distance = Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2));
-  return distance < size;
-};
-
 interface NumberPosition {
   x: number;
   y: number;
@@ -81,7 +72,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
-  const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
+  // const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
   const hasAppliedLifePenaltyRef = useRef(false);
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
@@ -102,53 +93,56 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
 
-  const isPositionOccupied = useCallback(
-    (newPosition: NumberPosition, existingPositions: Map<number, NumberPosition>, excludeNumber?: number): boolean => {
-      for (const [num, position] of existingPositions) {
-        if (excludeNumber !== undefined && num === excludeNumber) {
-          continue;
-        }
-        if (doPositionsOverlap(newPosition, position)) {
-          return true;
-        }
-      }
-      return false;
-    },
-    []
-  );
-
-  const generateGridPosition = useCallback(
-    (existingPositions: Map<number, NumberPosition>, excludeNumber?: number): NumberPosition => {
+  const generateAllPositions = useCallback(
+    (numbers: number[]): Map<number, NumberPosition> => {
       if (!containerLayout) {
-        return { x: 0, y: 0 };
+        return new Map();
       }
 
-      const spacing = (containerLayout.width - GRID_MARGIN * 2) / GRID_COLS;
-      const verticalSpacing = (CONTAINER_HEIGHT - GRID_MARGIN * 2) / GRID_ROWS;
+      // Simple 2x2 grid for 4 numbers with guaranteed spacing
+      const availableWidth = containerLayout.width - GRID_MARGIN * 2;
+      const availableHeight = CONTAINER_HEIGHT - GRID_MARGIN * 2;
 
-      // Collect all available grid positions
+      // Divide space evenly into a 2x2 grid
+      const cellWidth = availableWidth / GRID_COLS;
+      const cellHeight = availableHeight / GRID_ROWS;
+
+      // Maximum random offset to add natural positioning while preventing overlaps
+      const maxOffsetX = Math.min(30, (cellWidth - DRAGGABLE_NUMBER_SIZE * DRAG_SCALE) / 2);
+      const maxOffsetY = Math.min(30, (cellHeight - DRAGGABLE_NUMBER_SIZE * DRAG_SCALE) / 2);
+
+      // Create all 4 grid positions (2x2 = 4 positions) with random offsets
       const gridPositions: NumberPosition[] = [];
+
       for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
-          const x = GRID_MARGIN + col * spacing + (spacing - DRAGGABLE_NUMBER_SIZE) / 2;
-          const y = GRID_MARGIN + row * verticalSpacing + (verticalSpacing - DRAGGABLE_NUMBER_SIZE) / 2;
+          // Center the number within each grid cell
+          const baseX = GRID_MARGIN + col * cellWidth + (cellWidth - DRAGGABLE_NUMBER_SIZE) / 2;
+          const baseY = GRID_MARGIN + row * cellHeight + (cellHeight - DRAGGABLE_NUMBER_SIZE) / 2;
+
+          // Add random offset for more natural look
+          const randomOffsetX = (Math.random() - 0.5) * 2 * maxOffsetX;
+          const randomOffsetY = (Math.random() - 0.5) * 2 * maxOffsetY;
+
+          const x = baseX + randomOffsetX;
+          const y = baseY + randomOffsetY;
+
           gridPositions.push({ x, y });
         }
       }
 
-      // Shuffle and find first unoccupied position
+      // Shuffle positions
       const shuffledPositions = gridPositions.sort(() => Math.random() - 0.5);
 
-      for (const position of shuffledPositions) {
-        if (!isPositionOccupied(position, existingPositions, excludeNumber)) {
-          return position;
-        }
-      }
+      // Assign positions to numbers
+      const positionsMap = new Map<number, NumberPosition>();
+      numbers.forEach((number, index) => {
+        positionsMap.set(number, shuffledPositions[index] || { x: GRID_MARGIN, y: GRID_MARGIN });
+      });
 
-      // Fallback: return first grid position
-      return gridPositions[0] || { x: GRID_MARGIN, y: GRID_MARGIN };
+      return positionsMap;
     },
-    [containerLayout, isPositionOccupied]
+    [containerLayout]
   );
 
   const generateRandomPosition = useCallback(
@@ -157,22 +151,43 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
         return { x: 0, y: 0 };
       }
 
-      const maxWidth = containerLayout.width - DRAGGABLE_NUMBER_SIZE - POSITION_MARGIN * 2;
-      const maxHeight = CONTAINER_HEIGHT - DRAGGABLE_NUMBER_SIZE - POSITION_MARGIN * 2;
+      // Simple 2x2 grid fallback for drag-back positioning
+      const availableWidth = containerLayout.width - GRID_MARGIN * 2;
+      const availableHeight = CONTAINER_HEIGHT - GRID_MARGIN * 2;
 
-      for (let attempts = 0; attempts < MAX_POSITION_ATTEMPTS; attempts++) {
-        const x = Math.random() * maxWidth + POSITION_MARGIN;
-        const y = Math.random() * maxHeight + POSITION_MARGIN;
-        const newPosition = { x, y };
+      const cellWidth = availableWidth / GRID_COLS;
+      const cellHeight = availableHeight / GRID_ROWS;
 
-        if (!isPositionOccupied(newPosition, existingPositions, excludeNumber)) {
-          return newPosition;
+      // Find an unoccupied grid cell
+      for (let row = 0; row < GRID_ROWS; row++) {
+        for (let col = 0; col < GRID_COLS; col++) {
+          const x = GRID_MARGIN + col * cellWidth + (cellWidth - DRAGGABLE_NUMBER_SIZE) / 2;
+          const y = GRID_MARGIN + row * cellHeight + (cellHeight - DRAGGABLE_NUMBER_SIZE) / 2;
+
+          // Check if position is occupied
+          let isOccupied = false;
+          for (const [num, existingPos] of existingPositions) {
+            if (excludeNumber !== undefined && num === excludeNumber) {
+              continue;
+            }
+            if (Math.abs(x - existingPos.x) < 50 && Math.abs(y - existingPos.y) < 50) {
+              isOccupied = true;
+              break;
+            }
+          }
+
+          if (!isOccupied) {
+            // Add small random offset
+            const offsetX = (Math.random() - 0.5) * 40;
+            const offsetY = (Math.random() - 0.5) * 40;
+            return { x: x + offsetX, y: y + offsetY };
+          }
         }
       }
 
-      return generateGridPosition(existingPositions, excludeNumber);
+      return { x: GRID_MARGIN, y: GRID_MARGIN };
     },
-    [containerLayout, isPositionOccupied, generateGridPosition]
+    [containerLayout]
   );
 
   useEffect(() => {
@@ -183,16 +198,12 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
       return;
     }
 
-    const initialPositions = new Map<number, NumberPosition>();
-
-    numbers.forEach((number) => {
-      const position = generateRandomPosition(initialPositions);
-      initialPositions.set(number, position);
-    });
+    // Generate all positions at once to ensure proper spacing and randomization
+    const initialPositions = generateAllPositions(numbers);
 
     setNumberPositions(initialPositions);
     initializedRef.current = true;
-  }, [containerLayout, numbers, generateRandomPosition, resetKey]);
+  }, [containerLayout, numbers, generateAllPositions, resetKey]);
 
   const animateNumberToRandomPosition = (num: number) => {
     setNumberPositions((prev) => {
@@ -278,7 +289,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     setLeftValue(null);
     setRightValue(null);
     initializedRef.current = false;
-    setHasAppliedLifePenalty(false);
+    // setHasAppliedLifePenalty(false);
     hasAppliedLifePenaltyRef.current = false;
   }, [leftValue, rightValue, task.operation, task.result, dispatch, maxLevelStep]);
 
@@ -305,7 +316,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
     if (!isCorrect) {
       hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
-      setHasAppliedLifePenalty(true);
+      // setHasAppliedLifePenalty(true);
     }
 
     setDisplayTaskResults(true);
@@ -441,7 +452,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel }
                 setLeftValue(null);
                 setRightValue(null);
                 initializedRef.current = false;
-                setHasAppliedLifePenalty(false);
+                // setHasAppliedLifePenalty(false);
                 hasAppliedLifePenaltyRef.current = false;
                 setResetKey((prev) => prev + 1);
               },
