@@ -9,8 +9,8 @@ import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { Animated, Image, Keyboard, Platform, StyleSheet, TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import { Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
 
 interface TextTaskProps {
   level: LevelsEnum;
@@ -36,35 +36,6 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
   const hasAppliedLifePenaltyRef = useRef(false);
-  const buttonMarginAnim = useRef(new Animated.Value(26)).current;
-
-  useEffect(() => {
-    const keyboardWillShow = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      (e) => {
-        Animated.timing(buttonMarginAnim, {
-          toValue: e.endCoordinates.height - 40,
-          duration: Platform.OS === "ios" ? 250 : 200,
-          useNativeDriver: false,
-        }).start();
-      }
-    );
-    const keyboardWillHide = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => {
-        Animated.timing(buttonMarginAnim, {
-          toValue: 26,
-          duration: Platform.OS === "ios" ? 250 : 200,
-          useNativeDriver: false,
-        }).start();
-      }
-    );
-
-    return () => {
-      keyboardWillShow.remove();
-      keyboardWillHide.remove();
-    };
-  }, [buttonMarginAnim]);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
@@ -133,62 +104,69 @@ export function TextTask({ level, task, maxLevelStep, isFinalTaskInLevel }: Text
 
   return (
     <>
-      <View style={{ flex: 1, justifyContent: "space-between" }}>
-        <View>
-          {/* Icon display */}
-          <View style={styles.iconContainer}>
-            <Image source={task.icon} style={styles.icon} resizeMode="contain" />
-          </View>
-
-          {/* Question text */}
-          <View style={styles.questionContainer}>
-            <ThemedText type="subtitle" style={styles.questionText}>
-              {task.question}
-            </ThemedText>
-          </View>
-
-          {/* Answer input */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              value={userAnswer}
-              onChangeText={setUserAnswer}
-              style={[
-                styles.input,
-                {
-                  borderColor: getInputBorderColor(),
-                  backgroundColor: colors.inputBackground,
-                  color: colors.text,
-                },
-              ]}
-              keyboardType="numeric"
-              placeholder="?"
-              placeholderTextColor={colors.placeholder}
-              maxLength={10}
-              editable={!displayTaskResults}
-              onSubmitEditing={hasAnswer ? handleCheckAnswer : undefined}
-              autoFocus={true}
-            />
-          </View>
-
-          {/* Show correct answer when wrong */}
-          {/* {displayTaskResults && !isAnswerCorrect && (
-            <View style={styles.correctAnswerContainer}>
-              <ThemedText style={styles.correctAnswerLabel}>Pareizā atbilde:</ThemedText>
-              <ThemedText style={[styles.correctAnswerValue, { color: colors.correctAnswer }]}>{task.result}</ThemedText>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 125 : 0}
+      >
+        <View style={{ flex: 1, justifyContent: "space-between" }}>
+          <View>
+            {/* Icon display */}
+            <View style={styles.iconContainer}>
+              <Image source={task.icon} style={styles.icon} resizeMode="contain" />
             </View>
-          )} */}
-        </View>
 
-        {!displayTaskResults ? (
-          <Animated.View style={[styles.buttonContainer, { marginBottom: buttonMarginAnim }]}>
-            <MainButton disabled={!hasAnswer} onPress={handleCheckAnswer}>
-              <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                Pārbaudīt
+            {/* Question text */}
+            <View style={styles.questionContainer}>
+              <ThemedText type="subtitle" style={styles.questionText}>
+                {task.question}
               </ThemedText>
-            </MainButton>
-          </Animated.View>
-        ) : null}
-      </View>
+            </View>
+
+            {/* Answer input */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={userAnswer}
+                onChangeText={setUserAnswer}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: getInputBorderColor(),
+                    backgroundColor: colors.inputBackground,
+                    color: colors.text,
+                  },
+                ]}
+                keyboardType="numeric"
+                placeholder="?"
+                placeholderTextColor={colors.placeholder}
+                maxLength={10}
+                editable={!displayTaskResults}
+                onSubmitEditing={hasAnswer ? handleCheckAnswer : undefined}
+                // returnKeyType="done"
+                autoFocus={true}
+              />
+            </View>
+
+            {/* Show correct answer when wrong */}
+            {/* {displayTaskResults && !isAnswerCorrect && (
+              <View style={styles.correctAnswerContainer}>
+                <ThemedText style={styles.correctAnswerLabel}>Pareizā atbilde:</ThemedText>
+                <ThemedText style={[styles.correctAnswerValue, { color: colors.correctAnswer }]}>{task.result}</ThemedText>
+              </View>
+            )} */}
+          </View>
+
+          {!displayTaskResults && (
+            <View style={styles.buttonContainer}>
+              <MainButton disabled={!hasAnswer} onPress={handleCheckAnswer}>
+                <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                  Pārbaudīt
+                </ThemedText>
+              </MainButton>
+            </View>
+          )}
+        </View>
+      </KeyboardAvoidingView>
 
       {displayTaskResults && (
         <ShowResults
