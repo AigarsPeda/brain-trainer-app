@@ -18,31 +18,35 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
   const { state, dispatch } = useAppContext();
   const { loaded, showAdForReward } = useGoogleAd();
-  const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
+  const [showGemAnimation, setShowGemAnimation] = useState(false);
   const [isGemModalVisible, setIsGemModalVisible] = useState(false);
+  const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
+  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
   const handleWatchAdForLife = () => {
     showAdForReward(
       () => {
-        // Called when user earns reward
         dispatch({ type: "RESTORE_LIFE_FROM_AD" });
       },
       () => {
-        // Called when ad closes (regardless of reward)
         setIsLivesModalVisible(false);
       }
     );
   };
 
   const handleWatchAdForGems = () => {
+    setGemAnimationStartValue(state.gems);
+    let rewardEarned = false;
+
     showAdForReward(
       () => {
-        // Called when user earns reward
-        dispatch({ type: "ADD_GEMS_FROM_AD" });
+        rewardEarned = true;
       },
       () => {
-        // Called when ad closes (regardless of reward)
-        setIsGemModalVisible(false);
+        if (rewardEarned) {
+          dispatch({ type: "ADD_GEMS_FROM_AD" });
+          setShowGemAnimation(true);
+        }
       }
     );
   };
@@ -53,6 +57,8 @@ export default function HomeScreen() {
 
   const handleOpenGemsModalClose = () => {
     setIsGemModalVisible((state) => !state);
+    setShowGemAnimation(false);
+    setGemAnimationStartValue(undefined);
   };
 
   return (
@@ -66,16 +72,19 @@ export default function HomeScreen() {
       <LivesModal
         adLoaded={loaded}
         lives={state.lives}
-        onWatchAd={handleWatchAdForLife}
         visible={isLivesModalVisible}
+        onWatchAd={handleWatchAdForLife}
         onClose={handleOpenLivesModalClose}
         lastLifeLostAt={state.lastLifeLostAt}
       />
       <GemModal
         adLoaded={loaded}
+        currentGems={state.gems}
         visible={isGemModalVisible}
-        onClose={handleOpenGemsModalClose}
         onWatchAd={handleWatchAdForGems}
+        showAnimation={showGemAnimation}
+        onClose={handleOpenGemsModalClose}
+        animationStartValue={gemAnimationStartValue}
       />
       <SafeAreaView>
         <UserStatistics onLivesPress={handleOpenLivesModalClose} onGemsPress={handleOpenGemsModalClose} />

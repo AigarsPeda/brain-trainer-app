@@ -1,39 +1,85 @@
 import AdIcon from "@/assets/images/ad.png";
 import Gem from "@/assets/images/gem.png";
+import { AnimatedTimer } from "@/components/AnimatedTimer";
 import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { GEMS_FROM_AD } from "@/constants/GameSettings";
-import useAppContext from "@/hooks/useAppContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useEffect, useRef, useState } from "react";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface GemModalProps {
   visible: boolean;
-  onClose: () => void;
-  onWatchAd?: () => void;
   adLoaded?: boolean;
+  onClose: () => void;
+  currentGems: number;
+  onWatchAd?: () => void;
+  showAnimation?: boolean;
+  animationStartValue?: number;
 }
 
-export function GemModal({ visible, onClose, onWatchAd, adLoaded }: GemModalProps) {
-  const { state, dispatch } = useAppContext();
-  const { background, text, tint } = useThemeColor();
-  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
+export function GemModal({
+  visible,
+  onClose,
+  adLoaded,
+  onWatchAd,
+  currentGems,
+  animationStartValue,
+  showAnimation = false,
+}: GemModalProps) {
+  const { text, tint } = useThemeColor();
+  const [animatedGems, setAnimatedGems] = useState(currentGems);
+  const animationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const handleWatchAd = () => {
-    if (onWatchAd) {
-      onWatchAd();
+  useEffect(() => {
+    if (showAnimation && visible && animationStartValue !== undefined) {
+      const targetGems = currentGems;
+      const startGems = animationStartValue;
+
+      setAnimatedGems(startGems);
+
+      const startDelay = setTimeout(() => {
+        let currentValue = startGems;
+        const step = 1;
+        const interval = 50;
+
+        animationTimerRef.current = setInterval(() => {
+          currentValue += step;
+          if (currentValue >= targetGems) {
+            setAnimatedGems(targetGems);
+            if (animationTimerRef.current) {
+              clearInterval(animationTimerRef.current);
+            }
+          } else {
+            setAnimatedGems(currentValue);
+          }
+        }, interval);
+      }, 300);
+
+      return () => {
+        clearTimeout(startDelay);
+        if (animationTimerRef.current) {
+          clearInterval(animationTimerRef.current);
+        }
+      };
+    } else {
+      setAnimatedGems(currentGems);
     }
-  };
+
+    return () => {
+      if (animationTimerRef.current) {
+        clearInterval(animationTimerRef.current);
+      }
+    };
+  }, [showAnimation, visible, currentGems, animationStartValue]);
 
   return (
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
       <View style={styles.overlay}>
         <ThemedView style={[styles.container, { borderColor: tint }]}>
-          {/* Header with close button */}
           <View style={styles.header}>
             <ThemedText type="title">Dimanti</ThemedText>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -41,19 +87,24 @@ export function GemModal({ visible, onClose, onWatchAd, adLoaded }: GemModalProp
             </TouchableOpacity>
           </View>
 
-          {/* Gem count display */}
           <View style={[styles.gemCountContainer]}>
             <Image source={Gem} style={styles.gemIconLarge} contentFit="contain" />
-            <ThemedText type="title">{state.gems}</ThemedText>
+            {showAnimation ? (
+              <AnimatedTimer
+                digitHeight={40}
+                direction="countup"
+                style={styles.gemCountText}
+                time={animatedGems.toString()}
+              />
+            ) : (
+              <ThemedText type="title">{currentGems}</ThemedText>
+            )}
           </View>
 
-          {/* Description */}
           <ThemedText style={styles.description}>
-            Izmanto dimantus, lai iegādātos papildinājumus spēlē. Nopelni vairāk dimantu, skatoties reklāmas vai
-            pabeidzot līmeņus ar augstāku zvaigžņu skaitu!
+            Izmanto dimantus, lai iegādātos papildinājumus spēlē. Nopelni vairāk dimantu, skatoties reklāmas!
           </ThemedText>
 
-          {/* Watch ad button */}
           {onWatchAd && (
             <View style={{ ...styles.buttonContainer, marginBottom: 20 }}>
               <MainButton onPress={onWatchAd} disabled={!adLoaded} style={styles.compactButton}>
@@ -73,7 +124,6 @@ export function GemModal({ visible, onClose, onWatchAd, adLoaded }: GemModalProp
             </View>
           )}
 
-          {/* Close button */}
           <View style={styles.buttonContainer}>
             <MainButton variant="secondary" onPress={onClose} style={styles.compactButton}>
               <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
@@ -90,46 +140,51 @@ export function GemModal({ visible, onClose, onWatchAd, adLoaded }: GemModalProp
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
     padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   container: {
+    padding: 20,
     width: "100%",
     maxWidth: 400,
+    borderWidth: 2,
     maxHeight: "90%",
     borderRadius: 20,
-    padding: 20,
-    borderWidth: 2,
   },
   header: {
+    marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
   },
   closeButton: {
     padding: 4,
   },
   gemCountContainer: {
+    gap: 12,
+    borderRadius: 16,
+    marginBottom: 16,
+    paddingVertical: 24,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 24,
-    borderRadius: 16,
-    marginBottom: 16,
-    gap: 12,
   },
   gemIconLarge: {
     width: 48,
     height: 48,
   },
+  gemCountText: {
+    fontSize: 34,
+    lineHeight: 44,
+    fontFamily: "BalooBhai2_700Bold",
+  },
   description: {
     fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
     lineHeight: 22,
+    marginBottom: 20,
+    textAlign: "center",
   },
   buttonContainer: {
     width: "100%",
@@ -140,9 +195,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   adButtonContent: {
+    gap: 6,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
   },
   adIcon: {
     width: 20,
