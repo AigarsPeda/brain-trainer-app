@@ -4,7 +4,6 @@ import { MathExplanation } from "@/utils/mathExplanations";
 import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
-  Easing,
   FadeIn,
   useAnimatedStyle,
   useSharedValue,
@@ -290,11 +289,11 @@ function SubtractionAnimation({
       // Show right box after items fade in
       rightBoxOpacity.value = withDelay(totalFadeInTime, withTiming(1, { duration: 300 }));
 
-      // Animate each item sliding to the right box one by one
+      // Animate each item sliding to the right box one by one with spring effect
       moveAnimations.forEach((anim, index) => {
         anim.value = withDelay(
           index * 500 + totalFadeInTime + 400,
-          withTiming(1, { duration: 600, easing: Easing.bezier(0.25, 0.1, 0.25, 1) })
+          withSpring(1, { damping: 12, stiffness: 100 })
         );
       });
     }
