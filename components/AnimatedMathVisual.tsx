@@ -272,10 +272,12 @@ function SubtractionAnimation({
   const itemsPerRow = Math.min(maxItemsPerRow, totalItems);
   const numRows = Math.ceil(totalItems / maxItemsPerRow);
   const boxWidth = itemsPerRow * (itemSize + 6) + 24;
-  const boxHeight = numRows * (itemSize + 6) + 20;
+  // const boxHeight = numRows * (itemSize + 6) + 20;
+  const boxHeight = numRows * itemSize + 25;
 
   // Gap between boxes
-  const boxGap = 20;
+  // const boxGap = 20;
+  const boxGap = 1;
 
   // Calculate delay for main animation based on number of items fading in
   const itemFadeInDelay = 150;
@@ -291,10 +293,7 @@ function SubtractionAnimation({
 
       // Animate each item sliding to the right box one by one with spring effect
       moveAnimations.forEach((anim, index) => {
-        anim.value = withDelay(
-          index * 500 + totalFadeInTime + 400,
-          withSpring(1, { damping: 12, stiffness: 100 })
-        );
+        anim.value = withDelay(index * 500 + totalFadeInTime + 400, withSpring(1, { damping: 12, stiffness: 100 }));
       });
     }
   }, [isPlaying]);
@@ -304,7 +303,7 @@ function SubtractionAnimation({
   }));
 
   // Distance items need to travel (from left box to right box)
-  const slideDistance = boxWidth + boxGap;
+  const slideDistance = boxWidth + boxGap + 10;
 
   return (
     <View
@@ -314,7 +313,13 @@ function SubtractionAnimation({
       <View
         style={[
           styles.itemBox,
-          { backgroundColor: boxBackground, borderColor: boxBorder, width: boxWidth, minHeight: boxHeight },
+          {
+            backgroundColor: boxBackground,
+            borderColor: boxBorder,
+            width: boxWidth,
+            minHeight: boxHeight,
+            height: boxHeight,
+          },
         ]}
       >
         {leftItems.map((item, index) => {
@@ -375,7 +380,13 @@ function SubtractionAnimation({
       <Animated.View
         style={[
           styles.itemBox,
-          { backgroundColor: boxBackground, borderColor: boxBorder, width: boxWidth, minHeight: boxHeight },
+          {
+            backgroundColor: boxBackground,
+            borderColor: boxBorder,
+            width: boxWidth,
+            minHeight: boxHeight,
+            height: boxHeight,
+          },
           rightBoxStyle,
         ]}
       />
