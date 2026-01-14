@@ -308,7 +308,9 @@ function SubtractionAnimation({
   const slideDistance = boxWidth + boxGap;
 
   return (
-    <View style={[styles.animationRow, { justifyContent: "center", gap: boxGap, minHeight: Math.max(80, boxHeight + 10) }]}>
+    <View
+      style={[styles.animationRow, { justifyContent: "center", gap: boxGap, minHeight: Math.max(80, boxHeight + 10) }]}
+    >
       {/* Left box - items start here */}
       <View
         style={[
@@ -321,8 +323,14 @@ function SubtractionAnimation({
 
           if (isBeingMoved) {
             const moveIndex = index - itemsRemaining;
+            // Calculate vertical offset - items need to move up to their new position in right box
+            // In left box they're at position (itemsRemaining + moveIndex), in right box they should be at moveIndex
+            const verticalOffset = -itemsRemaining * (itemSize - 14);
             const animatedStyle = useAnimatedStyle(() => ({
-              transform: [{ translateX: moveAnimations[moveIndex].value * slideDistance }],
+              transform: [
+                { translateX: moveAnimations[moveIndex].value * slideDistance },
+                { translateY: moveAnimations[moveIndex].value * verticalOffset },
+              ],
               zIndex: 10,
             }));
 
