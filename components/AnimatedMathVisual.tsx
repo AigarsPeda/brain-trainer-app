@@ -258,64 +258,146 @@ function SubtractionAnimation({
   boxBorder,
 }: SubtractionAnimationProps) {
   const itemsToRemove = rightItems.length;
+  const itemsRemaining = leftItems.length - itemsToRemove;
   const removeAnimations = leftItems.slice(0, itemsToRemove).map(() => useSharedValue(0));
+  const remainingAnimations = leftItems.slice(itemsToRemove).map(() => useSharedValue(0));
+  const rightBoxOpacity = useSharedValue(0);
+  const leftBoxTranslateX = useSharedValue(0);
+  const rightBoxTranslateX = useSharedValue(150);
 
-  // Calculate item size based on total number of items
+  // Calculate item size based on total number of items - smaller for more items
   const totalItems = leftItems.length;
-  const itemSize = totalItems > 6 ? 20 : 28;
+  const itemSize = totalItems > 8 ? 16 : totalItems > 6 ? 18 : totalItems > 4 ? 22 : 28;
+
+  // Calculate box dimensions to fit items in a grid (max 3 items per row)
+  const maxItemsPerRow = 3;
+  const itemsPerRow = Math.min(maxItemsPerRow, totalItems);
+  const numRows = Math.ceil(totalItems / maxItemsPerRow);
+  const boxWidth = itemsPerRow * (itemSize + 6) + 24; // item size + margins + padding
+  const boxHeight = numRows * (itemSize + 6) + 20; // rows + padding
+
+  // Calculate delay for main animation based on number of items fading in
+  const itemFadeInDelay = 150; // ms between each item fade in
+  const totalFadeInTime = totalItems * itemFadeInDelay + 600; // time for all items to fade in + pause
 
   useEffect(() => {
     if (isPlaying) {
       removeAnimations.forEach((anim) => (anim.value = 0));
+      remainingAnimations.forEach((anim) => (anim.value = 0));
+      rightBoxOpacity.value = 0;
+      leftBoxTranslateX.value = 0;
+      rightBoxTranslateX.value = 150;
 
-      // Animate items being taken away
+      // Move left box to the left and fade in right box (after all items have faded in)
+      leftBoxTranslateX.value = withDelay(totalFadeInTime, withSpring(-70, { damping: 15, stiffness: 100 }));
+      rightBoxTranslateX.value = withDelay(totalFadeInTime, withSpring(70, { damping: 15, stiffness: 100 }));
+      rightBoxOpacity.value = withDelay(totalFadeInTime, withTiming(1, { duration: 400 }));
+
+      // Animate items being moved to the right box with staggered delay
       removeAnimations.forEach((anim, index) => {
-        anim.value = withDelay(index * 400 + 500, withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) }));
+        anim.value = withDelay(index * 400 + totalFadeInTime + 500, withSpring(1, { damping: 12, stiffness: 100 }));
+      });
+
+      // Animate remaining items (fade in with the initial items)
+      remainingAnimations.forEach((anim, index) => {
+        anim.value = withDelay((index + itemsToRemove) * itemFadeInDelay + 200, withTiming(1, { duration: 300 }));
       });
     }
   }, [isPlaying]);
 
+  const rightBoxStyle = useAnimatedStyle(() => ({
+    opacity: rightBoxOpacity.value,
+    transform: [{ translateX: rightBoxTranslateX.value }, { scale: 0.8 + rightBoxOpacity.value * 0.2 }],
+  }));
+
+  const leftBoxStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: leftBoxTranslateX.value }],
+  }));
+
   return (
-    <View style={styles.animationRow}>
-      {/* Items - some will fly away */}
-      <View style={[styles.itemBox, { backgroundColor: boxBackground, borderColor: boxBorder }]}>
+    <View style={[styles.animationRow, { justifyContent: "center", position: "relative", minHeight: Math.max(80, boxHeight + 10) }]}>
+      {/* Left box - items leave from here */}
+      <Animated.View
+        style={[
+          styles.itemBox,
+          { backgroundColor: boxBackground, borderColor: boxBorder, position: "absolute", width: boxWidth, minHeight: boxHeight },
+          leftBoxStyle,
+        ]}
+      >
         {leftItems.map((item, index) => {
           const isBeingRemoved = index < itemsToRemove;
           if (isBeingRemoved) {
             const animatedStyle = useAnimatedStyle(() => ({
               opacity: 1 - removeAnimations[index].value,
               transform: [
-                { translateY: removeAnimations[index].value * -30 },
-                { translateX: removeAnimations[index].value * 20 },
-                { rotate: `${removeAnimations[index].value * 30}deg` },
+                { translateX: removeAnimations[index].value * 140 },
                 { scale: 1 - removeAnimations[index].value * 0.5 },
               ],
             }));
             return typeof item === "string" ? (
-              <Animated.Text key={`item-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
+              <Animated.Text
+                key={`left-${index}`}
+                entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
+                style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}
+              >
                 {item}
               </Animated.Text>
             ) : (
               <Animated.Image
-                key={`item-img-${index}`}
+                key={`left-img-${index}`}
+                entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
                 source={item}
                 style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
               />
             );
           }
+          const remainingIndex = index - itemsToRemove;
+          const animatedStyle = useAnimatedStyle(() => ({
+            opacity: remainingAnimations[remainingIndex].value,
+          }));
           return typeof item === "string" ? (
-            <Animated.Text key={`item-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }]}>
+            <Animated.Text key={`left-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
               {item}
             </Animated.Text>
           ) : (
             <Animated.Image
-              key={`item-img-${index}`}
+              key={`left-img-${index}`}
               source={item}
-              style={{ width: itemSize, height: itemSize, marginHorizontal: 2 }}
+              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
             />
           );
         })}
-      </View>
+      </Animated.View>
+
+      {/* Right box - items fly here (appears and collects items) */}
+      <Animated.View
+        style={[
+          styles.itemBox,
+          { backgroundColor: boxBackground, borderColor: boxBorder, position: "absolute", width: boxWidth, minHeight: boxHeight },
+          rightBoxStyle,
+        ]}
+      >
+        {leftItems.slice(0, itemsToRemove).map((item, index) => {
+          const animatedStyle = useAnimatedStyle(() => ({
+            opacity: removeAnimations[index].value,
+            transform: [
+              { translateX: (1 - removeAnimations[index].value) * -140 },
+              { scale: 0.5 + removeAnimations[index].value * 0.5 },
+            ],
+          }));
+          return typeof item === "string" ? (
+            <Animated.Text key={`right-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
+              {item}
+            </Animated.Text>
+          ) : (
+            <Animated.Image
+              key={`right-img-${index}`}
+              source={item}
+              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+            />
+          );
+        })}
+      </Animated.View>
     </View>
   );
 }
