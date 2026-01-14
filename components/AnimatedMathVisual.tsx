@@ -263,6 +263,11 @@ function SubtractionAnimation({
   const moveAnimations = Array.from({ length: itemsToRemove }, () => useSharedValue(0));
   const rightBoxOpacity = useSharedValue(0);
 
+  // Animation values for initial box fade in and slide
+  const leftBoxOpacity = useSharedValue(0);
+  const leftBoxTranslateX = useSharedValue(50); // Start from right (center position)
+  const itemOpacities = Array.from({ length: leftItems.length }, () => useSharedValue(0));
+
   // Calculate item size based on total number of items
   const totalItems = leftItems.length;
   const itemSize = totalItems > 8 ? 16 : totalItems > 6 ? 18 : totalItems > 4 ? 22 : 28;
@@ -272,31 +277,62 @@ function SubtractionAnimation({
   const itemsPerRow = Math.min(maxItemsPerRow, totalItems);
   const numRows = Math.ceil(totalItems / maxItemsPerRow);
   const boxWidth = itemsPerRow * (itemSize + 6) + 24;
-  // const boxHeight = numRows * (itemSize + 6) + 20;
   const boxHeight = numRows * itemSize + 25;
 
   // Gap between boxes
-  // const boxGap = 20;
   const boxGap = 1;
 
-  // Calculate delay for main animation based on number of items fading in
+  // Timing constants
+  const boxFadeInDuration = 400;
+  const boxSlideDelay = 300;
+  const boxSlideDuration = 500;
   const itemFadeInDelay = 150;
-  const totalFadeInTime = totalItems * itemFadeInDelay + 600;
+  const itemFadeInStart = boxFadeInDuration + boxSlideDelay + boxSlideDuration;
+  const totalFadeInTime = itemFadeInStart + totalItems * itemFadeInDelay + 400;
 
   useEffect(() => {
     if (isPlaying) {
+      // Reset all animations
       moveAnimations.forEach((anim) => (anim.value = 0));
       rightBoxOpacity.value = 0;
+      leftBoxOpacity.value = 0;
+      leftBoxTranslateX.value = 50;
+      itemOpacities.forEach((anim) => (anim.value = 0));
 
-      // Show right box after items fade in
+      // Step 1: Fade in the left box (starts from center)
+      leftBoxOpacity.value = withTiming(1, { duration: boxFadeInDuration });
+
+      // Step 2: Slide the box to the left
+      leftBoxTranslateX.value = withDelay(
+        boxSlideDelay,
+        withSpring(0, { damping: 15, stiffness: 100 })
+      );
+
+      // Step 3: Fade in items one by one
+      itemOpacities.forEach((anim, index) => {
+        anim.value = withDelay(
+          itemFadeInStart + index * itemFadeInDelay,
+          withTiming(1, { duration: 300 })
+        );
+      });
+
+      // Step 4: Show right box after items fade in
       rightBoxOpacity.value = withDelay(totalFadeInTime, withTiming(1, { duration: 300 }));
 
-      // Animate each item sliding to the right box one by one with spring effect
+      // Step 5: Animate each item sliding to the right box one by one with spring effect
       moveAnimations.forEach((anim, index) => {
-        anim.value = withDelay(index * 500 + totalFadeInTime + 400, withSpring(1, { damping: 12, stiffness: 100 }));
+        anim.value = withDelay(
+          index * 500 + totalFadeInTime + 400,
+          withSpring(1, { damping: 12, stiffness: 100 })
+        );
       });
     }
   }, [isPlaying]);
+
+  const leftBoxStyle = useAnimatedStyle(() => ({
+    opacity: leftBoxOpacity.value,
+    transform: [{ translateX: leftBoxTranslateX.value }],
+  }));
 
   const rightBoxStyle = useAnimatedStyle(() => ({
     opacity: rightBoxOpacity.value,
@@ -310,73 +346,6 @@ function SubtractionAnimation({
       style={[styles.animationRow, { justifyContent: "center", gap: boxGap, minHeight: Math.max(80, boxHeight + 10) }]}
     >
       {/* Left box - items start here */}
-      <View
-        style={[
-          styles.itemBox,
-          {
-            backgroundColor: boxBackground,
-            borderColor: boxBorder,
-            width: boxWidth,
-            minHeight: boxHeight,
-            height: boxHeight,
-          },
-        ]}
-      >
-        {leftItems.map((item, index) => {
-          const isBeingMoved = index >= itemsRemaining;
-
-          if (isBeingMoved) {
-            const moveIndex = index - itemsRemaining;
-            // Calculate vertical offset - items need to move up to their new position in right box
-            // In left box they're at position (itemsRemaining + moveIndex), in right box they should be at moveIndex
-            const verticalOffset = -itemsRemaining * (itemSize - 14);
-            const animatedStyle = useAnimatedStyle(() => ({
-              transform: [
-                { translateX: moveAnimations[moveIndex].value * slideDistance },
-                { translateY: moveAnimations[moveIndex].value * verticalOffset },
-              ],
-              zIndex: 10,
-            }));
-
-            return typeof item === "string" ? (
-              <Animated.Text
-                key={`item-${index}`}
-                entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
-                style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}
-              >
-                {item}
-              </Animated.Text>
-            ) : (
-              <Animated.Image
-                key={`item-img-${index}`}
-                entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
-                source={item}
-                style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
-              />
-            );
-          }
-
-          // Remaining items - just fade in and stay
-          return typeof item === "string" ? (
-            <Animated.Text
-              key={`item-${index}`}
-              entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
-              style={[styles.itemEmoji, { fontSize: itemSize }]}
-            >
-              {item}
-            </Animated.Text>
-          ) : (
-            <Animated.Image
-              key={`item-img-${index}`}
-              entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
-              source={item}
-              style={{ width: itemSize, height: itemSize, marginHorizontal: 2 }}
-            />
-          );
-        })}
-      </View>
-
-      {/* Right box - empty box that receives items */}
       <Animated.View
         style={[
           styles.itemBox,
@@ -386,6 +355,80 @@ function SubtractionAnimation({
             width: boxWidth,
             minHeight: boxHeight,
             height: boxHeight,
+            zIndex: 2,
+          },
+          leftBoxStyle,
+        ]}
+      >
+        {leftItems.map((item, index) => {
+          const isBeingMoved = index >= itemsRemaining;
+
+          if (isBeingMoved) {
+            const moveIndex = index - itemsRemaining;
+            // Calculate vertical offset - items need to move up to their new position in right box
+            const verticalOffset = -itemsRemaining * (itemSize - 14);
+            const animatedStyle = useAnimatedStyle(() => {
+              const moveProgress = moveAnimations[moveIndex].value;
+              // Once move starts (moveProgress > 0), keep full opacity; otherwise use fade-in opacity
+              const opacity = moveProgress > 0.01 ? 1 : itemOpacities[index].value;
+              return {
+                opacity,
+                transform: [
+                  { translateX: moveProgress * slideDistance },
+                  { translateY: moveProgress * verticalOffset },
+                ],
+              };
+            });
+
+            return typeof item === "string" ? (
+              <Animated.Text
+                key={`item-${index}`}
+                style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}
+              >
+                {item}
+              </Animated.Text>
+            ) : (
+              <Animated.Image
+                key={`item-img-${index}`}
+                source={item}
+                style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+              />
+            );
+          }
+
+          // Remaining items - use controlled opacity animation
+          const animatedStyle = useAnimatedStyle(() => ({
+            opacity: itemOpacities[index].value,
+          }));
+
+          return typeof item === "string" ? (
+            <Animated.Text
+              key={`item-${index}`}
+              style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}
+            >
+              {item}
+            </Animated.Text>
+          ) : (
+            <Animated.Image
+              key={`item-img-${index}`}
+              source={item}
+              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+            />
+          );
+        })}
+      </Animated.View>
+
+      {/* Right box - background box (items render on top from left box) */}
+      <Animated.View
+        style={[
+          styles.itemBox,
+          {
+            backgroundColor: boxBackground,
+            borderColor: boxBorder,
+            width: boxWidth,
+            minHeight: boxHeight,
+            height: boxHeight,
+            zIndex: 1,
           },
           rightBoxStyle,
         ]}
