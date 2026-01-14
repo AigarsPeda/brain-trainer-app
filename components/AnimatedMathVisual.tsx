@@ -259,8 +259,8 @@ function SubtractionAnimation({
 }: SubtractionAnimationProps) {
   const itemsToRemove = rightItems.length;
   const itemsRemaining = leftItems.length - itemsToRemove;
-  const removeAnimations = leftItems.slice(0, itemsToRemove).map(() => useSharedValue(0));
-  const remainingAnimations = leftItems.slice(itemsToRemove).map(() => useSharedValue(0));
+  // Animation values for items being removed (last N items)
+  const removeAnimations = Array.from({ length: itemsToRemove }, () => useSharedValue(0));
   const rightBoxOpacity = useSharedValue(0);
   const leftBoxTranslateX = useSharedValue(0);
   const rightBoxTranslateX = useSharedValue(150);
@@ -283,7 +283,6 @@ function SubtractionAnimation({
   useEffect(() => {
     if (isPlaying) {
       removeAnimations.forEach((anim) => (anim.value = 0));
-      remainingAnimations.forEach((anim) => (anim.value = 0));
       rightBoxOpacity.value = 0;
       leftBoxTranslateX.value = 0;
       rightBoxTranslateX.value = 150;
@@ -296,11 +295,6 @@ function SubtractionAnimation({
       // Animate items being moved to the right box with staggered delay
       removeAnimations.forEach((anim, index) => {
         anim.value = withDelay(index * 400 + totalFadeInTime + 500, withSpring(1, { damping: 12, stiffness: 100 }));
-      });
-
-      // Animate remaining items (fade in with the initial items)
-      remainingAnimations.forEach((anim, index) => {
-        anim.value = withDelay((index + itemsToRemove) * itemFadeInDelay + 200, withTiming(1, { duration: 300 }));
       });
     }
   }, [isPlaying]);
@@ -325,13 +319,15 @@ function SubtractionAnimation({
         ]}
       >
         {leftItems.map((item, index) => {
-          const isBeingRemoved = index < itemsToRemove;
+          const isBeingRemoved = index >= itemsRemaining; // Remove LAST items instead of first
           if (isBeingRemoved) {
+            const removeIndex = index - itemsRemaining; // Index within items being removed
             const animatedStyle = useAnimatedStyle(() => ({
-              opacity: 1 - removeAnimations[index].value,
+              opacity: 1 - removeAnimations[removeIndex].value, // Fully fade out
               transform: [
-                { translateX: removeAnimations[index].value * 140 },
-                { scale: 1 - removeAnimations[index].value * 0.5 },
+                { translateX: removeAnimations[removeIndex].value * 50 }, // Move right
+                { translateY: removeAnimations[removeIndex].value * -15 }, // Lift up
+                { scale: 1 - removeAnimations[removeIndex].value * 0.3 }, // Shrink slightly
               ],
             }));
             return typeof item === "string" ? (
@@ -351,19 +347,21 @@ function SubtractionAnimation({
               />
             );
           }
-          const remainingIndex = index - itemsToRemove;
-          const animatedStyle = useAnimatedStyle(() => ({
-            opacity: remainingAnimations[remainingIndex].value,
-          }));
+          // Remaining items (first ones that stay) - just fade in, no animation needed after
           return typeof item === "string" ? (
-            <Animated.Text key={`left-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
+            <Animated.Text
+              key={`left-${index}`}
+              entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
+              style={[styles.itemEmoji, { fontSize: itemSize }]}
+            >
               {item}
             </Animated.Text>
           ) : (
             <Animated.Image
               key={`left-img-${index}`}
+              entering={FadeIn.delay(index * itemFadeInDelay + 200).duration(300)}
               source={item}
-              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }]}
             />
           );
         })}
@@ -377,12 +375,13 @@ function SubtractionAnimation({
           rightBoxStyle,
         ]}
       >
-        {leftItems.slice(0, itemsToRemove).map((item, index) => {
+        {leftItems.slice(itemsRemaining).map((item, index) => {
           const animatedStyle = useAnimatedStyle(() => ({
             opacity: removeAnimations[index].value,
             transform: [
-              { translateX: (1 - removeAnimations[index].value) * -140 },
-              { scale: 0.5 + removeAnimations[index].value * 0.5 },
+              { translateX: (1 - removeAnimations[index].value) * -50 }, // Come from left
+              { translateY: (1 - removeAnimations[index].value) * -15 }, // Drop down
+              { scale: 0.7 + removeAnimations[index].value * 0.3 },
             ],
           }));
           return typeof item === "string" ? (
