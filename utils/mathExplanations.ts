@@ -50,14 +50,18 @@ export const getMathExplanation = (task: TaskType): MathExplanation => {
 /**
  * Returns an explanation for text-based tasks
  */
-const getTextTaskExplanation = (result: number): MathExplanation => {
+const getTextTaskExplanation = (_result: number): MathExplanation => {
+  const left = 3;
+  const right = 2;
+  const exampleResult = left + right;
+
   return {
     title: "Ja kaut ko iedod vai pievieno - saskaiti!",
     example: {
-      left: 3,
-      right: 2,
+      left,
+      right,
       operation: "+",
-      result: result,
+      result: exampleResult,
     },
     visualItems: {
       leftItems: [books, books, books],

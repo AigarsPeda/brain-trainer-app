@@ -1,7 +1,6 @@
 import Bulb from "@/assets/images/bulb.png";
 import ThumbsUp from "@/assets/images/thumbs_up.png";
 import { AnimatedMathVisual } from "@/components/AnimatedMathVisual";
-import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -12,7 +11,6 @@ import { MathExplanation } from "@/utils/mathExplanations";
 import { Image } from "expo-image";
 import { useCallback, useEffect, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 interface HintModalProps {
   visible: boolean;
@@ -25,12 +23,6 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
   const isDark = colorScheme === "dark";
   const { text } = useThemeColor();
   const [isAnimationPlaying, setIsAnimationPlaying] = useState(false);
-  const [selectedView, setSelectedView] = useState<"animation" | "description">("animation");
-
-  // Slide animation values
-  const slidePosition = useSharedValue(0);
-
-  const showAnimation = selectedView === "animation";
 
   // Start animation when modal becomes visible
   useEffect(() => {
@@ -50,47 +42,11 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
     setTimeout(() => setIsAnimationPlaying(true), 100);
   }, []);
 
-  const handleViewSelect = useCallback((key: string) => {
-    const newView = key as "animation" | "description";
-    setSelectedView(newView);
-
-    // Restart animation when switching back to animation view
-    if (key === "animation") {
-      setIsAnimationPlaying(false);
-      setTimeout(() => setIsAnimationPlaying(true), 300);
-    }
-  }, []);
-
-  // Update content slide animation when selected view changes
-  useEffect(() => {
-    slidePosition.value = withTiming(selectedView === "animation" ? 0 : 1, {
-      duration: 250,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [selectedView]);
-
-  const toggleItems = [
-    { key: "animation", label: "🎬 Animācija" },
-    { key: "description", label: "📊 Skaidrojums" },
-  ];
-
-  const animationViewStyle = useAnimatedStyle(() => ({
-    opacity: 1 - slidePosition.value,
-    transform: [{ translateX: -slidePosition.value * 30 }],
-    pointerEvents: slidePosition.value > 0.5 ? "none" : "auto",
-  }));
-
-  const descriptionViewStyle = useAnimatedStyle(() => ({
-    opacity: slidePosition.value,
-    transform: [{ translateX: (1 - slidePosition.value) * 30 }],
-    pointerEvents: slidePosition.value < 0.5 ? "none" : "auto",
-  }));
-
   if (!explanation) {
     return null;
   }
 
-  const { title, example, visualItems } = explanation;
+  const { title, example } = explanation;
 
   const colors = HintModalColors[isDark ? "dark" : "light"];
   const boxBackground = colors.boxBackground;
@@ -112,13 +68,6 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
               </View>
 
               <View style={[styles.visualSection, { backgroundColor: visualSectionBackground }]}>
-                <AnimatedToggle
-                  items={toggleItems}
-                  selectedKey={selectedView}
-                  onSelect={handleViewSelect}
-                  style={styles.viewToggleContainer}
-                />
-
                 <ThemedText
                   style={styles.exampleLabel}
                   lightColor={HintModalColors.light.exampleLabel}
@@ -138,135 +87,13 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
                 </View>
 
                 <View style={styles.contentSwitcher}>
-                  {showAnimation ? (
-                    <Animated.View style={[styles.switchableContent, animationViewStyle]}>
-                      <AnimatedMathVisual
-                        explanation={explanation}
-                        isPlaying={isAnimationPlaying}
-                        onReplay={handleReplayAnimation}
-                      />
-                    </Animated.View>
-                  ) : (
-                    <Animated.View style={[styles.switchableContent, descriptionViewStyle]}>
-                      <View style={styles.visualContainer}>
-                        {visualItems.operationSymbol === "+" && (
-                          <>
-                            <View
-                              style={[styles.itemsGroup, { backgroundColor: boxBackground, borderColor: boxBorder }]}
-                            >
-                              <ThemedText style={styles.visualItems}>{visualItems.leftItems.join(" ")}</ThemedText>
-                            </View>
-                            <ThemedText
-                              style={styles.operationText}
-                              lightColor={HintModalColors.light.operationText}
-                              darkColor={HintModalColors.dark.operationText}
-                            >
-                              {visualItems.operationSymbol}
-                            </ThemedText>
-                            <View
-                              style={[styles.itemsGroup, { backgroundColor: boxBackground, borderColor: boxBorder }]}
-                            >
-                              <ThemedText style={styles.visualItems}>{visualItems.rightItems.join(" ")}</ThemedText>
-                            </View>
-                          </>
-                        )}
-
-                        {visualItems.operationSymbol === "-" && (
-                          <View style={styles.subtractionContainer}>
-                            <ThemedText
-                              style={styles.subtractionLabel}
-                              lightColor={HintModalColors.light.subtractionLabel}
-                              darkColor={HintModalColors.dark.subtractionLabel}
-                            >
-                              Tev ir:
-                            </ThemedText>
-                            <View style={[styles.itemsRow, { backgroundColor: boxBackground, borderColor: boxBorder }]}>
-                              <ThemedText style={styles.visualItems}>{visualItems.leftItems.join(" ")}</ThemedText>
-                            </View>
-                            <ThemedText
-                              style={styles.subtractionLabel}
-                              lightColor={HintModalColors.light.subtractionLabel}
-                              darkColor={HintModalColors.dark.subtractionLabel}
-                            >
-                              Tu atdod:
-                            </ThemedText>
-                            <View style={styles.crossedOutRow}>
-                              {visualItems.rightItems.map((item, index) => (
-                                <View key={index} style={styles.crossedItemContainer}>
-                                  <ThemedText style={styles.crossedItem}>{item}</ThemedText>
-                                  <ThemedText style={styles.crossMark}>✖️</ThemedText>
-                                </View>
-                              ))}
-                            </View>
-                            <ThemedText
-                              style={styles.subtractionLabel}
-                              lightColor={HintModalColors.light.subtractionLabel}
-                              darkColor={HintModalColors.dark.subtractionLabel}
-                            >
-                              Tev paliek:
-                            </ThemedText>
-                            <View style={[styles.itemsRow, { backgroundColor: boxBackground, borderColor: boxBorder }]}>
-                              <ThemedText style={styles.visualItems}>
-                                {visualItems.leftItems.slice(0, example.result).join(" ")}
-                              </ThemedText>
-                            </View>
-                            <ThemedText
-                              style={styles.resultCount}
-                              lightColor={HintModalColors.light.resultCount}
-                              darkColor={HintModalColors.dark.resultCount}
-                            >
-                              ({example.result} paliek)
-                            </ThemedText>
-                          </View>
-                        )}
-
-                        {(visualItems.operationSymbol === "×" || visualItems.operationSymbol === "÷") && (
-                          <View style={styles.groupsContainer}>
-                            {visualItems.leftItems.map((group, index) => (
-                              <View
-                                key={index}
-                                style={[
-                                  styles.groupBox,
-                                  {
-                                    backgroundColor: boxBackground,
-                                    borderColor: isDark
-                                      ? HintModalColors.dark.groupBoxBorder
-                                      : HintModalColors.light.groupBoxBorder,
-                                  },
-                                ]}
-                              >
-                                <ThemedText style={styles.groupItems}>{group}</ThemedText>
-                              </View>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-
-                      {visualItems.operationSymbol === "+" && (
-                        <View style={styles.resultSection}>
-                          <ThemedText
-                            style={styles.equalsText}
-                            lightColor={HintModalColors.light.equalsText}
-                            darkColor={HintModalColors.dark.equalsText}
-                          >
-                            =
-                          </ThemedText>
-                          <ThemedText style={styles.visualItems}>
-                            {[...visualItems.leftItems, ...visualItems.rightItems].join(" ")}
-                          </ThemedText>
-                          <ThemedText
-                            style={styles.resultCount}
-                            lightColor={HintModalColors.light.resultCount}
-                            darkColor={HintModalColors.dark.resultCount}
-                          >
-                            ({example.result} kopā)
-                          </ThemedText>
-                        </View>
-                      )}
-                    </Animated.View>
-                  )}
-                </View>
+                  <AnimatedMathVisual
+                    explanation={explanation}
+                    isPlaying={isAnimationPlaying}
+                    onReplay={handleReplayAnimation}
+                  />
               </View>
+            </View>
             </ScrollView>
 
             <View style={styles.closeButtonContainer}>
@@ -332,9 +159,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderColor: "rgba(106, 74, 203, 0.2)",
   },
-  viewToggleContainer: {
-    marginBottom: 12,
-  },
   exampleLabel: {
     fontSize: 14,
     marginBottom: 8,
@@ -353,101 +177,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   contentSwitcher: {
-    height: 180,
     width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  switchableContent: {
-    height: 180,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  visualContainer: {
-    gap: 8,
-    flexWrap: "wrap",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemsGroup: {
-    padding: 8,
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  visualItems: {
-    fontSize: 24,
-    textAlign: "center",
-  },
-  operationText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginHorizontal: 8,
-  },
-  subtractionContainer: {
-    gap: 6,
-    width: "100%",
-    alignItems: "center",
-  },
-  subtractionLabel: {
-    marginTop: 4,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  itemsRow: {
-    gap: 4,
-    padding: 8,
-    borderWidth: 1,
-    borderRadius: 8,
-    flexDirection: "row",
-  },
-  crossedOutRow: {
-    gap: 4,
-    flexDirection: "row",
-  },
-  crossedItemContainer: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  crossedItem: {
-    fontSize: 24,
-    opacity: 0.4,
-  },
-  crossMark: {
-    fontSize: 16,
-    position: "absolute",
-  },
-  groupsContainer: {
-    gap: 8,
-    flexWrap: "wrap",
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  groupBox: {
-    padding: 8,
-    borderWidth: 2,
-    borderRadius: 8,
-    borderStyle: "dashed",
-  },
-  groupItems: {
-    fontSize: 22,
-    textAlign: "center",
-  },
-  resultSection: {
-    gap: 4,
-    marginTop: 12,
-    alignItems: "center",
-  },
-  equalsText: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  resultCount: {
-    fontSize: 14,
-    marginTop: 4,
-    fontWeight: "500",
   },
   closeButtonContainer: {
     width: "100%",

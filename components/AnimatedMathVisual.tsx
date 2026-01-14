@@ -1,7 +1,8 @@
+import Refresh from "@/assets/images/refresh.png";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import { MathExplanation } from "@/utils/mathExplanations";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, View, Image } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
@@ -80,7 +81,10 @@ export function AnimatedMathVisual({ explanation, isPlaying, onReplay }: Animate
       )}
 
       <Pressable style={styles.replayButton} onPress={onReplay}>
-        <ThemedText style={styles.replayText}>🔄 Atkārtot</ThemedText>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Image source={Refresh} style={{ width: 16, height: 16 }} />
+          <ThemedText style={styles.replayText}>Atkārtot</ThemedText>
+        </View>
       </Pressable>
     </View>
   );
@@ -102,17 +106,19 @@ interface AdditionAnimationProps {
 function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, boxBorder }: AdditionAnimationProps) {
   const itemAnimations = rightItems.map(() => useSharedValue(0));
   const rightBoxOpacity = useSharedValue(1);
-  const leftBoxTranslate = useSharedValue(0);
-  const parentRef = useRef<View>(null);
+  const leftBoxCenterX = useSharedValue(0);
+  const [containerWidth, setContainerWidth] = useState(0);
   const leftBoxRef = useRef<View>(null);
-  const [parentWidth, setParentWidth] = useState(0);
-  const [leftBoxWidth, setLeftBoxWidth] = useState(0);
+
+  // Calculate item size based on total number of items
+  const totalItems = leftItems.length + rightItems.length;
+  const itemSize = totalItems > 6 ? 20 : 28;
 
   useEffect(() => {
     if (isPlaying) {
       itemAnimations.forEach((anim) => (anim.value = 0));
       rightBoxOpacity.value = 1;
-      leftBoxTranslate.value = 0;
+      leftBoxCenterX.value = 0;
 
       // Animate each item flying over with staggered delay
       itemAnimations.forEach((anim, index) => {
@@ -122,19 +128,25 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
       // Hide the right box after all items have moved
       rightBoxOpacity.value = withDelay(rightItems.length * 400 + 600, withTiming(0, { duration: 300 }));
 
-      // Animate left box to center after right box disappears
+      // Measure and center the left box after right box disappears
       setTimeout(
         () => {
-          if (parentWidth && leftBoxWidth) {
-            // Remove the -12 gap offset, and add a small positive offset for visual centering
-            const targetTranslate = (parentWidth - leftBoxWidth) / 2;
-            leftBoxTranslate.value = withSpring(targetTranslate, { damping: 15, stiffness: 100 });
+          if (leftBoxRef.current && containerWidth > 0) {
+            leftBoxRef.current.measure((x, y, width) => {
+              if (width > 0) {
+                // Calculate offset to center the box
+                const currentX = x;
+                const targetX = (containerWidth - width) / 2;
+                const translateAmount = targetX - currentX;
+                leftBoxCenterX.value = withSpring(translateAmount, { damping: 15, stiffness: 100 });
+              }
+            });
           }
         },
         rightItems.length * 400 + 900
       );
     }
-  }, [isPlaying, parentWidth, leftBoxWidth]);
+  }, [isPlaying, containerWidth]);
 
   const rightBoxStyle = useAnimatedStyle(() => ({
     opacity: rightBoxOpacity.value,
@@ -142,20 +154,23 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
   }));
 
   const leftBoxStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: leftBoxTranslate.value }],
+    transform: [{ translateX: leftBoxCenterX.value }],
   }));
 
   return (
-    <View style={styles.animationRow} ref={parentRef} onLayout={(e) => setParentWidth(e.nativeEvent.layout.width)}>
+    <View style={styles.animationRow} onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
       {/* Left group - items join here */}
       <Animated.View
         ref={leftBoxRef}
-        onLayout={(e) => setLeftBoxWidth(e.nativeEvent.layout.width)}
         style={[styles.itemBox, { backgroundColor: boxBackground, borderColor: boxBorder }, leftBoxStyle]}
       >
         {leftItems.map((item, index) =>
           typeof item === "string" ? (
-            <Animated.Text key={`left-${index}`} entering={FadeIn.delay(index * 100)} style={styles.itemEmoji}>
+            <Animated.Text
+              key={`left-${index}`}
+              entering={FadeIn.delay(index * 100)}
+              style={[styles.itemEmoji, { fontSize: itemSize }]}
+            >
               {item}
             </Animated.Text>
           ) : (
@@ -163,7 +178,7 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
               key={`left-img-${index}`}
               entering={FadeIn.delay(index * 100)}
               source={item}
-              style={{ width: 28, height: 28, marginHorizontal: 2 }}
+              style={{ width: itemSize, height: itemSize, marginHorizontal: 2 }}
             />
           )
         )}
@@ -177,14 +192,14 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
             ],
           }));
           return typeof item === "string" ? (
-            <Animated.Text key={`flying-${index}`} style={[styles.itemEmoji, animatedStyle]}>
+            <Animated.Text key={`flying-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
               {item}
             </Animated.Text>
           ) : (
             <Animated.Image
               key={`flying-img-${index}`}
               source={item}
-              style={[{ width: 28, height: 28, marginHorizontal: 2 }, animatedStyle]}
+              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
             />
           );
         })}
@@ -205,14 +220,14 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
             transform: [{ scale: 1 - itemAnimations[index].value * 0.5 }],
           }));
           return typeof item === "string" ? (
-            <Animated.Text key={`right-${index}`} style={[styles.itemEmoji, animatedStyle]}>
+            <Animated.Text key={`right-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
               {item}
             </Animated.Text>
           ) : (
             <Animated.Image
               key={`right-img-${index}`}
               source={item}
-              style={[{ width: 28, height: 28, marginHorizontal: 2 }, animatedStyle]}
+              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
             />
           );
         })}
@@ -245,6 +260,10 @@ function SubtractionAnimation({
   const itemsToRemove = rightItems.length;
   const removeAnimations = leftItems.slice(0, itemsToRemove).map(() => useSharedValue(0));
 
+  // Calculate item size based on total number of items
+  const totalItems = leftItems.length;
+  const itemSize = totalItems > 6 ? 20 : 28;
+
   useEffect(() => {
     if (isPlaying) {
       removeAnimations.forEach((anim) => (anim.value = 0));
@@ -273,26 +292,26 @@ function SubtractionAnimation({
               ],
             }));
             return typeof item === "string" ? (
-              <Animated.Text key={`item-${index}`} style={[styles.itemEmoji, animatedStyle]}>
+              <Animated.Text key={`item-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
                 {item}
               </Animated.Text>
             ) : (
               <Animated.Image
                 key={`item-img-${index}`}
                 source={item}
-                style={[{ width: 28, height: 28, marginHorizontal: 2 }, animatedStyle]}
+                style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
               />
             );
           }
           return typeof item === "string" ? (
-            <Animated.Text key={`item-${index}`} style={styles.itemEmoji}>
+            <Animated.Text key={`item-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }]}>
               {item}
             </Animated.Text>
           ) : (
             <Animated.Image
               key={`item-img-${index}`}
               source={item}
-              style={{ width: 28, height: 28, marginHorizontal: 2 }}
+              style={{ width: itemSize, height: itemSize, marginHorizontal: 2 }}
             />
           );
         })}
@@ -519,6 +538,7 @@ const styles = StyleSheet.create({
     gap: 2,
     padding: 10,
     minWidth: 50,
+    maxWidth: "45%",
     minHeight: 44,
     borderWidth: 1,
     borderRadius: 10,
