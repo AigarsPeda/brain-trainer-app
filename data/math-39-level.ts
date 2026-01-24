@@ -11,9 +11,9 @@ export const LEVEL_39: TaskType[] = [
     taskNumberInLevel: 1,
     options: [
       { id: 1, equation: "12 ÷ 6" },
-      { id: 2, equation: "18 ÷ 6" },
-      { id: 3, equation: "24 ÷ 6" },
-      { id: 4, equation: "6 ÷ 6" },
+      { id: 2, equation: "6 ÷ 6" },
+      { id: 3, equation: "18 ÷ 6" },
+      { id: 4, equation: "24 ÷ 6" },
     ],
   },
   {
@@ -22,10 +22,10 @@ export const LEVEL_39: TaskType[] = [
     result: 3,
     taskNumberInLevel: 2,
     options: [
-      { id: 1, equation: "21 ÷ 7" },
+      { id: 1, equation: "14 ÷ 7" },
       { id: 2, equation: "28 ÷ 7" },
-      { id: 3, equation: "14 ÷ 7" },
-      { id: 4, equation: "35 ÷ 7" },
+      { id: 3, equation: "35 ÷ 7" },
+      { id: 4, equation: "21 ÷ 7" },
     ],
   },
   {
@@ -44,9 +44,9 @@ export const LEVEL_39: TaskType[] = [
     taskNumberInLevel: 4,
     options: [
       { id: 1, number: "40" },
-      { id: 2, number: "8" },
-      { id: 3, number: "10" },
-      { id: 4, number: "4" },
+      { id: 2, number: "4" },
+      { id: 3, number: "8" },
+      { id: 4, number: "10" },
     ],
   },
   {
@@ -55,10 +55,10 @@ export const LEVEL_39: TaskType[] = [
     result: 4,
     taskNumberInLevel: 5,
     options: [
-      { id: 1, equation: "28 ÷ 7" },
-      { id: 2, equation: "35 ÷ 7" },
-      { id: 3, equation: "21 ÷ 7" },
-      { id: 4, equation: "42 ÷ 7" },
+      { id: 1, equation: "35 ÷ 7" },
+      { id: 2, equation: "21 ÷ 7" },
+      { id: 3, equation: "42 ÷ 7" },
+      { id: 4, equation: "28 ÷ 7" },
     ],
   },
   {
@@ -67,10 +67,10 @@ export const LEVEL_39: TaskType[] = [
     result: 6,
     taskNumberInLevel: 6,
     options: [
-      { id: 1, equation: "48 ÷ 8" },
-      { id: 2, equation: "56 ÷ 8" },
-      { id: 3, equation: "40 ÷ 8" },
-      { id: 4, equation: "64 ÷ 8" },
+      { id: 1, equation: "64 ÷ 8" },
+      { id: 2, equation: "48 ÷ 8" },
+      { id: 3, equation: "56 ÷ 8" },
+      { id: 4, equation: "40 ÷ 8" },
     ],
   },
   {
@@ -88,10 +88,10 @@ export const LEVEL_39: TaskType[] = [
     operation: "÷",
     taskNumberInLevel: 8,
     options: [
-      { id: 1, number: "56" },
+      { id: 1, number: "28" },
       { id: 2, number: "7" },
-      { id: 3, number: "28" },
-      { id: 4, number: "2" },
+      { id: 3, number: "2" },
+      { id: 4, number: "56" },
     ],
   },
   {
@@ -101,9 +101,9 @@ export const LEVEL_39: TaskType[] = [
     taskNumberInLevel: 9,
     options: [
       { id: 1, equation: "56 ÷ 8" },
-      { id: 2, equation: "64 ÷ 8" },
-      { id: 3, equation: "48 ÷ 8" },
-      { id: 4, equation: "72 ÷ 8" },
+      { id: 2, equation: "72 ÷ 8" },
+      { id: 3, equation: "64 ÷ 8" },
+      { id: 4, equation: "48 ÷ 8" },
     ],
   },
   {
@@ -112,10 +112,10 @@ export const LEVEL_39: TaskType[] = [
     result: 9,
     taskNumberInLevel: 10,
     options: [
-      { id: 1, equation: "54 ÷ 6" },
+      { id: 1, equation: "48 ÷ 6" },
       { id: 2, equation: "60 ÷ 6" },
-      { id: 3, equation: "48 ÷ 6" },
-      { id: 4, equation: "42 ÷ 6" },
+      { id: 3, equation: "42 ÷ 6" },
+      { id: 4, equation: "54 ÷ 6" },
     ],
   },
   {
@@ -125,10 +125,10 @@ export const LEVEL_39: TaskType[] = [
     operation: "÷",
     taskNumberInLevel: 11,
     options: [
-      { id: 1, number: "70" },
-      { id: 2, number: "7" },
-      { id: 3, number: "35" },
-      { id: 4, number: "2" },
+      { id: 1, number: "7" },
+      { id: 2, number: "70" },
+      { id: 3, number: "2" },
+      { id: 4, number: "35" },
     ],
   },
   {
@@ -137,10 +137,10 @@ export const LEVEL_39: TaskType[] = [
     result: 8,
     taskNumberInLevel: 12,
     options: [
-      { id: 1, equation: "64 ÷ 8" },
-      { id: 2, equation: "72 ÷ 8" },
-      { id: 3, equation: "56 ÷ 8" },
-      { id: 4, equation: "48 ÷ 8" },
+      { id: 1, equation: "72 ÷ 8" },
+      { id: 2, equation: "56 ÷ 8" },
+      { id: 3, equation: "48 ÷ 8" },
+      { id: 4, equation: "64 ÷ 8" },
     ],
   },
 ];

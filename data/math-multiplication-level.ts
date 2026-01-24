@@ -12,9 +12,9 @@ export const LEVEL_4: TaskType[] = [
     taskNumberInLevel: 1,
     options: [
       { id: 1, equation: "15 + 5" },
-      { id: 2, equation: "12 + 8" },
-      { id: 3, equation: "18 + 3" },
-      { id: 4, equation: "14 + 5" },
+      { id: 2, equation: "14 + 5" },
+      { id: 3, equation: "12 + 8" },
+      { id: 4, equation: "18 + 3" },
     ],
   },
   // Task 2: createMathTask - Division (24 ÷ 4 = 6... wait, result should be in 15-25 range)
@@ -26,10 +26,10 @@ export const LEVEL_4: TaskType[] = [
     operation: "×",
     taskNumberInLevel: 2,
     options: [
-      { id: 1, number: "6" },
+      { id: 1, number: "4" },
       { id: 2, number: "3" },
-      { id: 3, number: "4" },
-      { id: 4, number: "5" },
+      { id: 3, number: "5" },
+      { id: 4, number: "6" },
     ],
   },
   // Task 3: textTask - Word problem with bananas
@@ -49,9 +49,9 @@ export const LEVEL_4: TaskType[] = [
     taskNumberInLevel: 4,
     options: [
       { id: 1, equation: "25 - 6" },
-      { id: 2, equation: "22 - 3" },
-      { id: 3, equation: "20 - 2" },
-      { id: 4, equation: "24 - 4" },
+      { id: 2, equation: "24 - 4" },
+      { id: 3, equation: "22 - 3" },
+      { id: 4, equation: "20 - 2" },
     ],
   },
   // Task 5: createMathTask - Addition (? + ? = 22)
@@ -62,10 +62,10 @@ export const LEVEL_4: TaskType[] = [
     operation: "+",
     taskNumberInLevel: 5,
     options: [
-      { id: 1, number: "15" },
-      { id: 2, number: "7" },
-      { id: 3, number: "9" },
-      { id: 4, number: "6" },
+      { id: 1, number: "7" },
+      { id: 2, number: "9" },
+      { id: 3, number: "6" },
+      { id: 4, number: "15" },
     ],
   },
   // Task 6: mathTaskWithResult - Multiplication (3 × 5 = 15)
@@ -75,10 +75,10 @@ export const LEVEL_4: TaskType[] = [
     result: 15,
     taskNumberInLevel: 6,
     options: [
-      { id: 1, equation: "3 × 5" },
-      { id: 2, equation: "5 × 3" },
-      { id: 3, equation: "4 × 4" },
-      { id: 4, equation: "2 × 8" },
+      { id: 1, equation: "2 × 8" },
+      { id: 2, equation: "3 × 5" },
+      { id: 3, equation: "5 × 3" },
+      { id: 4, equation: "4 × 4" },
     ],
   },
   // Task 7: textTask - Word problem with cookies
@@ -98,10 +98,10 @@ export const LEVEL_4: TaskType[] = [
     operation: "-",
     taskNumberInLevel: 8,
     options: [
-      { id: 1, number: "25" },
+      { id: 1, number: "10" },
       { id: 2, number: "8" },
-      { id: 3, number: "10" },
-      { id: 4, number: "6" },
+      { id: 3, number: "6" },
+      { id: 4, number: "25" },
     ],
   },
   // Task 9: mathTaskWithResult - Division (20 ÷ 4 = 5... let's use result 4 with 24 ÷ 6)
@@ -113,9 +113,9 @@ export const LEVEL_4: TaskType[] = [
     taskNumberInLevel: 9,
     options: [
       { id: 1, equation: "6 × 4" },
-      { id: 2, equation: "30 - 6" },
-      { id: 3, equation: "19 + 6" },
-      { id: 4, equation: "5 × 5" },
+      { id: 2, equation: "5 × 5" },
+      { id: 3, equation: "30 - 6" },
+      { id: 4, equation: "19 + 6" },
     ],
   },
   // Task 10: createMathTask - Division (? ÷ ? = 5 using 20 ÷ 4)
@@ -126,10 +126,10 @@ export const LEVEL_4: TaskType[] = [
     operation: "÷",
     taskNumberInLevel: 10,
     options: [
-      { id: 1, number: "20" },
+      { id: 1, number: "6" },
       { id: 2, number: "4" },
-      { id: 3, number: "6" },
-      { id: 4, number: "3" },
+      { id: 3, number: "3" },
+      { id: 4, number: "20" },
     ],
   },
   // Task 11: textTask - Word problem with books
@@ -148,10 +148,10 @@ export const LEVEL_4: TaskType[] = [
     result: 25,
     taskNumberInLevel: 12,
     options: [
-      { id: 1, equation: "5 × 5" },
-      { id: 2, equation: "30 - 5" },
-      { id: 3, equation: "20 + 6" },
-      { id: 4, equation: "4 × 6" },
+      { id: 1, equation: "30 - 5" },
+      { id: 2, equation: "5 × 5" },
+      { id: 3, equation: "4 × 6" },
+      { id: 4, equation: "20 + 6" },
     ],
   },
 ];

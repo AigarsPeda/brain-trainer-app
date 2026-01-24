@@ -11,9 +11,9 @@ export const LEVEL_51: TaskType[] = [
     taskNumberInLevel: 1,
     options: [
       { id: 1, equation: "15 × 15" },
-      { id: 2, equation: "112 + 113" },
-      { id: 3, equation: "450 ÷ 2" },
-      { id: 4, equation: "240 - 15" },
+      { id: 2, equation: "240 - 15" },
+      { id: 3, equation: "112 + 113" },
+      { id: 4, equation: "450 ÷ 2" },
     ],
   },
   {
@@ -22,10 +22,10 @@ export const LEVEL_51: TaskType[] = [
     result: 15,
     taskNumberInLevel: 2,
     options: [
-      { id: 1, equation: "225 ÷ 15" },
+      { id: 1, equation: "195 ÷ 13" },
       { id: 2, equation: "210 ÷ 14" },
-      { id: 3, equation: "195 ÷ 13" },
-      { id: 4, equation: "180 ÷ 12" },
+      { id: 3, equation: "180 ÷ 12" },
+      { id: 4, equation: "225 ÷ 15" },
     ],
   },
   {
@@ -44,9 +44,9 @@ export const LEVEL_51: TaskType[] = [
     taskNumberInLevel: 4,
     options: [
       { id: 1, number: "118" },
-      { id: 2, number: "97" },
-      { id: 3, number: "103" },
-      { id: 4, number: "91" },
+      { id: 2, number: "91" },
+      { id: 3, number: "97" },
+      { id: 4, number: "103" },
     ],
   },
   {
@@ -55,10 +55,10 @@ export const LEVEL_51: TaskType[] = [
     result: 135,
     taskNumberInLevel: 5,
     options: [
-      { id: 1, equation: "9 × 15" },
-      { id: 2, equation: "15 × 9" },
-      { id: 3, equation: "270 ÷ 2" },
-      { id: 4, equation: "144 - 9" },
+      { id: 1, equation: "15 × 9" },
+      { id: 2, equation: "270 ÷ 2" },
+      { id: 3, equation: "144 - 9" },
+      { id: 4, equation: "9 × 15" },
     ],
   },
   {
@@ -67,10 +67,10 @@ export const LEVEL_51: TaskType[] = [
     result: 17,
     taskNumberInLevel: 6,
     options: [
-      { id: 1, equation: "255 ÷ 15" },
-      { id: 2, equation: "238 ÷ 14" },
-      { id: 3, equation: "221 ÷ 13" },
-      { id: 4, equation: "204 ÷ 12" },
+      { id: 1, equation: "204 ÷ 12" },
+      { id: 2, equation: "255 ÷ 15" },
+      { id: 3, equation: "238 ÷ 14" },
+      { id: 4, equation: "221 ÷ 13" },
     ],
   },
   {
@@ -88,10 +88,10 @@ export const LEVEL_51: TaskType[] = [
     operation: "×",
     taskNumberInLevel: 8,
     options: [
-      { id: 1, number: "13" },
+      { id: 1, number: "39" },
       { id: 2, number: "15" },
-      { id: 3, number: "39" },
-      { id: 4, number: "5" },
+      { id: 3, number: "5" },
+      { id: 4, number: "13" },
     ],
   },
   {
@@ -101,9 +101,9 @@ export const LEVEL_51: TaskType[] = [
     taskNumberInLevel: 9,
     options: [
       { id: 1, equation: "10 × 15" },
-      { id: 2, equation: "15 × 10" },
-      { id: 3, equation: "300 ÷ 2" },
-      { id: 4, equation: "160 - 10" },
+      { id: 2, equation: "160 - 10" },
+      { id: 3, equation: "15 × 10" },
+      { id: 4, equation: "300 ÷ 2" },
     ],
   },
   {
@@ -112,10 +112,10 @@ export const LEVEL_51: TaskType[] = [
     result: 18,
     taskNumberInLevel: 10,
     options: [
-      { id: 1, equation: "270 ÷ 15" },
+      { id: 1, equation: "234 ÷ 13" },
       { id: 2, equation: "252 ÷ 14" },
-      { id: 3, equation: "234 ÷ 13" },
-      { id: 4, equation: "216 ÷ 12" },
+      { id: 3, equation: "216 ÷ 12" },
+      { id: 4, equation: "270 ÷ 15" },
     ],
   },
   {
@@ -125,10 +125,10 @@ export const LEVEL_51: TaskType[] = [
     operation: "-",
     taskNumberInLevel: 11,
     options: [
-      { id: 1, number: "250" },
-      { id: 2, number: "112" },
-      { id: 3, number: "106" },
-      { id: 4, number: "100" },
+      { id: 1, number: "112" },
+      { id: 2, number: "250" },
+      { id: 3, number: "100" },
+      { id: 4, number: "106" },
     ],
   },
   {
@@ -137,10 +137,10 @@ export const LEVEL_51: TaskType[] = [
     result: 210,
     taskNumberInLevel: 12,
     options: [
-      { id: 1, equation: "14 × 15" },
-      { id: 2, equation: "15 × 14" },
-      { id: 3, equation: "105 + 105" },
-      { id: 4, equation: "420 ÷ 2" },
+      { id: 1, equation: "15 × 14" },
+      { id: 2, equation: "105 + 105" },
+      { id: 3, equation: "420 ÷ 2" },
+      { id: 4, equation: "14 × 15" },
     ],
   },
 ];

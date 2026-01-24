@@ -11,9 +11,9 @@ export const LEVEL_27: TaskType[] = [
     taskNumberInLevel: 1,
     options: [
       { id: 1, equation: "5 × 2" },
-      { id: 2, equation: "2 × 5" },
-      { id: 3, equation: "5 × 3" },
-      { id: 4, equation: "4 × 3" },
+      { id: 2, equation: "4 × 3" },
+      { id: 3, equation: "2 × 5" },
+      { id: 4, equation: "5 × 3" },
     ],
   },
   {
@@ -22,10 +22,10 @@ export const LEVEL_27: TaskType[] = [
     result: 15,
     taskNumberInLevel: 2,
     options: [
-      { id: 1, equation: "5 × 3" },
+      { id: 1, equation: "5 × 4" },
       { id: 2, equation: "3 × 5" },
-      { id: 3, equation: "5 × 4" },
-      { id: 4, equation: "4 × 4" },
+      { id: 3, equation: "4 × 4" },
+      { id: 4, equation: "5 × 3" },
     ],
   },
   {
@@ -44,9 +44,9 @@ export const LEVEL_27: TaskType[] = [
     taskNumberInLevel: 4,
     options: [
       { id: 1, number: "5" },
-      { id: 2, number: "5" },
-      { id: 3, number: "4" },
-      { id: 4, number: "6" },
+      { id: 2, number: "6" },
+      { id: 3, number: "5" },
+      { id: 4, number: "4" },
     ],
   },
   {
@@ -55,10 +55,10 @@ export const LEVEL_27: TaskType[] = [
     result: 20,
     taskNumberInLevel: 5,
     options: [
-      { id: 1, equation: "5 × 4" },
-      { id: 2, equation: "4 × 5" },
-      { id: 3, equation: "5 × 5" },
-      { id: 4, equation: "4 × 6" },
+      { id: 1, equation: "4 × 5" },
+      { id: 2, equation: "5 × 5" },
+      { id: 3, equation: "4 × 6" },
+      { id: 4, equation: "5 × 4" },
     ],
   },
   {
@@ -67,10 +67,10 @@ export const LEVEL_27: TaskType[] = [
     result: 30,
     taskNumberInLevel: 6,
     options: [
-      { id: 1, equation: "5 × 6" },
-      { id: 2, equation: "6 × 5" },
-      { id: 3, equation: "5 × 7" },
-      { id: 4, equation: "4 × 8" },
+      { id: 1, equation: "4 × 8" },
+      { id: 2, equation: "5 × 6" },
+      { id: 3, equation: "6 × 5" },
+      { id: 4, equation: "5 × 7" },
     ],
   },
   {
@@ -88,10 +88,10 @@ export const LEVEL_27: TaskType[] = [
     operation: "×",
     taskNumberInLevel: 8,
     options: [
-      { id: 1, number: "5" },
+      { id: 1, number: "10" },
       { id: 2, number: "8" },
-      { id: 3, number: "10" },
-      { id: 4, number: "4" },
+      { id: 3, number: "4" },
+      { id: 4, number: "5" },
     ],
   },
   {
@@ -101,9 +101,9 @@ export const LEVEL_27: TaskType[] = [
     taskNumberInLevel: 9,
     options: [
       { id: 1, equation: "5 × 7" },
-      { id: 2, equation: "7 × 5" },
-      { id: 3, equation: "5 × 8" },
-      { id: 4, equation: "6 × 6" },
+      { id: 2, equation: "6 × 6" },
+      { id: 3, equation: "7 × 5" },
+      { id: 4, equation: "5 × 8" },
     ],
   },
   {
@@ -112,10 +112,10 @@ export const LEVEL_27: TaskType[] = [
     result: 45,
     taskNumberInLevel: 10,
     options: [
-      { id: 1, equation: "5 × 9" },
+      { id: 1, equation: "5 × 10" },
       { id: 2, equation: "9 × 5" },
-      { id: 3, equation: "5 × 10" },
-      { id: 4, equation: "6 × 8" },
+      { id: 3, equation: "6 × 8" },
+      { id: 4, equation: "5 × 9" },
     ],
   },
   {
@@ -125,10 +125,10 @@ export const LEVEL_27: TaskType[] = [
     operation: "×",
     taskNumberInLevel: 11,
     options: [
-      { id: 1, number: "5" },
-      { id: 2, number: "10" },
-      { id: 3, number: "25" },
-      { id: 4, number: "2" },
+      { id: 1, number: "10" },
+      { id: 2, number: "5" },
+      { id: 3, number: "2" },
+      { id: 4, number: "25" },
     ],
   },
   {
@@ -137,10 +137,10 @@ export const LEVEL_27: TaskType[] = [
     result: 40,
     taskNumberInLevel: 12,
     options: [
-      { id: 1, equation: "5 × 8" },
-      { id: 2, equation: "8 × 5" },
-      { id: 3, equation: "4 × 9" },
-      { id: 4, equation: "6 × 7" },
+      { id: 1, equation: "8 × 5" },
+      { id: 2, equation: "4 × 9" },
+      { id: 3, equation: "6 × 7" },
+      { id: 4, equation: "5 × 8" },
     ],
   },
 ];
