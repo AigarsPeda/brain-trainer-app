@@ -8,13 +8,14 @@ import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { type FC, memo, useMemo, useCallback } from "react";
-import { Pressable, StyleSheet, View, ViewToken } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
+  Extrapolation,
   SharedValue,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 
 const DARK_STAR_COLOR = "#e8ae4a";
@@ -64,38 +65,61 @@ const getColorInfo = (levelNumber: number, isLevelLocked: boolean, bgColor?: str
 // Pre-create star array to avoid recreation
 const STAR_ARRAY = createArray(STATS_PER_LEVEL);
 
+// Item height must match AnimatedFlatList's ITEM_HEIGHT
+const ITEM_HEIGHT = 190;
+const VIEWPORT_HEIGHT = 800; // Approximate viewport height
+
 type ListItemProps = {
+  index: number;
   bgColor?: string;
   position: number;
   item: TaskInfoType;
   handleClick: () => void;
-  viewableItems: SharedValue<ViewToken[]>;
+  scrollY: SharedValue<number>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, bgColor, position, handleClick, viewableItems }) => {
+  ({ item, index, bgColor, position, handleClick, scrollY }) => {
     const scale = useSharedValue(1);
     const { state } = useAppContext();
     const theme = state.theme ?? "light";
 
+    // Calculate item's vertical position
+    const itemOffset = index * ITEM_HEIGHT;
+
     const rStyle = useAnimatedStyle(() => {
-      const isVisible = Boolean(
-        viewableItems.value
-          .filter((viewable) => viewable.isViewable)
-          .find((viewableItem) => viewableItem.item.levelNumber === item.levelNumber)
+      "worklet";
+      // Calculate how far this item is from being centered in viewport
+      const inputRange = [
+        itemOffset - VIEWPORT_HEIGHT,
+        itemOffset - VIEWPORT_HEIGHT / 2,
+        itemOffset,
+        itemOffset + VIEWPORT_HEIGHT / 2,
+        itemOffset + VIEWPORT_HEIGHT,
+      ];
+
+      const opacity = interpolate(
+        scrollY.value,
+        inputRange,
+        [0, 1, 1, 1, 0],
+        Extrapolation.CLAMP
+      );
+
+      const scaleValue = interpolate(
+        scrollY.value,
+        inputRange,
+        [0.6, 1, 1, 1, 0.6],
+        Extrapolation.CLAMP
       );
 
       return {
-        opacity: withTiming(isVisible ? 1 : 0, { duration: 200 }),
-        transform: [
-          {
-            scale: withTiming(isVisible ? 1 : 0.6, { duration: 200 }),
-          },
-        ],
+        opacity,
+        transform: [{ scale: scaleValue }],
       };
     });
 
     const pressableStyle = useAnimatedStyle(() => {
+      'worklet';
       return {
         transform: [{ scale: withSpring(scale.value) }],
       };
@@ -183,8 +207,9 @@ const ListItem: FC<ListItemProps> = memo(
       prevProps.item.stars === nextProps.item.stars &&
       prevProps.item.isLevelLocked === nextProps.item.isLevelLocked &&
       prevProps.position === nextProps.position &&
+      prevProps.index === nextProps.index &&
       prevProps.bgColor === nextProps.bgColor
-      // Note: viewableItems is a SharedValue and handled by Reanimated
+      // Note: scrollY is a SharedValue and handled by Reanimated
     );
   }
 );

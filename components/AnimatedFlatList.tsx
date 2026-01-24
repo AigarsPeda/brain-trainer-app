@@ -1,16 +1,25 @@
-import { useCallback, useMemo, useRef } from "react";
-import { FlatList, FlatListProps, ListRenderItemInfo, Platform, ViewToken } from "react-native";
-import { SharedValue, useSharedValue } from "react-native-reanimated";
+import { useCallback, useMemo } from "react";
+import { ListRenderItemInfo, Platform, StyleProp, ViewStyle } from "react-native";
+import Animated, {
+  SharedValue,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from "react-native-reanimated";
 
 // Fixed item height for getItemLayout optimization
 const ITEM_HEIGHT = 190; // 170 height + 20 marginTop from ListItem styles
 
-interface AnimatedFlatListProps<T> extends Omit<FlatListProps<T>, "renderItem" | "onViewableItemsChanged"> {
-  renderItem: (props: { item: T; index: number; viewableItems: SharedValue<ViewToken[]> }) => React.ReactElement | null;
-  onViewableItemsChanged?: (info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => void;
+interface AnimatedFlatListProps<T> {
+  data: T[] | null | undefined;
+  renderItem: (props: {
+    item: T;
+    index: number;
+    scrollY: SharedValue<number>;
+  }) => React.ReactElement | null;
   paddingTop?: number;
   paddingBottom?: number;
   itemHeight?: number;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFlatListProps<T>) {
@@ -20,40 +29,24 @@ function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFla
     paddingTop = 0,
     paddingBottom = 0,
     contentContainerStyle,
-    onViewableItemsChanged,
     itemHeight = ITEM_HEIGHT,
-    ...rest
   } = props;
 
-  const viewableItems = useSharedValue<ViewToken[]>([]);
+  const scrollY = useSharedValue(0);
 
-  // Memoize viewability config to prevent re-renders
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
-    minimumViewTime: 100,
-  }).current;
-
-  const handleViewableItemsChanged = useCallback(
-    ({ changed, viewableItems: vItems }: { changed: ViewToken[]; viewableItems: ViewToken[] }) => {
-      viewableItems.value = vItems;
-      onViewableItemsChanged?.({ viewableItems: vItems, changed });
+  // Scroll handler runs entirely on UI thread
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      "worklet";
+      scrollY.value = event.contentOffset.y;
     },
-    [onViewableItemsChanged, viewableItems]
-  );
-
-  // Stable reference for viewability callback
-  const viewabilityConfigCallbackPairs = useRef([
-    {
-      viewabilityConfig: viewabilityConfig,
-      onViewableItemsChanged: handleViewableItemsChanged,
-    },
-  ]);
+  });
 
   const renderAnimatedItem = useCallback(
     ({ item, index }: ListRenderItemInfo<T>): React.ReactElement | null => {
-      return renderItem({ item, index, viewableItems });
+      return renderItem({ item, index, scrollY });
     },
-    [renderItem, viewableItems]
+    [renderItem, scrollY]
   );
 
   // Optimize scroll performance with known item layout
@@ -77,24 +70,21 @@ function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFla
   );
 
   return (
-    <FlatList
+    <Animated.FlatList
       data={data}
       renderItem={renderAnimatedItem}
       keyExtractor={keyExtractor}
       getItemLayout={getItemLayout}
       contentContainerStyle={containerStyle}
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
       // Performance optimizations
       initialNumToRender={6}
       maxToRenderPerBatch={5}
       windowSize={7}
       removeClippedSubviews={Platform.OS === "android"}
       updateCellsBatchingPeriod={50}
-      // Use stable viewability config to prevent warnings
-      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
-      // Improve scroll performance
-      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      {...rest}
     />
   );
 }

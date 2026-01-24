@@ -11,7 +11,7 @@ import useGoogleAd from "@/hooks/useGoogleAd";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Platform, ViewToken } from "react-native";
+import { Platform } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -75,12 +75,13 @@ export default function HomeScreen() {
 
   // Memoize renderItem to prevent unnecessary re-renders
   const renderItem = useCallback(
-    ({ item, index, viewableItems }: { item: TaskInfoType; index: number; viewableItems: SharedValue<ViewToken[]> }) => {
+    ({ item, index, scrollY }: { item: TaskInfoType; index: number; scrollY: SharedValue<number> }) => {
       return (
         <ListItem
           item={item}
+          index={index}
+          scrollY={scrollY}
           position={getPosition(index)}
-          viewableItems={viewableItems}
           handleClick={() => {
             router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
           }}
