@@ -3,7 +3,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import { SETTINGS } from "@/hardcoded";
-import useAppContext from "@/hooks/useAppContext";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -74,15 +73,14 @@ type ListItemProps = {
   bgColor?: string;
   position: number;
   item: TaskInfoType;
+  theme: "light" | "dark";
   handleClick: () => void;
   scrollY: SharedValue<number>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, index, bgColor, position, handleClick, scrollY }) => {
+  ({ item, index, bgColor, position, theme, handleClick, scrollY }) => {
     const scale = useSharedValue(1);
-    const { state } = useAppContext();
-    const theme = state.theme ?? "light";
 
     // Calculate item's vertical position
     const itemOffset = index * ITEM_HEIGHT;
@@ -208,6 +206,7 @@ const ListItem: FC<ListItemProps> = memo(
       prevProps.item.isLevelLocked === nextProps.item.isLevelLocked &&
       prevProps.position === nextProps.position &&
       prevProps.index === nextProps.index &&
+      prevProps.theme === nextProps.theme &&
       prevProps.bgColor === nextProps.bgColor
       // Note: scrollY is a SharedValue and handled by Reanimated
     );

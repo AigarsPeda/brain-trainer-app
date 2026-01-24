@@ -73,6 +73,9 @@ export default function HomeScreen() {
     return isPositive ? index % 6 : 6 - (index % 6);
   }, []);
 
+  // Memoize theme to avoid inline reference changes
+  const theme = state.theme ?? "light";
+
   // Memoize renderItem to prevent unnecessary re-renders
   const renderItem = useCallback(
     ({ item, index, scrollY }: { item: TaskInfoType; index: number; scrollY: SharedValue<number> }) => {
@@ -80,6 +83,7 @@ export default function HomeScreen() {
         <ListItem
           item={item}
           index={index}
+          theme={theme}
           scrollY={scrollY}
           position={getPosition(index)}
           handleClick={() => {
@@ -88,7 +92,7 @@ export default function HomeScreen() {
         />
       );
     },
-    [getPosition]
+    [getPosition, theme]
   );
 
   return (
@@ -119,12 +123,7 @@ export default function HomeScreen() {
       <SafeAreaView>
         <UserStatistics onLivesPress={handleOpenLivesModalClose} onGemsPress={handleOpenGemsModalClose} />
 
-        <AnimatedFlatList
-          paddingTop={0}
-          paddingBottom={150}
-          data={state.levels}
-          renderItem={renderItem}
-        />
+        <AnimatedFlatList paddingTop={0} paddingBottom={150} data={state.levels} renderItem={renderItem} />
       </SafeAreaView>
     </LinearGradient>
   );
