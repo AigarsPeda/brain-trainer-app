@@ -1,11 +1,4 @@
-import { ALL_TASKS, LevelsEnum, MathOperation } from "@/context/app.context.reducer";
-
-export const getLevelTaskData = (level: LevelsEnum, currentTaskInLevel: number) => {
-  const levelTasks = ALL_TASKS[level];
-  const currentTask = levelTasks?.find((t) => t.taskNumberInLevel === currentTaskInLevel);
-  const maxLevelStep = levelTasks?.length || 0;
-  return { levelTasks, currentTask, maxLevelStep };
-};
+import { MathOperation } from "@/context/app.context.reducer";
 
 export const checkAnswers = (
   value1: number | null,

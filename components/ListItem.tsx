@@ -7,7 +7,7 @@ import useAppContext from "@/hooks/useAppContext";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { type FC, memo } from "react";
+import { type FC, memo, useMemo, useCallback } from "react";
 import { Pressable, StyleSheet, View, ViewToken } from "react-native";
 import Animated, {
   SharedValue,
@@ -21,6 +21,49 @@ const DARK_STAR_COLOR = "#e8ae4a";
 const LIGHT_STAR_COLOR = "#1C274C";
 const { STATS_PER_LEVEL } = SETTINGS;
 
+// Move helper functions outside component to prevent recreation
+const adjustColorBrightness = (hex: string, percent: number): string => {
+  hex = hex.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const adjustR = Math.max(0, Math.min(255, r + percent));
+  const adjustG = Math.max(0, Math.min(255, g + percent));
+  const adjustB = Math.max(0, Math.min(255, b + percent));
+  return (
+    "#" +
+    ((1 << 24) + (Math.round(adjustR) << 16) + (Math.round(adjustG) << 8) + Math.round(adjustB)).toString(16).slice(1)
+  );
+};
+
+const getColorInfo = (levelNumber: number, isLevelLocked: boolean, bgColor?: string) => {
+  if (bgColor) {
+    return {
+      bgColor,
+      lightColor: adjustColorBrightness(bgColor, 30),
+      darkColor: adjustColorBrightness(bgColor, -30),
+    };
+  }
+
+  if (isLevelLocked) {
+    return {
+      bgColor: "gray",
+      lightColor: "#bbbbbb",
+      darkColor: "#666666",
+    };
+  }
+
+  const baseColor = GAME_CARD_COLORS_LIGHT[levelNumber % GAME_CARD_COLORS_LIGHT.length];
+  return {
+    bgColor: baseColor,
+    lightColor: adjustColorBrightness(baseColor, 30),
+    darkColor: adjustColorBrightness(baseColor, -30),
+  };
+};
+
+// Pre-create star array to avoid recreation
+const STAR_ARRAY = createArray(STATS_PER_LEVEL);
+
 type ListItemProps = {
   bgColor?: string;
   position: number;
@@ -29,139 +72,122 @@ type ListItemProps = {
   viewableItems: SharedValue<ViewToken[]>;
 };
 
-const ListItem: FC<ListItemProps> = memo(({ item, bgColor, position, handleClick, viewableItems }) => {
-  const scale = useSharedValue(1);
-  const { state } = useAppContext();
-  const theme = state.theme ?? "light";
+const ListItem: FC<ListItemProps> = memo(
+  ({ item, bgColor, position, handleClick, viewableItems }) => {
+    const scale = useSharedValue(1);
+    const { state } = useAppContext();
+    const theme = state.theme ?? "light";
 
-  const rStyle = useAnimatedStyle(() => {
-    const isVisible = Boolean(
-      viewableItems.value
-        .filter((viewable) => viewable.isViewable)
-        .find((viewableItem) => viewableItem.item.levelNumber === item.levelNumber)
-    );
+    const rStyle = useAnimatedStyle(() => {
+      const isVisible = Boolean(
+        viewableItems.value
+          .filter((viewable) => viewable.isViewable)
+          .find((viewableItem) => viewableItem.item.levelNumber === item.levelNumber)
+      );
 
-    return {
-      opacity: withTiming(isVisible ? 1 : 0),
-      transform: [
-        {
-          scale: withTiming(isVisible ? 1 : 0.6),
-        },
-      ],
-    };
-  });
-
-  const pressableStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: withSpring(scale.value) }],
-    };
-  });
-
-  const getBgColor = (index: number, isDisabled: boolean) => {
-    if (isDisabled) {
       return {
-        bgColor: "gray",
-        lightColor: "#bbbbbb",
-        darkColor: "#666666",
+        opacity: withTiming(isVisible ? 1 : 0, { duration: 200 }),
+        transform: [
+          {
+            scale: withTiming(isVisible ? 1 : 0.6, { duration: 200 }),
+          },
+        ],
       };
-    }
+    });
 
-    // Get the base color from your array
-    const baseColor = GAME_CARD_COLORS_LIGHT[index % GAME_CARD_COLORS_LIGHT.length];
+    const pressableStyle = useAnimatedStyle(() => {
+      return {
+        transform: [{ scale: withSpring(scale.value) }],
+      };
+    });
 
-    // Create lighter and darker variants for the gradient
-    // This is a simple implementation - for production you'd want a proper color manipulation library
-    return {
-      bgColor: baseColor,
-      lightColor: adjustColorBrightness(baseColor, 30), // Lighter variant
-      darkColor: adjustColorBrightness(baseColor, -30), // Darker variant
-    };
-  };
-
-  // Helper function to lighten or darken a hex color
-  const adjustColorBrightness = (hex: string, percent: number): string => {
-    // Remove the # if present
-    hex = hex.replace("#", "");
-
-    // Convert to RGB
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-
-    // Adjust brightness
-    const adjustR = Math.max(0, Math.min(255, r + percent));
-    const adjustG = Math.max(0, Math.min(255, g + percent));
-    const adjustB = Math.max(0, Math.min(255, b + percent));
-
-    // Convert back to hex
-    return (
-      "#" +
-      ((1 << 24) + (Math.round(adjustR) << 16) + (Math.round(adjustG) << 8) + Math.round(adjustB)).toString(16).slice(1)
+    // Memoize color info since it only depends on item properties
+    const colorInfo = useMemo(
+      () => getColorInfo(item.levelNumber, item.isLevelLocked, bgColor),
+      [item.levelNumber, item.isLevelLocked, bgColor]
     );
-  };
 
-  const colorInfo = bgColor
-    ? {
-        bgColor,
-        lightColor: adjustColorBrightness(bgColor, 30),
-        darkColor: adjustColorBrightness(bgColor, -30),
-      }
-    : getBgColor(item.levelNumber, item.isLevelLocked);
+    // Memoize star color
+    const starColor = useMemo(
+      () => (theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR),
+      [theme]
+    );
 
-  return (
-    <Animated.View style={[styles.listItem, rStyle]}>
-      <View
-        style={{
-          position: "absolute",
-          left: position * 72,
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Animated.View style={pressableStyle}>
-          <Pressable
-            disabled={item.isLevelLocked}
-            onPressIn={() => {
-              scale.value = 0.95;
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
-            onPressOut={() => {
-              scale.value = 1;
-              handleClick();
-            }}
-            style={styles.cardContainer}
-          >
-            {/* Outer square with gradient */}
-            <LinearGradient
-              colors={[colorInfo.lightColor, colorInfo.darkColor]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.outerSquare}
+    // Memoize position style
+    const positionStyle = useMemo(
+      () => ({
+        position: "absolute" as const,
+        left: position * 72,
+        flexDirection: "column" as const,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+      }),
+      [position]
+    );
+
+    const handlePressIn = useCallback(() => {
+      scale.value = 0.95;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }, [scale]);
+
+    const handlePressOut = useCallback(() => {
+      scale.value = 1;
+      handleClick();
+    }, [scale, handleClick]);
+
+    return (
+      <Animated.View style={[styles.listItem, rStyle]}>
+        <View style={positionStyle}>
+          <Animated.View style={pressableStyle}>
+            <Pressable
+              disabled={item.isLevelLocked}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              style={styles.cardContainer}
             >
-              {/* Inner square */}
-              <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
-                <ThemedText type="subtitle" style={styles.levelText}>
-                  {item?.levelNumber}
-                </ThemedText>
-              </View>
-            </LinearGradient>
-          </Pressable>
-        </Animated.View>
-        <View style={styles.starContainer}>
-          {createArray(STATS_PER_LEVEL).map((_, index) => {
-            const color = theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR;
-            const isFilled = index < item.stars && item.stars > 0;
-
-            return (
-              <StarIcon key={index} stroke={color} fill={isFilled ? color : "transparent"} style={styles.starIcon} />
-            );
-          })}
+              <LinearGradient
+                colors={[colorInfo.lightColor, colorInfo.darkColor]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.outerSquare}
+              >
+                <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
+                  <ThemedText type="subtitle" style={styles.levelText}>
+                    {item.levelNumber}
+                  </ThemedText>
+                </View>
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
+          <View style={styles.starContainer}>
+            {STAR_ARRAY.map((_, index) => {
+              const isFilled = index < item.stars && item.stars > 0;
+              return (
+                <StarIcon
+                  key={index}
+                  stroke={starColor}
+                  fill={isFilled ? starColor : "transparent"}
+                  style={styles.starIcon}
+                />
+              );
+            })}
+          </View>
         </View>
-      </View>
-    </Animated.View>
-  );
-});
+      </Animated.View>
+    );
+  },
+  // Custom comparison function for memo - only re-render when these props change
+  (prevProps, nextProps) => {
+    return (
+      prevProps.item.levelNumber === nextProps.item.levelNumber &&
+      prevProps.item.stars === nextProps.item.stars &&
+      prevProps.item.isLevelLocked === nextProps.item.isLevelLocked &&
+      prevProps.position === nextProps.position &&
+      prevProps.bgColor === nextProps.bgColor
+      // Note: viewableItems is a SharedValue and handled by Reanimated
+    );
+  }
+);
 
 ListItem.displayName = "ListItem";
 

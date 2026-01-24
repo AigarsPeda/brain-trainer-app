@@ -17,8 +17,8 @@ import { HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
 import { isCreateMathTask, isMultiAnswerMathTask, isTextTask, LevelsEnum } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
+import { useLevelData } from "@/hooks/useLevelData";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
-import { getLevelTaskData } from "@/utils/game";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -49,7 +49,7 @@ export default function GameLevelScreen() {
   const [removedAnswerIds, setRemovedAnswerIds] = useState<number[]>([]);
   const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
-  const { levelTasks, currentTask, maxLevelStep } = getLevelTaskData(level, currentTaskInLevel);
+  const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, currentTaskInLevel);
 
   const livesAnimation = usePulseOnChange(lives);
 

@@ -10,7 +10,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Platform, ViewToken } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -61,12 +61,41 @@ export default function HomeScreen() {
     setGemAnimationStartValue(undefined);
   };
 
+  // Memoize background colors based on theme
+  const backgroundColors = useMemo(
+    () => (state.theme === "dark" ? LevelBackgrounds.home.dark : LevelBackgrounds.home.light),
+    [state.theme]
+  );
+
+  // Calculate position for zigzag pattern (0-3-0 pattern)
+  const getPosition = useCallback((index: number) => {
+    const isPositive = index % 6 <= 3;
+    return isPositive ? index % 6 : 6 - (index % 6);
+  }, []);
+
+  // Memoize renderItem to prevent unnecessary re-renders
+  const renderItem = useCallback(
+    ({ item, index, viewableItems }: { item: TaskInfoType; index: number; viewableItems: SharedValue<ViewToken[]> }) => {
+      return (
+        <ListItem
+          item={item}
+          position={getPosition(index)}
+          viewableItems={viewableItems}
+          handleClick={() => {
+            router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
+          }}
+        />
+      );
+    },
+    [getPosition]
+  );
+
   return (
     <LinearGradient
       end={{ x: 1, y: 1 }}
       start={{ x: 0, y: 0 }}
       style={{ flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }}
-      colors={[...(state.theme === "dark" ? LevelBackgrounds.home.dark : LevelBackgrounds.home.light)]}
+      colors={backgroundColors}
     >
       <BackgroundPattern />
       <LivesModal
@@ -93,36 +122,9 @@ export default function HomeScreen() {
           paddingTop={0}
           paddingBottom={150}
           data={state.levels}
-          renderItem={({ item, index, viewableItems }) => {
-            return renderItem({ item, index, viewableItems });
-          }}
+          renderItem={renderItem}
         />
       </SafeAreaView>
     </LinearGradient>
   );
 }
-
-const renderItem = ({
-  item,
-  index,
-  viewableItems,
-}: {
-  index: number;
-  item: TaskInfoType;
-  viewableItems: SharedValue<ViewToken[]>;
-}) => {
-  const isPositive = index % 6 <= 3;
-  // move position from 0 to 3 and then back from 3 to 0 and do it again and again
-  const number = isPositive ? index % 6 : 6 - (index % 6);
-
-  return (
-    <ListItem
-      item={item}
-      position={number}
-      viewableItems={viewableItems}
-      handleClick={() => {
-        router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
-      }}
-    />
-  );
-};

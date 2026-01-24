@@ -1,55 +1,5 @@
 import { GEMS_FROM_AD, INITIAL_LIVES, MAX_LIVES } from "@/constants/GameSettings";
-import { LEVEL_1 } from "@/data/math-1-level";
-import { LEVEL_2 } from "@/data/math-2-level";
-import { LEVEL_3 } from "@/data/math-3-level";
-import { LEVEL_4 } from "@/data/math-4-level";
-import { LEVEL_5 } from "@/data/math-5-level";
-import { LEVEL_6 } from "@/data/math-6-level";
-import { LEVEL_7 } from "@/data/math-7-level";
-import { LEVEL_8 } from "@/data/math-8-level";
-import { LEVEL_9 } from "@/data/math-9-level";
-import { LEVEL_10 } from "@/data/math-10-level";
-import { LEVEL_11 } from "@/data/math-11-level";
-import { LEVEL_12 } from "@/data/math-12-level";
-import { LEVEL_13 } from "@/data/math-13-level";
-import { LEVEL_14 } from "@/data/math-14-level";
-import { LEVEL_15 } from "@/data/math-15-level";
-import { LEVEL_16 } from "@/data/math-16-level";
-import { LEVEL_17 } from "@/data/math-17-level";
-import { LEVEL_18 } from "@/data/math-18-level";
-import { LEVEL_19 } from "@/data/math-19-level";
-import { LEVEL_20 } from "@/data/math-20-level";
-import { LEVEL_21 } from "@/data/math-21-level";
-import { LEVEL_22 } from "@/data/math-22-level";
-import { LEVEL_23 } from "@/data/math-23-level";
-import { LEVEL_24 } from "@/data/math-24-level";
-import { LEVEL_25 } from "@/data/math-25-level";
-import { LEVEL_26 } from "@/data/math-26-level";
-import { LEVEL_27 } from "@/data/math-27-level";
-import { LEVEL_28 } from "@/data/math-28-level";
-import { LEVEL_29 } from "@/data/math-29-level";
-import { LEVEL_30 } from "@/data/math-30-level";
-import { LEVEL_31 } from "@/data/math-31-level";
-import { LEVEL_32 } from "@/data/math-32-level";
-import { LEVEL_33 } from "@/data/math-33-level";
-import { LEVEL_34 } from "@/data/math-34-level";
-import { LEVEL_35 } from "@/data/math-35-level";
-import { LEVEL_36 } from "@/data/math-36-level";
-import { LEVEL_37 } from "@/data/math-37-level";
-import { LEVEL_38 } from "@/data/math-38-level";
-import { LEVEL_39 } from "@/data/math-39-level";
-import { LEVEL_40 } from "@/data/math-40-level";
-import { LEVEL_41 } from "@/data/math-41-level";
-import { LEVEL_42 } from "@/data/math-42-level";
-import { LEVEL_43 } from "@/data/math-43-level";
-import { LEVEL_44 } from "@/data/math-44-level";
-import { LEVEL_45 } from "@/data/math-45-level";
-import { LEVEL_46 } from "@/data/math-46-level";
-import { LEVEL_47 } from "@/data/math-47-level";
-import { LEVEL_48 } from "@/data/math-48-level";
-import { LEVEL_49 } from "@/data/math-49-level";
-import { LEVEL_50 } from "@/data/math-50-level";
-import { LEVEL_51 } from "@/data/math-51-level";
+import { TOTAL_LEVELS } from "@/data/levelLoader";
 import { calculateTaskCorrectnessPercentage, updateDaysInARow } from "@/utils/utils";
 import { createContext } from "react";
 import type { ImageSourcePropType } from "react-native";
@@ -203,66 +153,12 @@ export const isTextTask = (task: TaskType): task is TextTaskType => {
   return "question" in task && "icon" in task;
 };
 
-export const ALL_TASKS: Record<LevelsEnum, TaskType[]> = {
-  [LevelsEnum.LEVEL_1]: LEVEL_1,
-  [LevelsEnum.LEVEL_2]: LEVEL_2,
-  [LevelsEnum.LEVEL_3]: LEVEL_3,
-  [LevelsEnum.LEVEL_4]: LEVEL_4,
-  [LevelsEnum.LEVEL_5]: LEVEL_5,
-  [LevelsEnum.LEVEL_6]: LEVEL_6,
-  [LevelsEnum.LEVEL_7]: LEVEL_7,
-  [LevelsEnum.LEVEL_8]: LEVEL_8,
-  [LevelsEnum.LEVEL_9]: LEVEL_9,
-  [LevelsEnum.LEVEL_10]: LEVEL_10,
-  [LevelsEnum.LEVEL_11]: LEVEL_11,
-  [LevelsEnum.LEVEL_12]: LEVEL_12,
-  [LevelsEnum.LEVEL_13]: LEVEL_13,
-  [LevelsEnum.LEVEL_14]: LEVEL_14,
-  [LevelsEnum.LEVEL_15]: LEVEL_15,
-  [LevelsEnum.LEVEL_16]: LEVEL_16,
-  [LevelsEnum.LEVEL_17]: LEVEL_17,
-  [LevelsEnum.LEVEL_18]: LEVEL_18,
-  [LevelsEnum.LEVEL_19]: LEVEL_19,
-  [LevelsEnum.LEVEL_20]: LEVEL_20,
-  [LevelsEnum.LEVEL_21]: LEVEL_21,
-  [LevelsEnum.LEVEL_22]: LEVEL_22,
-  [LevelsEnum.LEVEL_23]: LEVEL_23,
-  [LevelsEnum.LEVEL_24]: LEVEL_24,
-  [LevelsEnum.LEVEL_25]: LEVEL_25,
-  [LevelsEnum.LEVEL_26]: LEVEL_26,
-  [LevelsEnum.LEVEL_27]: LEVEL_27,
-  [LevelsEnum.LEVEL_28]: LEVEL_28,
-  [LevelsEnum.LEVEL_29]: LEVEL_29,
-  [LevelsEnum.LEVEL_30]: LEVEL_30,
-  [LevelsEnum.LEVEL_31]: LEVEL_31,
-  [LevelsEnum.LEVEL_32]: LEVEL_32,
-  [LevelsEnum.LEVEL_33]: LEVEL_33,
-  [LevelsEnum.LEVEL_34]: LEVEL_34,
-  [LevelsEnum.LEVEL_35]: LEVEL_35,
-  [LevelsEnum.LEVEL_36]: LEVEL_36,
-  [LevelsEnum.LEVEL_37]: LEVEL_37,
-  [LevelsEnum.LEVEL_38]: LEVEL_38,
-  [LevelsEnum.LEVEL_39]: LEVEL_39,
-  [LevelsEnum.LEVEL_40]: LEVEL_40,
-  [LevelsEnum.LEVEL_41]: LEVEL_41,
-  [LevelsEnum.LEVEL_42]: LEVEL_42,
-  [LevelsEnum.LEVEL_43]: LEVEL_43,
-  [LevelsEnum.LEVEL_44]: LEVEL_44,
-  [LevelsEnum.LEVEL_45]: LEVEL_45,
-  [LevelsEnum.LEVEL_46]: LEVEL_46,
-  [LevelsEnum.LEVEL_47]: LEVEL_47,
-  [LevelsEnum.LEVEL_48]: LEVEL_48,
-  [LevelsEnum.LEVEL_49]: LEVEL_49,
-  [LevelsEnum.LEVEL_50]: LEVEL_50,
-  [LevelsEnum.LEVEL_51]: LEVEL_51,
-};
-
 const INITIAL_LEVEL = 1;
 const INITIAL_TASK = 1;
 const DEFAULT_STARS = 0;
 
 const initializeLevels = (): TaskInfoType[] => {
-  return Array.from({ length: Object.keys(ALL_TASKS).length }, (_, index) => ({
+  return Array.from({ length: TOTAL_LEVELS }, (_, index) => ({
     stars: DEFAULT_STARS,
     levelNumber: index + 1,
     isLevelCompleted: false,
@@ -286,7 +182,7 @@ export const initialState: AppContextStateType = {
   currentTaskAttemptCount: 0,
   name: "Aigars",
   game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
-  availableLevels: Object.keys(ALL_TASKS).length,
+  availableLevels: TOTAL_LEVELS,
   levels: initializeLevels(),
 };
 
@@ -609,7 +505,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         ...action.payload,
         levels: mergedLevels,
         theme: action.payload.theme ?? "light",
-        availableLevels: Object.keys(ALL_TASKS).length,
+        availableLevels: TOTAL_LEVELS,
         lastPlayedDate: action.payload.lastPlayedDate ?? null,
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
       };
