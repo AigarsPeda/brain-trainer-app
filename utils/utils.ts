@@ -131,13 +131,51 @@ export const calculateTaskCorrectnessPercentage = (
   return parseFloat(weightedPercentage.toFixed(2));
 };
 
+const getLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseLocalDateString = (dateString: string): Date => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export const validateDaysInARow = (
+  lastPlayedDate: string | null,
+  currentDaysInARow: number
+): number => {
+  if (!lastPlayedDate) {
+    return 0;
+  }
+
+  const today = new Date();
+  const todayString = getLocalDateString(today);
+
+  if (lastPlayedDate === todayString) {
+    return currentDaysInARow;
+  }
+
+  const lastPlayed = parseLocalDateString(lastPlayedDate);
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffInMs = todayMidnight.getTime() - lastPlayed.getTime();
+  const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 1) {
+    return currentDaysInARow;
+  }
+
+  return 0;
+};
+
 export const updateDaysInARow = (
   lastPlayedDate: string | null,
   currentDaysInARow: number
 ): { daysInARow: number; lastPlayedDate: string } => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayString = today.toISOString().split("T")[0];
+  const todayString = getLocalDateString(today);
 
   if (lastPlayedDate === todayString) {
     const fixedDaysInARow = currentDaysInARow === 0 ? 1 : currentDaysInARow;
@@ -148,10 +186,10 @@ export const updateDaysInARow = (
     return { daysInARow: 1, lastPlayedDate: todayString };
   }
 
-  const lastPlayed = new Date(lastPlayedDate);
-  lastPlayed.setHours(0, 0, 0, 0);
-  const diffInMs = today.getTime() - lastPlayed.getTime();
-  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const lastPlayed = parseLocalDateString(lastPlayedDate);
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffInMs = todayMidnight.getTime() - lastPlayed.getTime();
+  const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
 
   if (diffInDays === 1) {
     return { daysInARow: currentDaysInARow + 1, lastPlayedDate: todayString };

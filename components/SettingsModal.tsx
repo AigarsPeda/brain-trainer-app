@@ -29,7 +29,6 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
   const { state, dispatch } = useAppContext();
   const textColor = useThemeColor({}, "text");
   const borderColor = useThemeColor({}, "border");
-  // const backgroundColor = useThemeColor({}, "background");
   const [showLicenses, setShowLicenses] = useState(false);
   const [expandedLicense, setExpandedLicense] = useState<string | null>(null);
 

@@ -170,7 +170,7 @@ const initializeLevels = (): TaskInfoType[] => {
 export const initialState: AppContextStateType = {
   gems: 0,
   lives: INITIAL_LIVES,
-  theme: "light",
+  theme: "dark",
   results: {
     "1": {
       tasksResults: [],
@@ -504,7 +504,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...action.payload,
         levels: mergedLevels,
-        theme: action.payload.theme ?? "light",
+        theme: action.payload.theme ?? "dark",
         availableLevels: TOTAL_LEVELS,
         lastPlayedDate: action.payload.lastPlayedDate ?? null,
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,

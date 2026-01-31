@@ -80,7 +80,7 @@ type ListItemProps = {
 
 const ListItem: FC<ListItemProps> = memo(
   ({ item, index, bgColor, position, theme, handleClick, scrollY }) => {
-    const scale = useSharedValue(1);
+    const pressScale = useSharedValue(1);
 
     // Calculate item's vertical position
     const itemOffset = index * ITEM_HEIGHT;
@@ -96,30 +96,13 @@ const ListItem: FC<ListItemProps> = memo(
         itemOffset + VIEWPORT_HEIGHT,
       ];
 
-      const opacity = interpolate(
-        scrollY.value,
-        inputRange,
-        [0, 1, 1, 1, 0],
-        Extrapolation.CLAMP
-      );
+      const opacity = interpolate(scrollY.value, inputRange, [0, 1, 1, 1, 0], Extrapolation.CLAMP);
 
-      const scaleValue = interpolate(
-        scrollY.value,
-        inputRange,
-        [0.6, 1, 1, 1, 0.6],
-        Extrapolation.CLAMP
-      );
+      const scrollScale = interpolate(scrollY.value, inputRange, [0.6, 1, 1, 1, 0.6], Extrapolation.CLAMP);
 
       return {
         opacity,
-        transform: [{ scale: scaleValue }],
-      };
-    });
-
-    const pressableStyle = useAnimatedStyle(() => {
-      'worklet';
-      return {
-        transform: [{ scale: withSpring(scale.value) }],
+        transform: [{ scale: scrollScale * pressScale.value }],
       };
     });
 
@@ -130,10 +113,7 @@ const ListItem: FC<ListItemProps> = memo(
     );
 
     // Memoize star color
-    const starColor = useMemo(
-      () => (theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR),
-      [theme]
-    );
+    const starColor = useMemo(() => (theme === "light" ? LIGHT_STAR_COLOR : DARK_STAR_COLOR), [theme]);
 
     // Memoize position style
     const positionStyle = useMemo(
@@ -148,39 +128,37 @@ const ListItem: FC<ListItemProps> = memo(
     );
 
     const handlePressIn = useCallback(() => {
-      scale.value = 0.95;
+      pressScale.value = withSpring(0.95);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }, [scale]);
+    }, [pressScale]);
 
     const handlePressOut = useCallback(() => {
-      scale.value = 1;
+      pressScale.value = withSpring(1);
       handleClick();
-    }, [scale, handleClick]);
+    }, [pressScale, handleClick]);
 
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
         <View style={positionStyle}>
-          <Animated.View style={pressableStyle}>
-            <Pressable
-              disabled={item.isLevelLocked}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-              style={styles.cardContainer}
+          <Pressable
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={styles.cardContainer}
+            disabled={item.isLevelLocked}
+          >
+            <LinearGradient
+              colors={[colorInfo.lightColor, colorInfo.darkColor]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.outerSquare}
             >
-              <LinearGradient
-                colors={[colorInfo.lightColor, colorInfo.darkColor]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.outerSquare}
-              >
-                <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
-                  <ThemedText type="subtitle" style={styles.levelText}>
-                    {item.levelNumber}
-                  </ThemedText>
-                </View>
-              </LinearGradient>
-            </Pressable>
-          </Animated.View>
+              <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
+                <ThemedText type="subtitle" style={styles.levelText}>
+                  {item.levelNumber}
+                </ThemedText>
+              </View>
+            </LinearGradient>
+          </Pressable>
           <View style={styles.starContainer}>
             {STAR_ARRAY.map((_, index) => {
               const isFilled = index < item.stars && item.stars > 0;

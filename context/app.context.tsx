@@ -1,6 +1,6 @@
 import { LIFE_RESTORE_INTERVAL_MS, MAX_LIVES } from "@/constants/GameSettings";
 import { AppContext, AppContextStateType, appReducer, initialState } from "@/context/app.context.reducer";
-import { calculateRestoredLives } from "@/utils/utils";
+import { calculateRestoredLives, validateDaysInARow } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
@@ -26,6 +26,7 @@ export const AppContextProvider = ({ children }: { children: React.ReactNode }) 
         if (savedState) {
           const parsedState: AppContextStateType = JSON.parse(savedState);
           const { lives, newLastLifeLostAt } = calculateRestoredLives(parsedState.lives, parsedState.lastLifeLostAt);
+          const daysInARow = validateDaysInARow(parsedState.lastPlayedDate, parsedState.daysInARow);
 
           dispatch({
             type: "HYDRATE_STATE",
@@ -33,6 +34,7 @@ export const AppContextProvider = ({ children }: { children: React.ReactNode }) 
               ...parsedState,
               lives,
               lastLifeLostAt: newLastLifeLostAt,
+              daysInARow,
             },
           });
         }

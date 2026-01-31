@@ -76,6 +76,15 @@ export default function HomeScreen() {
   // Memoize theme to avoid inline reference changes
   const theme = state.theme ?? "light";
 
+  // Find the first locked level — the one just before it is the "current" level to center on
+  const initialScrollIndex = useMemo(() => {
+    if (!state.levels) return 0;
+    const firstLockedIndex = state.levels.findIndex((l) => l.isLevelLocked);
+    // If no locked level, scroll to the last one; otherwise scroll to the last unlocked
+    if (firstLockedIndex <= 0) return 0;
+    return firstLockedIndex - 1;
+  }, [state.levels]);
+
   // Memoize renderItem to prevent unnecessary re-renders
   const renderItem = useCallback(
     ({ item, index, scrollY }: { item: TaskInfoType; index: number; scrollY: SharedValue<number> }) => {
@@ -123,7 +132,7 @@ export default function HomeScreen() {
       <SafeAreaView>
         <UserStatistics onLivesPress={handleOpenLivesModalClose} onGemsPress={handleOpenGemsModalClose} />
 
-        <AnimatedFlatList paddingTop={0} paddingBottom={150} data={state.levels} renderItem={renderItem} />
+        <AnimatedFlatList paddingTop={0} paddingBottom={150} data={state.levels} renderItem={renderItem} initialScrollIndex={initialScrollIndex} />
       </SafeAreaView>
     </LinearGradient>
   );

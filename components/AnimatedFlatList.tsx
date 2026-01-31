@@ -1,25 +1,18 @@
 import { useCallback, useMemo } from "react";
-import { ListRenderItemInfo, Platform, StyleProp, ViewStyle } from "react-native";
-import Animated, {
-  SharedValue,
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from "react-native-reanimated";
+import { Dimensions, ListRenderItemInfo, Platform, StyleProp, ViewStyle } from "react-native";
+import Animated, { SharedValue, useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 
 // Fixed item height for getItemLayout optimization
 const ITEM_HEIGHT = 190; // 170 height + 20 marginTop from ListItem styles
 
 interface AnimatedFlatListProps<T> {
-  data: T[] | null | undefined;
-  renderItem: (props: {
-    item: T;
-    index: number;
-    scrollY: SharedValue<number>;
-  }) => React.ReactElement | null;
+  itemHeight?: number;
   paddingTop?: number;
   paddingBottom?: number;
-  itemHeight?: number;
+  initialScrollIndex?: number;
+  data: T[] | null | undefined;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  renderItem: (props: { item: T; index: number; scrollY: SharedValue<number> }) => React.ReactElement | null;
 }
 
 function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFlatListProps<T>) {
@@ -28,11 +21,19 @@ function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFla
     renderItem,
     paddingTop = 0,
     paddingBottom = 0,
+    initialScrollIndex,
     contentContainerStyle,
     itemHeight = ITEM_HEIGHT,
   } = props;
 
-  const scrollY = useSharedValue(0);
+  const initialContentOffset = useMemo(() => {
+    if (initialScrollIndex === undefined || initialScrollIndex <= 0) return undefined;
+    const screenHeight = Dimensions.get("window").height;
+    const y = Math.max(0, itemHeight * initialScrollIndex + paddingTop - screenHeight / 3 + itemHeight / 2);
+    return { x: 0, y };
+  }, [initialScrollIndex, itemHeight, paddingTop]);
+
+  const scrollY = useSharedValue(initialContentOffset?.y ?? 0);
 
   // Scroll handler runs entirely on UI thread
   const scrollHandler = useAnimatedScrollHandler({
@@ -77,7 +78,7 @@ function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFla
       getItemLayout={getItemLayout}
       contentContainerStyle={containerStyle}
       onScroll={scrollHandler}
-      scrollEventThrottle={16}
+      scrollEventThrottle={1}
       // Performance optimizations
       initialNumToRender={6}
       maxToRenderPerBatch={5}
@@ -85,6 +86,7 @@ function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFla
       removeClippedSubviews={Platform.OS === "android"}
       updateCellsBatchingPeriod={50}
       showsVerticalScrollIndicator={false}
+      {...(initialContentOffset && { contentOffset: initialContentOffset })}
     />
   );
 }

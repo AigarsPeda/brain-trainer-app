@@ -44,11 +44,11 @@ export function UserStatistics({ onLivesPress, onGemsPress }: UserStatisticsProp
     <>
       <View
         style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
           alignItems: "center",
+          flexDirection: "row",
           paddingHorizontal: 16,
           backgroundColor: "transparent",
+          justifyContent: "space-between",
         }}
       >
         <View style={{ flexDirection: "row", gap: 8 }}>
