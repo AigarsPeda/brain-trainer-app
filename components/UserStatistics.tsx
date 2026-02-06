@@ -15,9 +15,10 @@ import { useWindowDimensions, View } from "react-native";
 interface UserStatisticsProps {
   onLivesPress?: () => void;
   onGemsPress?: () => void;
+  onStreakPress?: () => void;
 }
 
-export function UserStatistics({ onLivesPress, onGemsPress }: UserStatisticsProps) {
+export function UserStatistics({ onLivesPress, onGemsPress, onStreakPress }: UserStatisticsProps) {
   const { state } = useAppContext();
   const { width } = useWindowDimensions();
   const iconColor = useThemeColor({}, "icon");
@@ -60,6 +61,7 @@ export function UserStatistics({ onLivesPress, onGemsPress }: UserStatisticsProp
               width: 38,
               height: 38,
             }}
+            onPress={onStreakPress}
           />
           <StatisticsItem
             src={Gem}
