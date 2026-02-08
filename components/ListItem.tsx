@@ -87,8 +87,8 @@ const ListItem: FC<ListItemProps> = memo(
     // Calculate item's vertical position (memoized constant per item)
     const itemOffset = index * ITEM_HEIGHT;
 
-    // Calculate when item is centered in viewport (adjusted slightly higher)
-    const itemCenterOffset = itemOffset - VIEWPORT_HEIGHT / 2 + ITEM_HEIGHT / 3;
+    // Calculate when item is truly centered in viewport (item center at screen center)
+    const itemCenterOffset = itemOffset - VIEWPORT_HEIGHT / 2 + ITEM_HEIGHT / 2;
 
     // Optimized: narrower range for smoother performance
     const edgeDistance = VIEWPORT_HEIGHT * 0.45;
