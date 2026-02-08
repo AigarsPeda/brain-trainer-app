@@ -39,4 +39,8 @@ export const STREAK_BONUSES: StreakBonusConfig[] = [
   { day: 7, gems: 100, emoji: "⭐", title: "7 dienas pēc kārtas!", description: "Vesela nedēļa! Izcili!" },
   { day: 14, gems: 250, emoji: "🏆", title: "14 dienas pēc kārtas!", description: "Divas nedēļas! Tu esi čempions!" },
   { day: 30, gems: 500, emoji: "👑", title: "30 dienas pēc kārtas!", description: "Vesels mēnesis! Neticami!" },
+  { day: 60, gems: 1000, emoji: "💎", title: "60 dienas pēc kārtas!", description: "Divi mēneši! Tu esi leģenda!" },
+  { day: 90, gems: 2000, emoji: "🌟", title: "90 dienas pēc kārtas!", description: "Trīs mēneši! Neapturams!" },
+  { day: 180, gems: 5000, emoji: "🎯", title: "180 dienas pēc kārtas!", description: "Pusgads! Tu esi varonis!" },
+  { day: 365, gems: 10000, emoji: "🏅", title: "365 dienas pēc kārtas!", description: "Vesels gads! Tu esi absolūts meistars!" },
 ];
