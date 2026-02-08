@@ -1,5 +1,5 @@
 import { TaskButtonStateColors } from "@/constants/Colors";
-import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS } from "@/constants/GameSettings";
+import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS, STREAK_BONUSES, StreakBonusConfig } from "@/constants/GameSettings";
 import { TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
 
 export const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
@@ -224,4 +224,16 @@ export const calculateRestoredLives = (
   const newLastLifeLostAt = Date.now() - remainingTime;
 
   return { lives: newLives, newLastLifeLostAt };
+};
+
+export const findNextUnclaimedBonus = (
+  daysInARow: number,
+  claimedBonuses: number[],
+  excludeDay?: number
+): StreakBonusConfig | null => {
+  return (
+    STREAK_BONUSES.find(
+      (b) => b.day !== excludeDay && daysInARow >= b.day && !claimedBonuses.includes(b.day)
+    ) || null
+  );
 };

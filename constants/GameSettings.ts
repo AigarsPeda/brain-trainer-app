@@ -29,6 +29,13 @@ export const HINT_COST = 5;
 // Cost in gems to remove one incorrect answer
 export const REMOVE_WRONG_ANSWER_COST = 8;
 
+// UI Layout constants
+export const ANDROID_TOP_PADDING = 25;
+export const LIST_BOTTOM_PADDING = 150;
+export const ZIGZAG_CYCLE_LENGTH = 6;
+export const ZIGZAG_PEAK = 3;
+export const BONUS_MODAL_DELAY_MS = 500;
+
 // Daily streak bonus configuration
 // Each milestone defines a day threshold, gem reward, emoji, and display text
 export type StreakBonusConfig = {

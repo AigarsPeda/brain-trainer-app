@@ -7,10 +7,18 @@ import { StreakBonusModal } from "@/components/StreakBonusModal";
 import { StreakBonusSheet } from "@/components/StreakBonusSheet";
 import { UserStatistics } from "@/components/UserStatistics";
 import { LevelBackgrounds } from "@/constants/Colors";
-import { STREAK_BONUSES, StreakBonusConfig } from "@/constants/GameSettings";
+import {
+  ANDROID_TOP_PADDING,
+  BONUS_MODAL_DELAY_MS,
+  LIST_BOTTOM_PADDING,
+  StreakBonusConfig,
+  ZIGZAG_CYCLE_LENGTH,
+  ZIGZAG_PEAK,
+} from "@/constants/GameSettings";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
+import { findNextUnclaimedBonus } from "@/utils/utils";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -18,21 +26,19 @@ import { Platform } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+type ModalType = "gems" | "lives" | "streak" | null;
+
 export default function HomeScreen() {
   const { state, dispatch } = useAppContext();
   const { loaded, showAdForReward } = useGoogleAd();
+  const [openModal, setOpenModal] = useState<ModalType>(null);
   const [showGemAnimation, setShowGemAnimation] = useState(false);
-  const [isGemModalVisible, setIsGemModalVisible] = useState(false);
-  const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
-  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
   const [pendingStreakBonus, setPendingStreakBonus] = useState<StreakBonusConfig | null>(null);
-  const [isStreakSheetVisible, setIsStreakSheetVisible] = useState(false);
+  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
   // Check for unclaimed streak bonuses on mount and when daysInARow changes
   useEffect(() => {
-    const unclaimed = STREAK_BONUSES.find(
-      (b) => state.daysInARow >= b.day && !state.claimedStreakBonuses.includes(b.day)
-    );
+    const unclaimed = findNextUnclaimedBonus(state.daysInARow, state.claimedStreakBonuses);
     if (unclaimed) {
       setPendingStreakBonus(unclaimed);
     }
@@ -43,14 +49,13 @@ export default function HomeScreen() {
       dispatch({ type: "CLAIM_STREAK_BONUS", payload: pendingStreakBonus.day });
       setPendingStreakBonus(null);
       // Check if there's another unclaimed bonus
-      const nextUnclaimed = STREAK_BONUSES.find(
-        (b) =>
-          b.day !== pendingStreakBonus.day &&
-          state.daysInARow >= b.day &&
-          !state.claimedStreakBonuses.includes(b.day)
+      const nextUnclaimed = findNextUnclaimedBonus(
+        state.daysInARow,
+        state.claimedStreakBonuses,
+        pendingStreakBonus.day
       );
       if (nextUnclaimed) {
-        setTimeout(() => setPendingStreakBonus(nextUnclaimed), 500);
+        setTimeout(() => setPendingStreakBonus(nextUnclaimed), BONUS_MODAL_DELAY_MS);
       }
     }
   };
@@ -61,7 +66,7 @@ export default function HomeScreen() {
         dispatch({ type: "RESTORE_LIFE_FROM_AD" });
       },
       () => {
-        setIsLivesModalVisible(false);
+        setOpenModal(null);
       }
     );
   };
@@ -83,12 +88,8 @@ export default function HomeScreen() {
     );
   };
 
-  const handleOpenLivesModalClose = () => {
-    setIsLivesModalVisible((state) => !state);
-  };
-
-  const handleOpenGemsModalClose = () => {
-    setIsGemModalVisible((state) => !state);
+  const closeGemModal = () => {
+    setOpenModal(null);
     setShowGemAnimation(false);
     setGemAnimationStartValue(undefined);
   };
@@ -101,8 +102,8 @@ export default function HomeScreen() {
 
   // Calculate position for zigzag pattern (0-3-0 pattern)
   const getPosition = useCallback((index: number) => {
-    const isPositive = index % 6 <= 3;
-    return isPositive ? index % 6 : 6 - (index % 6);
+    const isPositive = index % ZIGZAG_CYCLE_LENGTH <= ZIGZAG_PEAK;
+    return isPositive ? index % ZIGZAG_CYCLE_LENGTH : ZIGZAG_CYCLE_LENGTH - (index % ZIGZAG_CYCLE_LENGTH);
   }, []);
 
   // Memoize theme to avoid inline reference changes
@@ -141,7 +142,7 @@ export default function HomeScreen() {
       end={{ x: 1, y: 1 }}
       start={{ x: 0, y: 0 }}
       colors={backgroundColors}
-      style={{ flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }}
+      style={{ flex: 1, paddingTop: Platform.OS === "android" ? ANDROID_TOP_PADDING : 0 }}
     >
       <BackgroundPattern />
       <StreakBonusModal
@@ -152,36 +153,36 @@ export default function HomeScreen() {
       <LivesModal
         adLoaded={loaded}
         lives={state.lives}
-        visible={isLivesModalVisible}
+        visible={openModal === "lives"}
         onWatchAd={handleWatchAdForLife}
-        onClose={handleOpenLivesModalClose}
+        onClose={() => setOpenModal(null)}
         lastLifeLostAt={state.lastLifeLostAt}
       />
       <StreakBonusSheet
         daysInARow={state.daysInARow}
-        visible={isStreakSheetVisible}
+        visible={openModal === "streak"}
         claimedBonuses={state.claimedStreakBonuses}
-        onClose={() => setIsStreakSheetVisible(false)}
+        onClose={() => setOpenModal(null)}
       />
       <GemModal
         adLoaded={loaded}
         currentGems={state.gems}
-        visible={isGemModalVisible}
+        visible={openModal === "gems"}
         onWatchAd={handleWatchAdForGems}
         showAnimation={showGemAnimation}
-        onClose={handleOpenGemsModalClose}
+        onClose={closeGemModal}
         animationStartValue={gemAnimationStartValue}
       />
       <SafeAreaView>
         <UserStatistics
-          onLivesPress={handleOpenLivesModalClose}
-          onGemsPress={handleOpenGemsModalClose}
-          onStreakPress={() => setIsStreakSheetVisible(true)}
+          onLivesPress={() => setOpenModal("lives")}
+          onGemsPress={() => setOpenModal("gems")}
+          onStreakPress={() => setOpenModal("streak")}
         />
 
         <AnimatedFlatList
           paddingTop={0}
-          paddingBottom={150}
+          paddingBottom={LIST_BOTTOM_PADDING}
           data={state.levels}
           renderItem={renderItem}
           initialScrollIndex={initialScrollIndex}
