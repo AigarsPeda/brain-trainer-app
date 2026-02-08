@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { Dimensions, ListRenderItemInfo, Platform, StyleProp, ViewStyle } from "react-native";
+import { Dimensions, ListRenderItemInfo, StyleProp, ViewStyle } from "react-native";
 import Animated, { SharedValue, useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 
 // Fixed item height for getItemLayout optimization
@@ -78,13 +78,13 @@ function AnimatedFlatList<T extends { levelNumber?: number }>(props: AnimatedFla
       getItemLayout={getItemLayout}
       contentContainerStyle={containerStyle}
       onScroll={scrollHandler}
-      scrollEventThrottle={1}
+      scrollEventThrottle={16}
       // Performance optimizations
-      initialNumToRender={6}
-      maxToRenderPerBatch={5}
-      windowSize={7}
-      removeClippedSubviews={Platform.OS === "android"}
-      updateCellsBatchingPeriod={50}
+      initialNumToRender={8}
+      maxToRenderPerBatch={4}
+      windowSize={5}
+      removeClippedSubviews={true}
+      updateCellsBatchingPeriod={100}
       showsVerticalScrollIndicator={false}
       {...(initialContentOffset && { contentOffset: initialContentOffset })}
     />

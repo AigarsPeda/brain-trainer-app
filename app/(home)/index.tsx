@@ -36,7 +36,6 @@ export default function HomeScreen() {
   const [pendingStreakBonus, setPendingStreakBonus] = useState<StreakBonusConfig | null>(null);
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
-  // Check for unclaimed streak bonuses on mount and when daysInARow changes
   useEffect(() => {
     const unclaimed = findNextUnclaimedBonus(state.daysInARow, state.claimedStreakBonuses);
     if (unclaimed) {
@@ -48,7 +47,6 @@ export default function HomeScreen() {
     if (pendingStreakBonus) {
       dispatch({ type: "CLAIM_STREAK_BONUS", payload: pendingStreakBonus.day });
       setPendingStreakBonus(null);
-      // Check if there's another unclaimed bonus
       const nextUnclaimed = findNextUnclaimedBonus(
         state.daysInARow,
         state.claimedStreakBonuses,
@@ -94,31 +92,25 @@ export default function HomeScreen() {
     setGemAnimationStartValue(undefined);
   };
 
-  // Memoize background colors based on theme
   const backgroundColors = useMemo(
     () => (state.theme === "dark" ? LevelBackgrounds.home.dark : LevelBackgrounds.home.light),
     [state.theme]
   );
 
-  // Calculate position for zigzag pattern (0-3-0 pattern)
   const getPosition = useCallback((index: number) => {
     const isPositive = index % ZIGZAG_CYCLE_LENGTH <= ZIGZAG_PEAK;
     return isPositive ? index % ZIGZAG_CYCLE_LENGTH : ZIGZAG_CYCLE_LENGTH - (index % ZIGZAG_CYCLE_LENGTH);
   }, []);
 
-  // Memoize theme to avoid inline reference changes
   const theme = state.theme ?? "light";
 
-  // Find the first locked level — the one just before it is the "current" level to center on
   const initialScrollIndex = useMemo(() => {
     if (!state.levels) return 0;
     const firstLockedIndex = state.levels.findIndex((l) => l.isLevelLocked);
-    // If no locked level, scroll to the last one; otherwise scroll to the last unlocked
     if (firstLockedIndex <= 0) return 0;
     return firstLockedIndex - 1;
   }, [state.levels]);
 
-  // Memoize renderItem to prevent unnecessary re-renders
   const renderItem = useCallback(
     ({ item, index, scrollY }: { item: TaskInfoType; index: number; scrollY: SharedValue<number> }) => {
       return (
@@ -182,9 +174,9 @@ export default function HomeScreen() {
 
         <AnimatedFlatList
           paddingTop={0}
-          paddingBottom={LIST_BOTTOM_PADDING}
           data={state.levels}
           renderItem={renderItem}
+          paddingBottom={LIST_BOTTOM_PADDING}
           initialScrollIndex={initialScrollIndex}
         />
       </SafeAreaView>

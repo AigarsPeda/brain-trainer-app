@@ -7,12 +7,13 @@ import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { type FC, memo, useMemo, useCallback } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   Extrapolation,
   SharedValue,
   interpolate,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
@@ -66,7 +67,8 @@ const STAR_ARRAY = createArray(STATS_PER_LEVEL);
 
 // Item height must match AnimatedFlatList's ITEM_HEIGHT
 const ITEM_HEIGHT = 190;
-const VIEWPORT_HEIGHT = 800; // Approximate viewport height
+// Use actual screen height for adaptive animations across different devices
+const VIEWPORT_HEIGHT = Dimensions.get("window").height;
 
 type ListItemProps = {
   index: number;
@@ -82,23 +84,30 @@ const ListItem: FC<ListItemProps> = memo(
   ({ item, index, bgColor, position, theme, handleClick, scrollY }) => {
     const pressScale = useSharedValue(1);
 
-    // Calculate item's vertical position
+    // Calculate item's vertical position (memoized constant per item)
     const itemOffset = index * ITEM_HEIGHT;
+
+    // Pre-calculate input range (constant per item)
+    const inputRange = [
+      itemOffset - VIEWPORT_HEIGHT,
+      itemOffset - VIEWPORT_HEIGHT / 2,
+      itemOffset,
+      itemOffset + VIEWPORT_HEIGHT / 2,
+      itemOffset + VIEWPORT_HEIGHT,
+    ];
+
+    // Use derived value for scroll calculations to optimize performance
+    const animationProgress = useDerivedValue(() => {
+      "worklet";
+      const opacity = interpolate(scrollY.value, inputRange, [0, 1, 1, 1, 0], Extrapolation.CLAMP);
+      const scrollScale = interpolate(scrollY.value, inputRange, [0.7, 1, 1, 1, 0.7], Extrapolation.CLAMP);
+
+      return { opacity, scrollScale };
+    }, [scrollY]);
 
     const rStyle = useAnimatedStyle(() => {
       "worklet";
-      // Calculate how far this item is from being centered in viewport
-      const inputRange = [
-        itemOffset - VIEWPORT_HEIGHT,
-        itemOffset - VIEWPORT_HEIGHT / 2,
-        itemOffset,
-        itemOffset + VIEWPORT_HEIGHT / 2,
-        itemOffset + VIEWPORT_HEIGHT,
-      ];
-
-      const opacity = interpolate(scrollY.value, inputRange, [0, 1, 1, 1, 0], Extrapolation.CLAMP);
-
-      const scrollScale = interpolate(scrollY.value, inputRange, [0.6, 1, 1, 1, 0.6], Extrapolation.CLAMP);
+      const { opacity, scrollScale } = animationProgress.value;
 
       return {
         opacity,
