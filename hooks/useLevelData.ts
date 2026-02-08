@@ -1,4 +1,4 @@
-import { LevelsEnum, TaskType } from "@/context/app.context.reducer";
+import { TaskType } from "@/context/app.context.reducer";
 import { getLevel } from "@/data/levelLoader";
 import { useMemo } from "react";
 
@@ -14,7 +14,7 @@ type LevelDataResult = {
   maxLevelStep: 0;
 };
 
-export function useLevelData(level: LevelsEnum, currentTaskInLevel: number): LevelDataResult {
+export function useLevelData(level: string, currentTaskInLevel: number): LevelDataResult {
   return useMemo(() => {
     const levelNumber = Number(level);
 

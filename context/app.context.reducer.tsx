@@ -1,4 +1,12 @@
-import { GEMS_FROM_AD, INITIAL_LIVES, MAX_LIVES, STREAK_BONUSES } from "@/constants/GameSettings";
+import {
+  DEFAULT_STARS,
+  GEMS_FROM_AD,
+  INITIAL_LEVEL,
+  INITIAL_LIVES,
+  INITIAL_TASK,
+  MAX_LIVES,
+  STREAK_BONUSES,
+} from "@/constants/GameSettings";
 import { TOTAL_LEVELS } from "@/data/levelLoader";
 import { calculateTaskCorrectnessPercentage, updateDaysInARow } from "@/utils/utils";
 import { createContext } from "react";
@@ -86,60 +94,6 @@ export type AppContextType = {
   dispatch: React.Dispatch<AppContextActionType>;
 };
 
-export enum LevelsEnum {
-  LEVEL_1 = "1",
-  LEVEL_2 = "2",
-  LEVEL_3 = "3",
-  LEVEL_4 = "4",
-  LEVEL_5 = "5",
-  LEVEL_6 = "6",
-  LEVEL_7 = "7",
-  LEVEL_8 = "8",
-  LEVEL_9 = "9",
-  LEVEL_10 = "10",
-  LEVEL_11 = "11",
-  LEVEL_12 = "12",
-  LEVEL_13 = "13",
-  LEVEL_14 = "14",
-  LEVEL_15 = "15",
-  LEVEL_16 = "16",
-  LEVEL_17 = "17",
-  LEVEL_18 = "18",
-  LEVEL_19 = "19",
-  LEVEL_20 = "20",
-  LEVEL_21 = "21",
-  LEVEL_22 = "22",
-  LEVEL_23 = "23",
-  LEVEL_24 = "24",
-  LEVEL_25 = "25",
-  LEVEL_26 = "26",
-  LEVEL_27 = "27",
-  LEVEL_28 = "28",
-  LEVEL_29 = "29",
-  LEVEL_30 = "30",
-  LEVEL_31 = "31",
-  LEVEL_32 = "32",
-  LEVEL_33 = "33",
-  LEVEL_34 = "34",
-  LEVEL_35 = "35",
-  LEVEL_36 = "36",
-  LEVEL_37 = "37",
-  LEVEL_38 = "38",
-  LEVEL_39 = "39",
-  LEVEL_40 = "40",
-  LEVEL_41 = "41",
-  LEVEL_42 = "42",
-  LEVEL_43 = "43",
-  LEVEL_44 = "44",
-  LEVEL_45 = "45",
-  LEVEL_46 = "46",
-  LEVEL_47 = "47",
-  LEVEL_48 = "48",
-  LEVEL_49 = "49",
-  LEVEL_50 = "50",
-  LEVEL_51 = "51",
-}
-
 export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType | TextTaskType;
 
 export const isMultiAnswerMathTask = (task: TaskType): task is MultiAnswerMathTaskType => {
@@ -153,10 +107,6 @@ export const isCreateMathTask = (task: TaskType): task is CreateMathTaskType => 
 export const isTextTask = (task: TaskType): task is TextTaskType => {
   return "question" in task && "icon" in task;
 };
-
-const INITIAL_LEVEL = 1;
-const INITIAL_TASK = 1;
-const DEFAULT_STARS = 0;
 
 const initializeLevels = (): TaskInfoType[] => {
   return Array.from({ length: TOTAL_LEVELS }, (_, index) => ({
@@ -194,6 +144,34 @@ export const initialContext: AppContextType = {
 };
 
 export const AppContext = createContext<AppContextType>(initialContext);
+
+// Helper Functions
+const calculateStars = (tasksResults: TaskResultType[]): number => {
+  const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
+
+  if (totalPercentage >= 90) return 5;
+  if (totalPercentage >= 75) return 4;
+  if (totalPercentage >= 60) return 3;
+  if (totalPercentage >= 40) return 2;
+  return 1;
+};
+
+const updateLevelStates = (
+  levels: TaskInfoType[],
+  currentLevel: number,
+  nextLevel: number,
+  stars: number
+): TaskInfoType[] => {
+  return levels.map((level) => {
+    if (level.levelNumber === currentLevel) {
+      return { ...level, stars, isLevelCompleted: true };
+    }
+    if (level.levelNumber === nextLevel) {
+      return { ...level, isLevelLocked: false };
+    }
+    return level;
+  });
+};
 
 interface SetNameActionType {
   type: "SET_NAME";
@@ -284,9 +262,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
     case "GET_NEXT_TASK": {
       const { isCorrect, maxLevelStep } = action.payload;
-      const currentLevel = state.game.currentLevel;
-      const currentTaskInLevel = state.game.currentTaskInLevel;
-      const updatedLives = state.lives;
+      const { currentLevel, currentTaskInLevel } = state.game;
       const nextTaskInLevel = currentTaskInLevel + 1;
       const finalAttemptCount = isCorrect ? state.currentTaskAttemptCount + 1 : state.currentTaskAttemptCount;
       const correctnessPercentage = calculateTaskCorrectnessPercentage(isCorrect, finalAttemptCount, maxLevelStep);
@@ -312,67 +288,29 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       if (isLastTaskInLevel) {
         const nextLevel = currentLevel + 1;
-
-        const calculateStars = (tasksResults: TaskResultType[]): number => {
-          const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
-
-          if (totalPercentage >= 90) {
-            return 5;
-          } else if (totalPercentage >= 75) {
-            return 4;
-          } else if (totalPercentage >= 60) {
-            return 3;
-          } else if (totalPercentage >= 40) {
-            return 2;
-          } else {
-            return 1;
-          }
-        };
-
         const finalResults = {
           ...newResults,
-          [nextLevel.toString()]: {
-            tasksResults: [],
-          },
+          [nextLevel.toString()]: { tasksResults: [] },
         };
+
+        const stars = calculateStars(finalResults[currentLevel.toString()].tasksResults);
 
         return {
           ...state,
-          lives: updatedLives,
           daysInARow: newDaysInARow,
           lastPlayedDate: newLastPlayedDate,
-          game: {
-            currentTaskInLevel: 1,
-            currentLevel: nextLevel,
-          },
+          game: { currentTaskInLevel: 1, currentLevel: nextLevel },
           results: finalResults,
           currentTaskAttemptCount: 0,
-          levels: state.levels.map((level) =>
-            level.levelNumber === currentLevel
-              ? {
-                  ...level,
-                  stars: calculateStars(finalResults[currentLevel.toString()].tasksResults),
-                  isLevelCompleted: true,
-                }
-              : level.levelNumber === nextLevel
-                ? {
-                    ...level,
-                    isLevelLocked: false,
-                  }
-                : level
-          ),
+          levels: updateLevelStates(state.levels, currentLevel, nextLevel, stars),
         };
       }
 
       return {
         ...state,
-        lives: updatedLives,
         daysInARow: newDaysInARow,
         lastPlayedDate: newLastPlayedDate,
-        game: {
-          ...state.game,
-          currentTaskInLevel: nextTaskInLevel,
-        },
+        game: { ...state.game, currentTaskInLevel: nextTaskInLevel },
         results: newResults,
         currentTaskAttemptCount: 0,
       };
@@ -380,30 +318,11 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
     case "GET_NEXT_LEVEL": {
       const { nextLevel, correctnessPercentage } = action.payload;
-      const currentLevel = state.game.currentLevel;
-      const currentTaskInLevel = state.game.currentTaskInLevel;
-
-      // Update days in a row and lastPlayedDate
+      const { currentLevel, currentTaskInLevel } = state.game;
       const { daysInARow: newDaysInARow, lastPlayedDate: newLastPlayedDate } = updateDaysInARow(
         state.lastPlayedDate,
         state.daysInARow
       );
-
-      const calculateStars = (tasksResults: TaskResultType[]): number => {
-        const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
-
-        if (totalPercentage >= 90) {
-          return 5;
-        } else if (totalPercentage >= 75) {
-          return 4;
-        } else if (totalPercentage >= 60) {
-          return 3;
-        } else if (totalPercentage >= 40) {
-          return 2;
-        } else {
-          return 1;
-        }
-      };
 
       const newResults = {
         ...state.results,
@@ -416,46 +335,29 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
             },
           ],
         },
-        [nextLevel.toString()]: {
-          tasksResults: [],
-        },
+        [nextLevel.toString()]: { tasksResults: [] },
       };
 
-      const newState = {
+      const stars = calculateStars(newResults[currentLevel.toString()].tasksResults);
+
+      return {
         ...state,
         daysInARow: newDaysInARow,
         lastPlayedDate: newLastPlayedDate,
-        game: {
-          currentTaskInLevel: 1,
-          currentLevel: nextLevel,
-        },
+        game: { currentTaskInLevel: 1, currentLevel: nextLevel },
         results: newResults,
         currentTaskAttemptCount: 0,
-        levels: state.levels.map((level) =>
-          level.levelNumber === currentLevel
-            ? {
-                ...level,
-                stars: calculateStars(newResults[currentLevel.toString()].tasksResults),
-                isLevelCompleted: true,
-              }
-            : level.levelNumber === nextLevel
-              ? {
-                  ...level,
-                  isLevelLocked: false,
-                }
-              : level
-        ),
+        levels: updateLevelStates(state.levels, currentLevel, nextLevel, stars),
       };
-
-      return newState;
     }
 
     case "LOSE_LIFE": {
       const newLives = Math.max(0, state.lives - 1);
+      const shouldSetLifeLostTime = state.lastLifeLostAt === null && newLives < state.lives;
       return {
         ...state,
         lives: newLives,
-        lastLifeLostAt: newLives < state.lives && state.lastLifeLostAt === null ? Date.now() : state.lastLifeLostAt,
+        lastLifeLostAt: shouldSetLifeLostTime ? Date.now() : state.lastLifeLostAt,
         currentTaskAttemptCount: state.currentTaskAttemptCount + 1,
       };
     }
@@ -465,7 +367,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       return {
         ...state,
         lives: newLives,
-        lastLifeLostAt: newLives >= MAX_LIVES ? null : Date.now(),
+        lastLifeLostAt: newLives >= MAX_LIVES ? null : state.lastLifeLostAt,
       };
     }
 
@@ -495,9 +397,11 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
     case "CLAIM_STREAK_BONUS": {
       const milestone = action.payload;
       const bonus = STREAK_BONUSES.find((b) => b.day === milestone);
+
       if (!bonus || state.claimedStreakBonuses.includes(milestone)) {
         return state;
       }
+
       return {
         ...state,
         gems: state.gems + bonus.gems,

@@ -2,7 +2,7 @@ import { MainButton } from "@/components/MainButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { DropZoneColors } from "@/constants/Colors";
-import { CreateMathTaskType, LevelsEnum } from "@/context/app.context.reducer";
+import { CreateMathTaskType } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
@@ -56,7 +56,7 @@ interface NumberPosition {
 }
 
 interface CreateMathTaskProps {
-  level: LevelsEnum;
+  level: string;
   maxLevelStep: number;
   task: CreateMathTaskType;
   isFinalTaskInLevel: boolean;

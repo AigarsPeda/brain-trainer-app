@@ -3,7 +3,6 @@ import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import type {
-  LevelsEnum,
   MultiAnswerMathTaskType,
   TaskAnswerType,
 } from "@/context/app.context.reducer";
@@ -17,7 +16,7 @@ import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface MathTaskWithResultProps {
-  level: LevelsEnum;
+  level: string;
   maxLevelStep: number;
   isFinalTaskInLevel: boolean;
   task: MultiAnswerMathTaskType;

@@ -12,6 +12,11 @@ export const MAX_LIVES = 5;
 // Initial number of lives when starting the game
 export const INITIAL_LIVES = 5;
 
+// Initial game state values
+export const INITIAL_LEVEL = 1;
+export const INITIAL_TASK = 1;
+export const DEFAULT_STARS = 0;
+
 // Convert minutes to milliseconds for timers
 export const LIFE_RESTORE_INTERVAL_MS = LIFE_RESTORE_INTERVAL_MINUTES * 60 * 1000;
 

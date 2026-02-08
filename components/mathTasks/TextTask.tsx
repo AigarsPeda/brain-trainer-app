@@ -3,7 +3,7 @@ import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { LevelsEnum, TextTaskType } from "@/context/app.context.reducer";
+import { TextTaskType } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
@@ -15,7 +15,7 @@ import { useMemo, useRef, useState } from "react";
 import { Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
 
 interface TextTaskProps {
-  level: LevelsEnum;
+  level: string;
   task: TextTaskType;
   maxLevelStep: number;
   removedAnswerIds?: number[];

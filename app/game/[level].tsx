@@ -14,22 +14,27 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
 import { HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
-import { isCreateMathTask, isMultiAnswerMathTask, isTextTask, LevelsEnum } from "@/context/app.context.reducer";
+import { isCreateMathTask, isMultiAnswerMathTask, isTextTask } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { useLevelData } from "@/hooks/useLevelData";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
+import { findIncorrectCreateMathOptions, findIncorrectMultiAnswerOptions, selectRandomItem } from "@/utils/taskHelpers";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const ADDITIONAL_TOP_PADDING = 12;
+
+type ModalType = "help" | "hint" | "info" | "lives" | null;
+
 export default function GameLevelScreen() {
   const {
     state: {
-      lives,
       gems,
+      lives,
       theme,
       lastLifeLostAt,
       game: { currentTaskInLevel },
@@ -39,82 +44,52 @@ export default function GameLevelScreen() {
   } = useAppContext();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { loaded, showAdForReward } = useGoogleAd();
-  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
-  const [isHintModalVisible, setIsHintModalVisible] = useState(false);
-  const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
-  const [isLivesModalVisible, setIsLivesModalVisible] = useState(false);
-  const [showGemAnimation, setShowGemAnimation] = useState(false);
-  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
-  const [removedAnswerIds, setRemovedAnswerIds] = useState<number[]>([]);
-  const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
-  const { level } = useLocalSearchParams<"/game/[level]">() as { level: LevelsEnum };
-  const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, currentTaskInLevel);
-
   const livesAnimation = usePulseOnChange(lives);
+  const { loaded, showAdForReward } = useGoogleAd();
+  const [openModal, setOpenModal] = useState<ModalType>(null);
+  const [showGemAnimation, setShowGemAnimation] = useState(false);
+  const [removedAnswerIds, setRemovedAnswerIds] = useState<number[]>([]);
+  const { level } = useLocalSearchParams<"/game/[level]">() as { level: string };
+  const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
+  const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, currentTaskInLevel);
+  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
 
-  // Determine if remove answer feature can be used for current task
   const canRemoveAnswer = useMemo(() => {
     if (!currentTask) return false;
 
     if (isTextTask(currentTask)) {
-      // Can always show multiple choice for text tasks (unless already showing)
       return !showTextTaskAsMultipleChoice;
     } else if (isMultiAnswerMathTask(currentTask)) {
-      // Check if there are any incorrect options left to remove
       const remainingOptions = currentTask.options.filter((opt) => !removedAnswerIds.includes(opt.id));
       return remainingOptions.length > 1; // Need at least one to remove
     } else if (isCreateMathTask(currentTask)) {
-      // Check if there are any incorrect numbers left to remove
       const remainingOptions = currentTask.options.filter((opt) => !removedAnswerIds.includes(opt.id));
       return remainingOptions.length > 2; // Need at least 2 numbers to solve + 1 to remove
     }
     return false;
   }, [currentTask, removedAnswerIds, showTextTaskAsMultipleChoice]);
 
-  // Get background gradient based on current task type
   const backgroundColors = useMemo(() => {
     const taskType = currentTask?.taskType ?? "home";
     return getTaskBackground(taskType as "mathTaskWithResult" | "createMathTask", theme);
   }, [currentTask?.taskType, theme]);
 
-  // Get explanation for the current task
   const currentTaskExplanation = useMemo(() => {
     if (!currentTask) return null;
     return getTaskExplanation(currentTask);
   }, [currentTask, getTaskExplanation]);
 
-  const closeInfoModal = () => {
-    setIsInfoModalVisible(false);
-  };
-
-  const openLivesModal = () => {
-    setIsLivesModalVisible(true);
-  };
-
-  const closeLivesModal = () => {
-    setIsLivesModalVisible(false);
-  };
-
-  const openHelpModal = () => {
-    setIsHelpModalVisible(true);
-  };
-
   const closeHelpModal = () => {
-    setIsHelpModalVisible(false);
+    setOpenModal(null);
     setShowGemAnimation(false);
     setGemAnimationStartValue(undefined);
   };
 
-  const closeHintModal = () => {
-    setIsHintModalVisible(false);
-  };
-
   const handlePurchaseHint = () => {
     dispatch({ type: "SPEND_GEMS", payload: HINT_COST });
-    setIsHintModalVisible(true);
+    setOpenModal("hint");
   };
 
   const handleRemoveWrongAnswer = () => {
@@ -123,85 +98,28 @@ export default function GameLevelScreen() {
     dispatch({ type: "SPEND_GEMS", payload: REMOVE_WRONG_ANSWER_COST });
 
     if (isTextTask(currentTask)) {
-      // For text tasks, transform to multiple choice
       setShowTextTaskAsMultipleChoice(true);
     } else if (isMultiAnswerMathTask(currentTask)) {
-      // For multi-answer tasks, find and remove one incorrect option
-      const incorrectOptions = currentTask.options.filter(
-        (option) => {
-          const result = currentTask.result;
-          // Simple check: does the equation equal the result?
-          try {
-            const evalResult = eval(option.equation.replace("×", "*").replace("÷", "/"));
-            return evalResult !== result;
-          } catch {
-            return false;
-          }
-        }
-      );
+      const incorrectOptions = findIncorrectMultiAnswerOptions(currentTask, removedAnswerIds);
+      const randomIncorrect = selectRandomItem(incorrectOptions);
 
-      if (incorrectOptions.length > 0) {
-        const randomIncorrect = incorrectOptions[Math.floor(Math.random() * incorrectOptions.length)];
+      if (randomIncorrect) {
         setRemovedAnswerIds((prev) => [...prev, randomIncorrect.id]);
       }
     } else if (isCreateMathTask(currentTask)) {
-      // For create math tasks, find and remove one incorrect number
-      const correctNumbers = new Set<number>();
-      const operation = currentTask.operation;
-      const result = currentTask.result;
+      const incorrectOptions = findIncorrectCreateMathOptions(currentTask, removedAnswerIds);
+      const randomIncorrect = selectRandomItem(incorrectOptions);
 
-      // Find all correct number combinations
-      currentTask.options.forEach((opt1) => {
-        currentTask.options.forEach((opt2) => {
-          const num1 = Number(opt1.number);
-          const num2 = Number(opt2.number);
-          let calcResult = 0;
-
-          switch (operation) {
-            case "+":
-              calcResult = num1 + num2;
-              break;
-            case "-":
-              calcResult = num1 - num2;
-              break;
-            case "×":
-            case "*":
-              calcResult = num1 * num2;
-              break;
-            case "÷":
-            case "/":
-              calcResult = num2 !== 0 ? num1 / num2 : NaN;
-              break;
-          }
-
-          if (calcResult === result) {
-            correctNumbers.add(num1);
-            correctNumbers.add(num2);
-          }
-        });
-      });
-
-      // Find incorrect numbers (those not in any correct combination)
-      const incorrectOptions = currentTask.options.filter(
-        (option) => !correctNumbers.has(Number(option.number))
-      );
-
-      if (incorrectOptions.length > 0) {
-        const randomIncorrect = incorrectOptions[Math.floor(Math.random() * incorrectOptions.length)];
+      if (randomIncorrect) {
         setRemovedAnswerIds((prev) => [...prev, randomIncorrect.id]);
       }
     }
   };
 
   const handleWatchAd = () => {
-    showAdForReward(
-      () => {
-        dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-      }
-      // () => {
-      //   setIsLivesModalVisible(false);
-      // }
-    );
+    showAdForReward(() => {
+      dispatch({ type: "RESTORE_LIFE_FROM_AD" });
+    });
   };
 
   const handleWatchAdForGems = () => {
@@ -253,32 +171,36 @@ export default function GameLevelScreen() {
         backgroundColor="transparent"
         barStyle={theme === "dark" ? "light-content" : "dark-content"}
       />
-      <InfoModal visible={isInfoModalVisible} onClose={closeInfoModal} />
+      <InfoModal visible={openModal === "info"} onClose={() => setOpenModal(null)} />
       <LivesModal
         lives={lives}
         adLoaded={loaded}
         onWatchAd={handleWatchAd}
-        onClose={closeLivesModal}
-        visible={isLivesModalVisible}
+        visible={openModal === "lives"}
         lastLifeLostAt={lastLifeLostAt}
+        onClose={() => setOpenModal(null)}
       />
       <HelpModal
+        adLoaded={loaded}
         currentGems={gems}
         onClose={closeHelpModal}
-        visible={isHelpModalVisible}
-        onPurchaseHint={handlePurchaseHint}
-        onRemoveWrongAnswer={handleRemoveWrongAnswer}
-        canRemoveAnswer={canRemoveAnswer}
-        adLoaded={loaded}
-        onWatchAdForGems={handleWatchAdForGems}
+        visible={openModal === "help"}
         showAnimation={showGemAnimation}
+        canRemoveAnswer={canRemoveAnswer}
+        onPurchaseHint={handlePurchaseHint}
+        onWatchAdForGems={handleWatchAdForGems}
         animationStartValue={gemAnimationStartValue}
+        onRemoveWrongAnswer={handleRemoveWrongAnswer}
       />
-      <HintModal visible={isHintModalVisible} onClose={closeHintModal} explanation={currentTaskExplanation} />
+      <HintModal
+        visible={openModal === "hint"}
+        onClose={() => setOpenModal(null)}
+        explanation={currentTaskExplanation}
+      />
       <View
         style={{
           ...styles.itemsWrap,
-          paddingTop: styles.itemsWrap.paddingTop + insets.top + 12,
+          paddingTop: styles.itemsWrap.paddingTop + insets.top + ADDITIONAL_TOP_PADDING,
           paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
         }}
       >
@@ -293,13 +215,13 @@ export default function GameLevelScreen() {
           <StatisticsItem
             src={Heart}
             stat={lives}
-            onPress={openLivesModal}
             animation={livesAnimation}
             size={styles.statisticsItem}
+            onPress={() => setOpenModal("lives")}
           />
         </View>
         {/* Hint button row */}
-        <Pressable style={styles.hintRow} onPress={openHelpModal}>
+        <Pressable style={styles.hintRow} onPress={() => setOpenModal("help")}>
           <ThemedText style={styles.hintEmoji}>💎</ThemedText>
           <ThemedText style={styles.hintText} type="subtitle">
             Palīdzība
@@ -311,8 +233,8 @@ export default function GameLevelScreen() {
               level={level}
               task={currentTask}
               maxLevelStep={maxLevelStep}
-              isFinalTaskInLevel={isFinalTaskInLevel}
               removedAnswerIds={removedAnswerIds}
+              isFinalTaskInLevel={isFinalTaskInLevel}
             />
           )}
           {isCreateMathTask(currentTask) && (
@@ -320,8 +242,8 @@ export default function GameLevelScreen() {
               level={level}
               task={currentTask}
               maxLevelStep={maxLevelStep}
-              isFinalTaskInLevel={isFinalTaskInLevel}
               removedAnswerIds={removedAnswerIds}
+              isFinalTaskInLevel={isFinalTaskInLevel}
             />
           )}
           {isTextTask(currentTask) && (
@@ -329,9 +251,9 @@ export default function GameLevelScreen() {
               level={level}
               task={currentTask}
               maxLevelStep={maxLevelStep}
+              removedAnswerIds={removedAnswerIds}
               isFinalTaskInLevel={isFinalTaskInLevel}
               showAsMultipleChoice={showTextTaskAsMultipleChoice}
-              removedAnswerIds={removedAnswerIds}
             />
           )}
         </View>
