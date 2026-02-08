@@ -139,8 +139,8 @@ export default function HomeScreen() {
       <BackgroundPattern />
       <StreakBonusModal
         bonus={pendingStreakBonus}
-        visible={pendingStreakBonus !== null}
         onClaim={handleClaimStreakBonus}
+        visible={pendingStreakBonus !== null}
       />
       <LivesModal
         adLoaded={loaded}
@@ -153,22 +153,22 @@ export default function HomeScreen() {
       <StreakBonusSheet
         daysInARow={state.daysInARow}
         visible={openModal === "streak"}
-        claimedBonuses={state.claimedStreakBonuses}
         onClose={() => setOpenModal(null)}
+        claimedBonuses={state.claimedStreakBonuses}
       />
       <GemModal
         adLoaded={loaded}
+        onClose={closeGemModal}
         currentGems={state.gems}
         visible={openModal === "gems"}
         onWatchAd={handleWatchAdForGems}
         showAnimation={showGemAnimation}
-        onClose={closeGemModal}
         animationStartValue={gemAnimationStartValue}
       />
       <SafeAreaView>
         <UserStatistics
-          onLivesPress={() => setOpenModal("lives")}
           onGemsPress={() => setOpenModal("gems")}
+          onLivesPress={() => setOpenModal("lives")}
           onStreakPress={() => setOpenModal("streak")}
         />
 

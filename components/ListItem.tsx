@@ -87,31 +87,31 @@ const ListItem: FC<ListItemProps> = memo(
     // Calculate item's vertical position (memoized constant per item)
     const itemOffset = index * ITEM_HEIGHT;
 
-    // Pre-calculate input range (constant per item)
+    // Calculate when item is centered in viewport (adjusted slightly higher)
+    const itemCenterOffset = itemOffset - VIEWPORT_HEIGHT / 2 + ITEM_HEIGHT / 3;
+
+    // Optimized: narrower range for smoother performance
+    const edgeDistance = VIEWPORT_HEIGHT * 0.45;
     const inputRange = [
-      itemOffset - VIEWPORT_HEIGHT,
-      itemOffset - VIEWPORT_HEIGHT / 2,
-      itemOffset,
-      itemOffset + VIEWPORT_HEIGHT / 2,
-      itemOffset + VIEWPORT_HEIGHT,
+      itemCenterOffset - edgeDistance, // Below center
+      itemCenterOffset,                 // At center
     ];
 
-    // Use derived value for scroll calculations to optimize performance
-    const animationProgress = useDerivedValue(() => {
+    // Asymmetric scale animation: scales up from below, stays at 1.0 above center
+    const scrollScale = useDerivedValue(() => {
       "worklet";
-      const opacity = interpolate(scrollY.value, inputRange, [0, 1, 1, 1, 0], Extrapolation.CLAMP);
-      const scrollScale = interpolate(scrollY.value, inputRange, [0.7, 1, 1, 1, 0.7], Extrapolation.CLAMP);
-
-      return { opacity, scrollScale };
+      return interpolate(
+        scrollY.value,
+        inputRange,
+        [0.5, 1], // Very dramatic: scales from 50% to 100% size
+        Extrapolation.CLAMP
+      );
     }, [scrollY]);
 
     const rStyle = useAnimatedStyle(() => {
       "worklet";
-      const { opacity, scrollScale } = animationProgress.value;
-
       return {
-        opacity,
-        transform: [{ scale: scrollScale * pressScale.value }],
+        transform: [{ scale: scrollScale.value * pressScale.value }],
       };
     });
 
