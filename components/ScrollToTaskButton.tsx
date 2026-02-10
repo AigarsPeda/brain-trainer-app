@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { FC, useEffect } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, useColorScheme } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+
+import { Colors } from "@/constants/Colors";
 
 interface ScrollToTaskButtonProps {
   visible: boolean;
@@ -11,6 +13,7 @@ interface ScrollToTaskButtonProps {
 }
 
 export const ScrollToTaskButton: FC<ScrollToTaskButtonProps> = ({ onPress, visible, direction }) => {
+  const colorScheme = useColorScheme();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0);
 
@@ -33,9 +36,11 @@ export const ScrollToTaskButton: FC<ScrollToTaskButtonProps> = ({ onPress, visib
     opacity: opacity.value,
   }));
 
+  const backgroundColor = Colors[colorScheme ?? "light"].tint;
+
   return (
     <Animated.View style={[styles.container, animatedStyle]} pointerEvents={visible ? "auto" : "none"}>
-      <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.button}>
+      <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} style={[styles.button, { backgroundColor }]}>
         <Ionicons name={direction === "up" ? "arrow-up" : "arrow-down"} size={28} color="#fff" />
       </Pressable>
     </Animated.View>
@@ -53,7 +58,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#007AFF",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

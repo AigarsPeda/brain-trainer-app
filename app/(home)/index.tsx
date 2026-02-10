@@ -27,6 +27,9 @@ import { Platform } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const DEBOUNCE_DELAY_MS = 150;
+const VISIBILITY_THRESHOLD = 3;
+
 type ModalType = "gems" | "lives" | "streak" | null;
 
 export default function HomeScreen() {
@@ -34,19 +37,13 @@ export default function HomeScreen() {
   const { loaded, showAdForReward } = useGoogleAd();
   const [openModal, setOpenModal] = useState<ModalType>(null);
   const [showGemAnimation, setShowGemAnimation] = useState(false);
-  const [pendingStreakBonus, setPendingStreakBonus] = useState<StreakBonusConfig | null>(null);
-  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [arrowDirection, setArrowDirection] = useState<"up" | "down">("down");
-  const hasInitializedRef = useRef(false);
-  const flatListRef = useRef<AnimatedFlatListRef>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pendingStreakBonus, setPendingStreakBonus] = useState<StreakBonusConfig | null>(null);
+  const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
-  useEffect(() => {
-    const unclaimed = findNextUnclaimedBonus(state.daysInARow, state.claimedStreakBonuses);
-    if (unclaimed) {
-      setPendingStreakBonus(unclaimed);
-    }
-  }, [state.daysInARow, state.claimedStreakBonuses]);
+  const flatListRef = useRef<AnimatedFlatListRef>(null);
 
   const handleClaimStreakBonus = () => {
     if (pendingStreakBonus) {
@@ -116,21 +113,12 @@ export default function HomeScreen() {
     return firstLockedIndex - 1;
   }, [state.levels]);
 
-  // Find the last available (unlocked) task
   const lastAvailableTaskIndex = useMemo(() => {
     if (!state.levels) return -1;
     const firstLockedIndex = state.levels.findIndex((l) => l.isLevelLocked);
     if (firstLockedIndex <= 0) return state.levels.length - 1;
     return firstLockedIndex - 1;
   }, [state.levels]);
-
-  // Reset button visibility when scrolling to initial position (task should be visible)
-  useEffect(() => {
-    if (initialScrollIndex === lastAvailableTaskIndex) {
-      setShowScrollButton(false);
-      hasInitializedRef.current = false;
-    }
-  }, [initialScrollIndex, lastAvailableTaskIndex]);
 
   const handleScrollToLastTask = useCallback(() => {
     if (lastAvailableTaskIndex >= 0) {
@@ -140,42 +128,73 @@ export default function HomeScreen() {
 
   const handleViewableItemsChanged = useCallback(
     (viewableItems: { index: number | null }[]) => {
-      if (lastAvailableTaskIndex < 0 || viewableItems.length === 0) {
-        setShowScrollButton(false);
-        return;
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
 
-      // Check if the last available task is in the viewable items
-      const isLastTaskVisible = viewableItems.some((item) => item.index === lastAvailableTaskIndex);
+      debounceTimerRef.current = setTimeout(() => {
+        if (lastAvailableTaskIndex < 0 || viewableItems.length === 0) {
+          setShowScrollButton(false);
+          return;
+        }
 
-      // On first call after mount, don't show button regardless of visibility
-      // This prevents the button from appearing during initial scroll
-      if (!hasInitializedRef.current) {
-        hasInitializedRef.current = true;
+        const isLastTaskVisible = viewableItems.some((item) => item.index === lastAvailableTaskIndex);
+
         if (isLastTaskVisible) {
           setShowScrollButton(false);
+          return;
         }
-        // Always return on first call to prevent premature button display
-        return;
-      }
 
-      // Don't show button if task is visible
-      if (isLastTaskVisible) {
-        setShowScrollButton(false);
-        return;
-      }
+        const visibleIndices = viewableItems
+          .map((item) => item.index)
+          .filter((index): index is number => index !== null);
 
-      // Determine arrow direction based on viewable items
-      const firstVisibleIndex = viewableItems[0]?.index;
-      if (firstVisibleIndex !== null && firstVisibleIndex !== undefined) {
-        // If the last available task is before the first visible item, point up
-        // If it's after, point down
-        setArrowDirection(lastAvailableTaskIndex < firstVisibleIndex ? "up" : "down");
-        setShowScrollButton(true);
-      }
+        if (visibleIndices.length === 0) {
+          setShowScrollButton(false);
+          return;
+        }
+
+        const firstVisibleIndex = Math.min(...visibleIndices);
+        const lastVisibleIndex = Math.max(...visibleIndices);
+
+        let shouldShowButton = false;
+        let direction: "up" | "down" = "down";
+
+        if (lastAvailableTaskIndex < firstVisibleIndex) {
+          const distance = firstVisibleIndex - lastAvailableTaskIndex;
+          if (distance >= VISIBILITY_THRESHOLD) {
+            shouldShowButton = true;
+            direction = "up";
+          }
+        } else if (lastAvailableTaskIndex > lastVisibleIndex) {
+          const distance = lastAvailableTaskIndex - lastVisibleIndex;
+          if (distance >= VISIBILITY_THRESHOLD) {
+            shouldShowButton = true;
+            direction = "down";
+          }
+        }
+
+        setArrowDirection(direction);
+        setShowScrollButton(shouldShowButton);
+      }, DEBOUNCE_DELAY_MS);
     },
     [lastAvailableTaskIndex]
   );
+
+  useEffect(() => {
+    const unclaimed = findNextUnclaimedBonus(state.daysInARow, state.claimedStreakBonuses);
+    if (unclaimed) {
+      setPendingStreakBonus(unclaimed);
+    }
+  }, [state.daysInARow, state.claimedStreakBonuses]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const renderItem = useCallback(
     ({ item, index, scrollY }: { item: TaskInfoType; index: number; scrollY: SharedValue<number> }) => {
@@ -248,11 +267,7 @@ export default function HomeScreen() {
           onViewableItemsChanged={handleViewableItemsChanged}
         />
 
-        <ScrollToTaskButton
-          visible={showScrollButton}
-          direction={arrowDirection}
-          onPress={handleScrollToLastTask}
-        />
+        <ScrollToTaskButton visible={showScrollButton} direction={arrowDirection} onPress={handleScrollToLastTask} />
       </SafeAreaView>
     </LinearGradient>
   );
