@@ -6,6 +6,7 @@ import {
   INITIAL_TASK,
   MAX_LIVES,
   STREAK_BONUSES,
+  TASK_ACHIEVEMENTS,
 } from "@/constants/GameSettings";
 import { TOTAL_LEVELS } from "@/data/levelLoader";
 import { calculateTaskCorrectnessPercentage, updateDaysInARow } from "@/utils/utils";
@@ -78,6 +79,7 @@ export type AppContextStateType = {
   lastPlayedDate: string | null;
   lastLifeLostAt: number | null;
   claimedStreakBonuses: number[];
+  claimedTaskAchievements: number[];
   currentTaskAttemptCount: number;
   results: {
     [level: string]: {
@@ -129,6 +131,7 @@ export const initialState: AppContextStateType = {
   },
   daysInARow: 0,
   claimedStreakBonuses: [],
+  claimedTaskAchievements: [],
   lastPlayedDate: null,
   lastLifeLostAt: null,
   currentTaskAttemptCount: 0,
@@ -225,6 +228,11 @@ interface ClaimStreakBonusActionType {
   payload: number; // the streak day milestone
 }
 
+interface ClaimTaskAchievementActionType {
+  type: "CLAIM_TASK_ACHIEVEMENT";
+  payload: number; // the task count milestone
+}
+
 interface HydrateStateActionType {
   type: "HYDRATE_STATE";
   payload: AppContextStateType;
@@ -250,6 +258,7 @@ export type AppContextActionType =
   | AddGemsFromAdActionType
   | SpendGemsActionType
   | ClaimStreakBonusActionType
+  | ClaimTaskAchievementActionType
   | HydrateStateActionType;
 
 export const appReducer = (state: AppContextStateType, action: AppContextActionType): AppContextStateType => {
@@ -409,6 +418,21 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       };
     }
 
+    case "CLAIM_TASK_ACHIEVEMENT": {
+      const milestone = action.payload;
+      const achievement = TASK_ACHIEVEMENTS.find((a) => a.taskCount === milestone);
+
+      if (!achievement || state.claimedTaskAchievements.includes(milestone)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        gems: state.gems + achievement.gems,
+        claimedTaskAchievements: [...state.claimedTaskAchievements, milestone],
+      };
+    }
+
     case "HYDRATE_STATE": {
       // Restore the entire state from persisted storage
       // Merge persisted levels with fresh levels to handle new levels added
@@ -434,6 +458,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         lastPlayedDate: action.payload.lastPlayedDate ?? null,
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
         claimedStreakBonuses: action.payload.claimedStreakBonuses ?? [],
+        claimedTaskAchievements: action.payload.claimedTaskAchievements ?? [],
       };
     }
 

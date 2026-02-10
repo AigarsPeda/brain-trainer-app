@@ -54,5 +54,29 @@ export const STREAK_BONUSES: StreakBonusConfig[] = [
   { day: 60, gems: 1000, emoji: "💎", title: "60 dienas pēc kārtas!", description: "Divi mēneši! Tu esi leģenda!" },
   { day: 90, gems: 2000, emoji: "🌟", title: "90 dienas pēc kārtas!", description: "Trīs mēneši! Neapturams!" },
   { day: 180, gems: 5000, emoji: "🎯", title: "180 dienas pēc kārtas!", description: "Pusgads! Tu esi varonis!" },
-  { day: 365, gems: 10000, emoji: "🏅", title: "365 dienas pēc kārtas!", description: "Vesels gads! Tu esi absolūts meistars!" },
+  {
+    day: 365,
+    gems: 10000,
+    emoji: "🏅",
+    title: "365 dienas pēc kārtas!",
+    description: "Vesels gads! Tu esi absolūts meistars!",
+  },
+];
+
+// Task count achievement milestones
+export type TaskAchievementConfig = {
+  gems: number;
+  emoji: string;
+  title: string;
+  taskCount: number;
+  description: string;
+};
+
+export const TASK_ACHIEVEMENTS: TaskAchievementConfig[] = [
+  { taskCount: 10, gems: 15, emoji: "🌱", title: "10 uzdevumi!", description: "Labs sākums! Turpini mācīties!" },
+  { taskCount: 25, gems: 30, emoji: "📚", title: "25 uzdevumi!", description: "Tu mācies ātri!" },
+  { taskCount: 50, gems: 60, emoji: "🧠", title: "50 uzdevumi!", description: "Tavs prāts kļūst stiprāks!" },
+  { taskCount: 100, gems: 120, emoji: "🚀", title: "100 uzdevumi!", description: "Tu esi matemātikas zvaigzne!" },
+  { taskCount: 200, gems: 250, emoji: "🏆", title: "200 uzdevumi!", description: "Tu esi čempions!" },
+  { taskCount: 500, gems: 500, emoji: "👑", title: "500 uzdevumi!", description: "Tu esi matemātikas karalis!" },
 ];

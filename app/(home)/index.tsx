@@ -6,6 +6,7 @@ import { LivesModal } from "@/components/LivesModal";
 import { ScrollToTaskButton } from "@/components/ScrollToTaskButton";
 import { StreakBonusModal } from "@/components/StreakBonusModal";
 import { StreakBonusSheet } from "@/components/StreakBonusSheet";
+import { TaskAchievementModal } from "@/components/TaskAchievementModal";
 import { UserStatistics } from "@/components/UserStatistics";
 import { LevelBackgrounds } from "@/constants/Colors";
 import {
@@ -13,13 +14,14 @@ import {
   BONUS_MODAL_DELAY_MS,
   LIST_BOTTOM_PADDING,
   StreakBonusConfig,
+  TaskAchievementConfig,
   ZIGZAG_CYCLE_LENGTH,
   ZIGZAG_PEAK,
 } from "@/constants/GameSettings";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
-import { findNextUnclaimedBonus } from "@/utils/utils";
+import { findNextUnclaimedBonus, findNextUnclaimedTaskAchievement, getTotalCompletedTasks } from "@/utils/utils";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -41,9 +43,12 @@ export default function HomeScreen() {
   const [arrowDirection, setArrowDirection] = useState<"up" | "down">("down");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pendingStreakBonus, setPendingStreakBonus] = useState<StreakBonusConfig | null>(null);
+  const [pendingTaskAchievement, setPendingTaskAchievement] = useState<TaskAchievementConfig | null>(null);
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
   const flatListRef = useRef<AnimatedFlatListRef>(null);
+
+  const totalCompletedTasks = useMemo(() => getTotalCompletedTasks(state.results), [state.results]);
 
   const handleClaimStreakBonus = () => {
     if (pendingStreakBonus) {
@@ -56,6 +61,21 @@ export default function HomeScreen() {
       );
       if (nextUnclaimed) {
         setTimeout(() => setPendingStreakBonus(nextUnclaimed), BONUS_MODAL_DELAY_MS);
+      }
+    }
+  };
+
+  const handleClaimTaskAchievement = () => {
+    if (pendingTaskAchievement) {
+      dispatch({ type: "CLAIM_TASK_ACHIEVEMENT", payload: pendingTaskAchievement.taskCount });
+      setPendingTaskAchievement(null);
+      const nextUnclaimed = findNextUnclaimedTaskAchievement(
+        totalCompletedTasks,
+        state.claimedTaskAchievements,
+        pendingTaskAchievement.taskCount
+      );
+      if (nextUnclaimed) {
+        setTimeout(() => setPendingTaskAchievement(nextUnclaimed), BONUS_MODAL_DELAY_MS);
       }
     }
   };
@@ -189,6 +209,13 @@ export default function HomeScreen() {
   }, [state.daysInARow, state.claimedStreakBonuses]);
 
   useEffect(() => {
+    const unclaimed = findNextUnclaimedTaskAchievement(totalCompletedTasks, state.claimedTaskAchievements);
+    if (unclaimed) {
+      setPendingTaskAchievement(unclaimed);
+    }
+  }, [totalCompletedTasks, state.claimedTaskAchievements]);
+
+  useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -227,6 +254,11 @@ export default function HomeScreen() {
         onClaim={handleClaimStreakBonus}
         visible={pendingStreakBonus !== null}
       />
+      <TaskAchievementModal
+        achievement={pendingTaskAchievement}
+        onClaim={handleClaimTaskAchievement}
+        visible={pendingTaskAchievement !== null}
+      />
       <LivesModal
         adLoaded={loaded}
         lives={state.lives}
@@ -240,6 +272,8 @@ export default function HomeScreen() {
         visible={openModal === "streak"}
         onClose={() => setOpenModal(null)}
         claimedBonuses={state.claimedStreakBonuses}
+        totalCompletedTasks={totalCompletedTasks}
+        claimedTaskAchievements={state.claimedTaskAchievements}
       />
       <GemModal
         adLoaded={loaded}

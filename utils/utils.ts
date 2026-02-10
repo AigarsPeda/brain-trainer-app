@@ -1,6 +1,13 @@
 import { TaskButtonStateColors } from "@/constants/Colors";
-import { MAX_LIVES, LIFE_RESTORE_INTERVAL_MS, STREAK_BONUSES, StreakBonusConfig } from "@/constants/GameSettings";
-import { TaskAnswerType, TaskOptionType } from "@/context/app.context.reducer";
+import {
+  MAX_LIVES,
+  LIFE_RESTORE_INTERVAL_MS,
+  STREAK_BONUSES,
+  StreakBonusConfig,
+  TASK_ACHIEVEMENTS,
+  TaskAchievementConfig,
+} from "@/constants/GameSettings";
+import { TaskAnswerType, TaskOptionType, TaskResultType } from "@/context/app.context.reducer";
 
 export const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: TaskOptionType) => {
   const foundTask = answers?.find((r) => r.optionId === option.id);
@@ -234,6 +241,27 @@ export const findNextUnclaimedBonus = (
   return (
     STREAK_BONUSES.find(
       (b) => b.day !== excludeDay && daysInARow >= b.day && !claimedBonuses.includes(b.day)
+    ) || null
+  );
+};
+
+export const getTotalCompletedTasks = (
+  results: { [level: string]: { tasksResults: TaskResultType[] } }
+): number => {
+  return Object.values(results).reduce((total, level) => {
+    const uniqueTasks = new Set(level.tasksResults.map((t) => t.taskNumber));
+    return total + uniqueTasks.size;
+  }, 0);
+};
+
+export const findNextUnclaimedTaskAchievement = (
+  totalTasks: number,
+  claimedAchievements: number[],
+  excludeCount?: number
+): TaskAchievementConfig | null => {
+  return (
+    TASK_ACHIEVEMENTS.find(
+      (a) => a.taskCount !== excludeCount && totalTasks >= a.taskCount && !claimedAchievements.includes(a.taskCount)
     ) || null
   );
 };

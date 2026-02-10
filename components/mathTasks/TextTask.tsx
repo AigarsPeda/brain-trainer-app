@@ -51,21 +51,42 @@ export function TextTask({
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
 
-  // Generate multiple choice options based on the correct result
-  const multipleChoiceOptions = useMemo(() => {
+  const allOptions = useMemo(() => {
     if (!showAsMultipleChoice) return [];
 
     const correctAnswer = task.result;
-    const options = [
-      { id: 1, value: correctAnswer, isCorrect: true },
-      { id: 2, value: correctAnswer + Math.floor(Math.random() * 5) + 1, isCorrect: false },
-      { id: 3, value: correctAnswer - Math.floor(Math.random() * 5) - 1, isCorrect: false },
-      { id: 4, value: correctAnswer + Math.floor(Math.random() * 10) + 6, isCorrect: false },
-    ];
+    const wrongValues = new Set<number>();
 
-    // Filter out removed options and shuffle
-    return options.filter((opt) => !removedAnswerIds.includes(opt.id)).sort(() => Math.random() - 0.5);
-  }, [showAsMultipleChoice, task.result, removedAnswerIds]);
+    const generateWrong = (generator: () => number): number => {
+      for (let i = 0; i < 10; i++) {
+        const value = generator();
+        if (value >= 0 && value !== correctAnswer && !wrongValues.has(value)) {
+          wrongValues.add(value);
+          return value;
+        }
+      }
+      let fallback = correctAnswer + wrongValues.size + 1;
+      while (wrongValues.has(fallback)) fallback++;
+      wrongValues.add(fallback);
+      return fallback;
+    };
+
+    const wrong1 = generateWrong(() => correctAnswer + Math.floor(Math.random() * 5) + 1);
+    const wrong2 = generateWrong(() => correctAnswer - Math.floor(Math.random() * 5) - 1);
+    const wrong3 = generateWrong(() => correctAnswer + Math.floor(Math.random() * 10) + 6);
+
+    return [
+      { id: 1, value: correctAnswer, isCorrect: true },
+      { id: 2, value: wrong1, isCorrect: false },
+      { id: 3, value: wrong2, isCorrect: false },
+      { id: 4, value: wrong3, isCorrect: false },
+    ];
+  }, [showAsMultipleChoice, task.result]);
+
+  // Filter and shuffle separately so removing an answer doesn't regenerate all values
+  const multipleChoiceOptions = useMemo(() => {
+    return allOptions.filter((opt) => !removedAnswerIds.includes(opt.id)).sort(() => Math.random() - 0.5);
+  }, [allOptions, removedAnswerIds]);
 
   const isAnswerCorrect = showAsMultipleChoice
     ? (multipleChoiceOptions.find((opt) => opt.id === selectedOptionId)?.isCorrect ?? false)
