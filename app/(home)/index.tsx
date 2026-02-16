@@ -21,7 +21,7 @@ import {
 import { TaskInfoType } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
-import { findNextUnclaimedBonus, findNextUnclaimedTaskAchievement, getTotalCompletedTasks } from "@/utils/utils";
+import { findNextUnclaimedBonus, findNextUnclaimedTaskAchievement } from "@/utils/utils";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -48,7 +48,10 @@ export default function HomeScreen() {
 
   const flatListRef = useRef<AnimatedFlatListRef>(null);
 
-  const totalCompletedTasks = useMemo(() => getTotalCompletedTasks(state.results), [state.results]);
+  const totalCompletedLevels = useMemo(
+    () => state.levels.filter((l) => l.isLevelCompleted).length,
+    [state.levels]
+  );
 
   const handleClaimStreakBonus = () => {
     if (pendingStreakBonus) {
@@ -70,7 +73,7 @@ export default function HomeScreen() {
       dispatch({ type: "CLAIM_TASK_ACHIEVEMENT", payload: pendingTaskAchievement.taskCount });
       setPendingTaskAchievement(null);
       const nextUnclaimed = findNextUnclaimedTaskAchievement(
-        totalCompletedTasks,
+        totalCompletedLevels,
         state.claimedTaskAchievements,
         pendingTaskAchievement.taskCount
       );
@@ -209,11 +212,11 @@ export default function HomeScreen() {
   }, [state.daysInARow, state.claimedStreakBonuses]);
 
   useEffect(() => {
-    const unclaimed = findNextUnclaimedTaskAchievement(totalCompletedTasks, state.claimedTaskAchievements);
+    const unclaimed = findNextUnclaimedTaskAchievement(totalCompletedLevels, state.claimedTaskAchievements);
     if (unclaimed) {
       setPendingTaskAchievement(unclaimed);
     }
-  }, [totalCompletedTasks, state.claimedTaskAchievements]);
+  }, [totalCompletedLevels, state.claimedTaskAchievements]);
 
   useEffect(() => {
     return () => {
@@ -272,8 +275,10 @@ export default function HomeScreen() {
         visible={openModal === "streak"}
         onClose={() => setOpenModal(null)}
         claimedBonuses={state.claimedStreakBonuses}
-        totalCompletedTasks={totalCompletedTasks}
+        totalCompletedLevels={totalCompletedLevels}
         claimedTaskAchievements={state.claimedTaskAchievements}
+        streakBonusClaimDates={state.streakBonusClaimDates}
+        taskAchievementClaimDates={state.taskAchievementClaimDates}
       />
       <GemModal
         adLoaded={loaded}

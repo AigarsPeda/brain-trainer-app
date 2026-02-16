@@ -80,6 +80,8 @@ export type AppContextStateType = {
   lastLifeLostAt: number | null;
   claimedStreakBonuses: number[];
   claimedTaskAchievements: number[];
+  streakBonusClaimDates: Record<number, string>;
+  taskAchievementClaimDates: Record<number, string>;
   currentTaskAttemptCount: number;
   results: {
     [level: string]: {
@@ -132,6 +134,8 @@ export const initialState: AppContextStateType = {
   daysInARow: 0,
   claimedStreakBonuses: [],
   claimedTaskAchievements: [],
+  streakBonusClaimDates: {},
+  taskAchievementClaimDates: {},
   lastPlayedDate: null,
   lastLifeLostAt: null,
   currentTaskAttemptCount: 0,
@@ -415,6 +419,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         ...state,
         gems: state.gems + bonus.gems,
         claimedStreakBonuses: [...state.claimedStreakBonuses, milestone],
+        streakBonusClaimDates: { ...state.streakBonusClaimDates, [milestone]: new Date().toISOString().split("T")[0] },
       };
     }
 
@@ -430,6 +435,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         ...state,
         gems: state.gems + achievement.gems,
         claimedTaskAchievements: [...state.claimedTaskAchievements, milestone],
+        taskAchievementClaimDates: { ...state.taskAchievementClaimDates, [milestone]: new Date().toISOString().split("T")[0] },
       };
     }
 
@@ -459,6 +465,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
         claimedStreakBonuses: action.payload.claimedStreakBonuses ?? [],
         claimedTaskAchievements: action.payload.claimedTaskAchievements ?? [],
+        streakBonusClaimDates: action.payload.streakBonusClaimDates ?? {},
+        taskAchievementClaimDates: action.payload.taskAchievementClaimDates ?? {},
       };
     }
 

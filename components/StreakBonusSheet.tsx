@@ -12,8 +12,10 @@ interface StreakBonusSheetProps {
   daysInARow: number;
   onClose: () => void;
   claimedBonuses: number[];
-  totalCompletedTasks: number;
+  totalCompletedLevels: number;
   claimedTaskAchievements: number[];
+  streakBonusClaimDates: Record<number, string>;
+  taskAchievementClaimDates: Record<number, string>;
 }
 
 export function StreakBonusSheet({
@@ -21,8 +23,10 @@ export function StreakBonusSheet({
   onClose,
   daysInARow,
   claimedBonuses,
-  totalCompletedTasks,
+  totalCompletedLevels,
   claimedTaskAchievements,
+  streakBonusClaimDates,
+  taskAchievementClaimDates,
 }: StreakBonusSheetProps) {
   const { background, tint } = useThemeColor();
   const sheetRef = useRef<BottomSheet>(null);
@@ -67,16 +71,16 @@ export function StreakBonusSheet({
       >
         <BottomSheetScrollView style={styles.content}>
           <ThemedText type="subtitle" style={styles.sectionHeader}>
-            Uzdevumi
+            Līmeņi
           </ThemedText>
 
           <ThemedText style={styles.sectionSubtitle}>
-            {totalCompletedTasks} {totalCompletedTasks === 1 ? "uzdevums" : "uzdevumi"} izpildīti
+            {totalCompletedLevels} {totalCompletedLevels === 1 ? "līmenis" : "līmeņi"} pabeigti
           </ThemedText>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
             {TASK_ACHIEVEMENTS.filter(
-              (a) => claimedTaskAchievements.includes(a.taskCount) || totalCompletedTasks >= a.taskCount
+              (a) => claimedTaskAchievements.includes(a.taskCount) || totalCompletedLevels >= a.taskCount
             ).map((achievement) => {
               return (
                 <View key={achievement.taskCount} style={[styles.card, { borderColor: tint }]}>
@@ -87,7 +91,10 @@ export function StreakBonusSheet({
                     </ThemedText>
                     <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
                   </View>
-                  <ThemedText style={styles.cardDay}>{achievement.taskCount} uzd.</ThemedText>
+                  <ThemedText style={styles.cardDay}>{achievement.taskCount} līmeņi.</ThemedText>
+                  {taskAchievementClaimDates[achievement.taskCount] && (
+                    <ThemedText style={styles.cardDate}>{taskAchievementClaimDates[achievement.taskCount]}</ThemedText>
+                  )}
                 </View>
               );
             })}
@@ -114,6 +121,9 @@ export function StreakBonusSheet({
                       <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
                     </View>
                     <ThemedText style={styles.cardDay}>{bonus.day}. diena</ThemedText>
+                    {streakBonusClaimDates[bonus.day] && (
+                      <ThemedText style={styles.cardDate}>{streakBonusClaimDates[bonus.day]}</ThemedText>
+                    )}
                   </View>
                 );
               }
@@ -189,5 +199,10 @@ const styles = StyleSheet.create({
   cardDay: {
     fontSize: 14,
     opacity: 0.6,
+  },
+  cardDate: {
+    fontSize: 11,
+    opacity: 0.4,
+    marginTop: 4,
   },
 });

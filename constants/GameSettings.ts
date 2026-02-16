@@ -73,10 +73,10 @@ export type TaskAchievementConfig = {
 };
 
 export const TASK_ACHIEVEMENTS: TaskAchievementConfig[] = [
-  { taskCount: 10, gems: 15, emoji: "🌱", title: "10 uzdevumi!", description: "Labs sākums! Turpini mācīties!" },
-  { taskCount: 25, gems: 30, emoji: "📚", title: "25 uzdevumi!", description: "Tu mācies ātri!" },
-  { taskCount: 50, gems: 60, emoji: "🧠", title: "50 uzdevumi!", description: "Tavs prāts kļūst stiprāks!" },
-  { taskCount: 100, gems: 120, emoji: "🚀", title: "100 uzdevumi!", description: "Tu esi matemātikas zvaigzne!" },
-  { taskCount: 200, gems: 250, emoji: "🏆", title: "200 uzdevumi!", description: "Tu esi čempions!" },
-  { taskCount: 500, gems: 500, emoji: "👑", title: "500 uzdevumi!", description: "Tu esi matemātikas karalis!" },
+  { taskCount: 10, gems: 15, emoji: "🌱", title: "10 līmeņi!", description: "Labs sākums! Turpini mācīties!" },
+  { taskCount: 25, gems: 30, emoji: "📚", title: "25 līmeņi!", description: "Tu mācies ātri!" },
+  { taskCount: 50, gems: 60, emoji: "🧠", title: "50 līmeņi!", description: "Tavs prāts kļūst stiprāks!" },
+  { taskCount: 100, gems: 120, emoji: "🚀", title: "100 līmeņi!", description: "Tu esi matemātikas zvaigzne!" },
+  { taskCount: 200, gems: 250, emoji: "🏆", title: "200 līmeņi!", description: "Tu esi čempions!" },
+  { taskCount: 500, gems: 500, emoji: "👑", title: "500 līmeņi!", description: "Tu esi matemātikas karalis!" },
 ];
