@@ -1,4 +1,3 @@
-import Gem from "@/assets/images/gem.png";
 import { ThemedText } from "@/components/ThemedText";
 import { STREAK_BONUSES, TASK_ACHIEVEMENTS } from "@/constants/GameSettings";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -84,14 +83,7 @@ export function StreakBonusSheet({
             ).map((achievement) => {
               return (
                 <View key={achievement.taskCount} style={[styles.card, { borderColor: tint }]}>
-                  <ThemedText style={styles.cardEmoji}>{achievement.emoji}</ThemedText>
-                  <View style={styles.cardReward}>
-                    <ThemedText type="defaultSemiBold" style={styles.cardGems}>
-                      +{achievement.gems}
-                    </ThemedText>
-                    <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
-                  </View>
-                  <ThemedText style={styles.cardDay}>{achievement.taskCount} līmeņi.</ThemedText>
+                  <Image source={achievement.icon} style={styles.cardIcon} contentFit="contain" />
                   {taskAchievementClaimDates[achievement.taskCount] && (
                     <ThemedText style={styles.cardDate}>{taskAchievementClaimDates[achievement.taskCount]}</ThemedText>
                   )}
@@ -113,14 +105,7 @@ export function StreakBonusSheet({
               (bonus) => {
                 return (
                   <View key={bonus.day} style={[styles.card, { borderColor: tint }]}>
-                    <ThemedText style={styles.cardEmoji}>{bonus.emoji}</ThemedText>
-                    <View style={styles.cardReward}>
-                      <ThemedText type="defaultSemiBold" style={styles.cardGems}>
-                        +{bonus.gems}
-                      </ThemedText>
-                      <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
-                    </View>
-                    <ThemedText style={styles.cardDay}>{bonus.day}. diena</ThemedText>
+                    <Image source={bonus.icon} style={styles.cardIcon} contentFit="contain" />
                     {streakBonusClaimDates[bonus.day] && (
                       <ThemedText style={styles.cardDate}>{streakBonusClaimDates[bonus.day]}</ThemedText>
                     )}
@@ -170,39 +155,25 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    width: 150,
+    width: 170,
+    height: 230,
     borderWidth: 2,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     alignItems: "center",
+    justifyContent: "center",
     position: "relative",
     overflow: "hidden",
   },
-  cardEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  cardReward: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 4,
-  },
-  cardGems: {
-    fontSize: 20,
-  },
-  gemIcon: {
-    width: 18,
-    height: 18,
-  },
-  cardDay: {
-    fontSize: 14,
-    opacity: 0.6,
+  cardIcon: {
+    width: 190,
+    height: 190,
+    marginBottom: -12,
   },
   cardDate: {
-    fontSize: 11,
+    fontSize: 18,
     opacity: 0.4,
-    marginTop: 4,
+    marginTop: 0,
   },
 });

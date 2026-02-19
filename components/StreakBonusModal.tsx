@@ -22,8 +22,8 @@ export function StreakBonusModal({ visible, onClaim, bonus }: StreakBonusModalPr
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClaim}>
       <View style={styles.overlay}>
         <ThemedView style={[styles.container, { borderColor: tint }]}>
-          <View style={styles.emojiContainer}>
-            <ThemedText style={styles.emoji}>{bonus.emoji}</ThemedText>
+          <View style={styles.iconContainer}>
+            <Image source={bonus.icon} style={styles.icon} contentFit="contain" />
           </View>
 
           <ThemedText type="title" style={styles.title}>
@@ -68,11 +68,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
   },
-  emojiContainer: {
+  iconContainer: {
     marginBottom: 12,
   },
-  emoji: {
-    fontSize: 64,
+  icon: {
+    width: 72,
+    height: 72,
   },
   title: {
     marginBottom: 8,
