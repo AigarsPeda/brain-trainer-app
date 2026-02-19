@@ -48,10 +48,7 @@ export default function HomeScreen() {
 
   const flatListRef = useRef<AnimatedFlatListRef>(null);
 
-  const totalCompletedLevels = useMemo(
-    () => state.levels.filter((l) => l.isLevelCompleted).length,
-    [state.levels]
-  );
+  const totalCompletedLevels = useMemo(() => state.levels.filter((l) => l.isLevelCompleted).length, [state.levels]);
 
   const handleClaimStreakBonus = () => {
     if (pendingStreakBonus) {
@@ -276,8 +273,8 @@ export default function HomeScreen() {
         onClose={() => setOpenModal(null)}
         claimedBonuses={state.claimedStreakBonuses}
         totalCompletedLevels={totalCompletedLevels}
-        claimedTaskAchievements={state.claimedTaskAchievements}
         streakBonusClaimDates={state.streakBonusClaimDates}
+        claimedTaskAchievements={state.claimedTaskAchievements}
         taskAchievementClaimDates={state.taskAchievementClaimDates}
       />
       <GemModal
