@@ -232,13 +232,14 @@ export default function HomeScreen() {
           theme={theme}
           scrollY={scrollY}
           position={getPosition(index)}
+          isCurrentLevel={index === lastAvailableTaskIndex}
           handleClick={() => {
             router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
           }}
         />
       );
     },
-    [getPosition, theme]
+    [getPosition, theme, lastAvailableTaskIndex]
   );
 
   return (

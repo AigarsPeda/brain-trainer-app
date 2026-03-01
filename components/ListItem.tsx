@@ -6,7 +6,7 @@ import { SETTINGS } from "@/hardcoded";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { type FC, memo, useMemo, useCallback } from "react";
+import { type FC, memo, useMemo, useCallback, useEffect } from "react";
 import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   Extrapolation,
@@ -15,7 +15,11 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withRepeat,
+  withSequence,
   withSpring,
+  withTiming,
+  Easing,
 } from "react-native-reanimated";
 
 const DARK_STAR_COLOR = "#e8ae4a";
@@ -76,13 +80,30 @@ type ListItemProps = {
   position: number;
   item: TaskInfoType;
   theme: "light" | "dark";
+  isCurrentLevel?: boolean;
   handleClick: () => void;
   scrollY: SharedValue<number>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, index, bgColor, position, theme, handleClick, scrollY }) => {
+  ({ item, index, bgColor, position, theme, isCurrentLevel, handleClick, scrollY }) => {
     const pressScale = useSharedValue(1);
+    const pulseScale = useSharedValue(1);
+
+    useEffect(() => {
+      if (isCurrentLevel) {
+        pulseScale.value = withRepeat(
+          withSequence(
+            withTiming(1.08, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
+          ),
+          -1,
+          true
+        );
+      } else {
+        pulseScale.value = 1;
+      }
+    }, [isCurrentLevel, pulseScale]);
 
     // Calculate item's vertical position (memoized constant per item)
     const itemOffset = index * ITEM_HEIGHT;
@@ -112,6 +133,13 @@ const ListItem: FC<ListItemProps> = memo(
       "worklet";
       return {
         transform: [{ scale: scrollScale.value * pressScale.value }],
+      };
+    });
+
+    const pulseStyle = useAnimatedStyle(() => {
+      "worklet";
+      return {
+        transform: [{ scale: pulseScale.value }],
       };
     });
 
@@ -149,38 +177,42 @@ const ListItem: FC<ListItemProps> = memo(
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
         <View style={positionStyle}>
-          <Pressable
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            style={styles.cardContainer}
-            disabled={item.isLevelLocked}
-          >
-            <LinearGradient
-              colors={[colorInfo.lightColor, colorInfo.darkColor]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.outerSquare}
+          <Animated.View style={pulseStyle}>
+            <Pressable
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              style={styles.cardContainer}
+              disabled={item.isLevelLocked}
             >
-              <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
-                <ThemedText type="subtitle" style={styles.levelText}>
-                  {item.levelNumber}
-                </ThemedText>
-              </View>
-            </LinearGradient>
-          </Pressable>
-          <View style={styles.starContainer}>
-            {STAR_ARRAY.map((_, index) => {
-              const isFilled = index < item.stars && item.stars > 0;
-              return (
-                <StarIcon
-                  key={index}
-                  stroke={starColor}
-                  fill={isFilled ? starColor : "transparent"}
-                  style={styles.starIcon}
-                />
-              );
-            })}
-          </View>
+              <LinearGradient
+                colors={[colorInfo.lightColor, colorInfo.darkColor]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.outerSquare}
+              >
+                <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
+                  <ThemedText type="subtitle" style={styles.levelText}>
+                    {item.levelNumber}
+                  </ThemedText>
+                </View>
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
+          {!item.isLevelLocked && (
+            <View style={styles.starContainer}>
+              {STAR_ARRAY.map((_, index) => {
+                const isFilled = index < item.stars && item.stars > 0;
+                return (
+                  <StarIcon
+                    key={index}
+                    stroke={starColor}
+                    fill={isFilled ? starColor : "transparent"}
+                    style={styles.starIcon}
+                  />
+                );
+              })}
+            </View>
+          )}
         </View>
       </Animated.View>
     );
@@ -191,6 +223,7 @@ const ListItem: FC<ListItemProps> = memo(
       prevProps.item.levelNumber === nextProps.item.levelNumber &&
       prevProps.item.stars === nextProps.item.stars &&
       prevProps.item.isLevelLocked === nextProps.item.isLevelLocked &&
+      prevProps.isCurrentLevel === nextProps.isCurrentLevel &&
       prevProps.position === nextProps.position &&
       prevProps.index === nextProps.index &&
       prevProps.theme === nextProps.theme &&

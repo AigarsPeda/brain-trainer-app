@@ -1,18 +1,18 @@
 import type { ImageSourcePropType } from "react-native";
-import AchievementIcon10 from "@/components/icons/achievement-icons/achievement-icon-10.png";
-import AchievementIcon25 from "@/components/icons/achievement-icons/achievement-icon-25.png";
-import AchievementIcon50 from "@/components/icons/achievement-icons/achievement-icon-50.png";
-import AchievementIcon100 from "@/components/icons/achievement-icons/achievement-icon-100.png";
-import AchievementIcon200 from "@/components/icons/achievement-icons/achievement-icon-200.png";
-import AchievementIcon500 from "@/components/icons/achievement-icons/achievement-icon-500.png";
-import StreakIcon3 from "@/components/icons/streak-icons/streak-icon-3.png";
-import StreakIcon7 from "@/components/icons/streak-icons/streak-icon-7.png";
-import StreakIcon14 from "@/components/icons/streak-icons/streak-icon-14.png";
-import StreakIcon30 from "@/components/icons/streak-icons/streak-icon-30.png";
-import StreakIcon60 from "@/components/icons/streak-icons/streak-icon-60.png";
-import StreakIcon90 from "@/components/icons/streak-icons/streak-icon-90.png";
-import StreakIcon180 from "@/components/icons/streak-icons/streak-icon-180.png";
-import StreakIcon365 from "@/components/icons/streak-icons/streak-icon-365.png";
+import AchievementIcon10 from "@/assets/images/achievement-icon-10.png";
+import AchievementIcon25 from "@/assets/images/achievement-icon-25.png";
+import AchievementIcon50 from "@/assets/images/achievement-icon-50.png";
+import AchievementIcon100 from "@/assets/images/achievement-icon-100.png";
+import AchievementIcon200 from "@/assets/images/achievement-icon-200.png";
+import AchievementIcon500 from "@/assets/images/achievement-icon-500.png";
+import StreakIcon3 from "@/assets/images/streak-icon-3.png";
+import StreakIcon7 from "@/assets/images/streak-icon-7.png";
+import StreakIcon14 from "@/assets/images/streak-icon-14.png";
+import StreakIcon30 from "@/assets/images/streak-icon-30.png";
+import StreakIcon60 from "@/assets/images/streak-icon-60.png";
+import StreakIcon90 from "@/assets/images/streak-icon-90.png";
+import StreakIcon180 from "@/assets/images/streak-icon-180.png";
+import StreakIcon365 from "@/assets/images/streak-icon-365.png";
 
 /**
  * Game settings constants

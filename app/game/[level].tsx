@@ -22,8 +22,9 @@ import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { findIncorrectCreateMathOptions, findIncorrectMultiAnswerOptions, selectRandomItem } from "@/utils/taskHelpers";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ADDITIONAL_TOP_PADDING = 12;
@@ -55,6 +56,33 @@ export default function GameLevelScreen() {
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
+
+  // Slide-left animation when task changes
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+  const prevTaskRef = useRef(currentTaskInLevel);
+
+  useEffect(() => {
+    if (prevTaskRef.current !== currentTaskInLevel) {
+      prevTaskRef.current = currentTaskInLevel;
+      // Slide out left + fade, then snap right off-screen, then slide in + fade
+      translateX.value = withSequence(
+        withTiming(-300, { duration: 200 }),
+        withTiming(300, { duration: 0 }),
+        withTiming(0, { duration: 200 })
+      );
+      opacity.value = withSequence(
+        withTiming(0, { duration: 200 }),
+        withTiming(0, { duration: 0 }),
+        withTiming(1, { duration: 200 })
+      );
+    }
+  }, [currentTaskInLevel]);
+
+  const taskAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
 
   const canRemoveAnswer = useMemo(() => {
     if (!currentTask) return false;
@@ -223,7 +251,7 @@ export default function GameLevelScreen() {
             Palīdzība
           </ThemedText>
         </Pressable>
-        <View style={styles.levelView}>
+        <Animated.View style={[styles.levelView, taskAnimatedStyle]}>
           {isMultiAnswerMathTask(currentTask) && (
             <MathTaskWithResult
               level={level}
@@ -252,7 +280,7 @@ export default function GameLevelScreen() {
               showAsMultipleChoice={showTextTaskAsMultipleChoice}
             />
           )}
-        </View>
+        </Animated.View>
       </View>
     </LinearGradient>
   );
