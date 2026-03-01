@@ -99,20 +99,16 @@ export default function GameLevelScreen() {
 
     if (isTextTask(currentTask)) {
       setShowTextTaskAsMultipleChoice(true);
-    } else if (isMultiAnswerMathTask(currentTask)) {
-      const incorrectOptions = findIncorrectMultiAnswerOptions(currentTask, removedAnswerIds);
-      const randomIncorrect = selectRandomItem(incorrectOptions);
+      return;
+    }
 
-      if (randomIncorrect) {
-        setRemovedAnswerIds((prev) => [...prev, randomIncorrect.id]);
-      }
-    } else if (isCreateMathTask(currentTask)) {
-      const incorrectOptions = findIncorrectCreateMathOptions(currentTask, removedAnswerIds);
-      const randomIncorrect = selectRandomItem(incorrectOptions);
+    const incorrectOptions: { id: number }[] = isMultiAnswerMathTask(currentTask)
+      ? findIncorrectMultiAnswerOptions(currentTask, removedAnswerIds)
+      : findIncorrectCreateMathOptions(currentTask, removedAnswerIds);
 
-      if (randomIncorrect) {
-        setRemovedAnswerIds((prev) => [...prev, randomIncorrect.id]);
-      }
+    const randomIncorrect = selectRandomItem(incorrectOptions);
+    if (randomIncorrect) {
+      setRemovedAnswerIds((prev) => [...prev, randomIncorrect.id]);
     }
   };
 

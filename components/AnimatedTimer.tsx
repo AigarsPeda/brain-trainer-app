@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 
@@ -13,6 +14,7 @@ interface AnimatedDigitProps {
 }
 
 function AnimatedDigit({ digit, style, height = 36, direction = "countdown", delay = 0 }: AnimatedDigitProps) {
+  const { text: themeTextColor } = useThemeColor();
   const isAnimating = useRef(false);
   const previousDigitRef = useRef<string>(digit);
   const slideAnim = useRef(new Animated.Value(1)).current;
@@ -96,6 +98,7 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
       {previousDigit !== null && (
         <Animated.Text
           style={[
+            { color: themeTextColor },
             style,
             styles.digitAbsolute,
             {
@@ -109,6 +112,7 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
       )}
       <Animated.Text
         style={[
+          { color: themeTextColor },
           style,
           previousDigit !== null && styles.digitAbsolute,
           previousDigit !== null && {
