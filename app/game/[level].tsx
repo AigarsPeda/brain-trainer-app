@@ -65,6 +65,9 @@ export default function GameLevelScreen() {
   useEffect(() => {
     if (prevTaskRef.current !== currentTaskInLevel) {
       prevTaskRef.current = currentTaskInLevel;
+      // Reset hint state for the new task
+      setRemovedAnswerIds([]);
+      setShowTextTaskAsMultipleChoice(false);
       // Slide out left + fade, then snap right off-screen, then slide in + fade
       translateX.value = withSequence(
         withTiming(-300, { duration: 200 }),

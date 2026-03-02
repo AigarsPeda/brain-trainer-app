@@ -1,11 +1,11 @@
 import type { Router } from "expo-router";
 
 type LevelNavigationArgs = {
-  isFinalTaskInLevel: boolean;
-  hasNextLevel: boolean;
-  finalizeTaskProgress: () => void;
   router: Router;
+  hasNextLevel: boolean;
   nextLevelValue?: string;
+  isFinalTaskInLevel: boolean;
+  finalizeTaskProgress: () => void;
 };
 
 type LevelNavigationHandlers = {
@@ -15,11 +15,11 @@ type LevelNavigationHandlers = {
 };
 
 export const createLevelNavigationHandlers = ({
-  isFinalTaskInLevel,
-  hasNextLevel,
-  finalizeTaskProgress,
   router,
+  hasNextLevel,
   nextLevelValue,
+  isFinalTaskInLevel,
+  finalizeTaskProgress,
 }: LevelNavigationArgs): LevelNavigationHandlers => {
   const goToNextTask = () => {
     if (isFinalTaskInLevel) {

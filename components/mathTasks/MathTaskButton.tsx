@@ -5,9 +5,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle, useWindowDimensions } from "react-native";
 
-// const { width } = Dimensions.get("window");
-// const BUTTON_WIDTH = width - 32;
-
 interface MathTaskButtonProps {
   style?: ViewStyle;
   disabled?: boolean;

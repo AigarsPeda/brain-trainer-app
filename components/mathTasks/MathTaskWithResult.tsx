@@ -7,12 +7,9 @@ import type {
   TaskAnswerType,
 } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
-import useAppContext from "@/hooks/useAppContext";
-import useGoogleAd from "@/hooks/useGoogleAd";
-import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
+import { useTaskLifecycle } from "@/hooks/useTaskLifecycle";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
-import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface MathTaskWithResultProps {
@@ -27,83 +24,33 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
-  const {
-    dispatch,
-    state: { availableLevels, lives },
-  } = useAppContext();
-
-  const router = useRouter();
-  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
-
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
-  const [displayTaskResults, setDisplayTaskResults] = useState(false);
-  const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
-  const hasAppliedLifePenaltyRef = useRef(false);
 
-  const levelNumber = Number(level);
-  const hasNextLevel = levelNumber < availableLevels;
-
-  const checkIfAllAnswersCorrect = (): boolean => {
+  const checkIfCorrect = useCallback((): boolean => {
     const totalCorrectOptions = task.options.filter((o) => isEquationCorrect(o.equation, task.result)).length;
     const correctAnswers = answers.filter((a) => a.isCorrect).length;
     const wrongAnswers = answers.filter((a) => !a.isCorrect).length;
-
     return totalCorrectOptions === correctAnswers && wrongAnswers === 0;
-  };
+  }, [task.options, task.result, answers]);
 
-  const finalizeTaskProgress = () => {
-    const isCorrect = checkIfAllAnswersCorrect();
-
-    dispatch({
-      type: "GET_NEXT_TASK",
-      payload: {
-        isCorrect,
-        maxLevelStep,
-      },
-    });
-
+  const resetTaskState = useCallback(() => {
     setAnswer([]);
-    setDisplayTaskResults(false);
-    setHasAppliedLifePenalty(false);
-    hasAppliedLifePenaltyRef.current = false;
-  };
+  }, []);
 
-  const nextLevelValue = (levelNumber + 1).toString();
-
-  const { goToNextTask, handleGoHome, handleNextLevel } = createLevelNavigationHandlers({
+  const {
+    displayTaskResults,
+    handleCheckAnswers,
+    showResultsProps,
+  } = useTaskLifecycle({
+    level,
+    maxLevelStep,
     isFinalTaskInLevel,
-    hasNextLevel,
-    finalizeTaskProgress,
-    router,
-    nextLevelValue,
+    checkIfCorrect,
+    resetTaskState,
   });
 
   const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;
-  const isAllAnswersCorrect = checkIfAllAnswersCorrect();
-
-  const handleCheckAnswers = () => {
-    // Use ref for synchronous check to prevent double life loss on rapid taps
-    if (hasAppliedLifePenaltyRef.current) {
-      setDisplayTaskResults(true);
-      return;
-    }
-
-    const isCorrect = checkIfAllAnswersCorrect();
-
-    if (!isCorrect) {
-      hasAppliedLifePenaltyRef.current = true;
-      dispatch({ type: "LOSE_LIFE" }); // This will increment currentTaskAttemptCount in the reducer
-      setHasAppliedLifePenalty(true);
-    }
-
-    setDisplayTaskResults(true);
-  };
-
-  const handleTryAgain = () => {
-    setAnswer([]);
-    setDisplayTaskResults(false);
-    hasAppliedLifePenaltyRef.current = false;
-  };
+  const isAllAnswersCorrect = checkIfCorrect();
 
   return (
     <>
@@ -157,7 +104,6 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
             .map((option, i) => {
               const gradientColor = getGradientColor(option, answers, isDarkMode, displayTaskResults);
 
-              // Create a new object with reversed arrays for dark mode
               const finalGradientColor = isDarkMode
                 ? {
                     background: [...gradientColor.background].reverse(),
@@ -209,44 +155,14 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
                 fontSize: 20,
               }}
             >
-              {displayTaskResults ? "Nākamais uzdevums" : "Pārbaudīt"}
+              Pārbaudīt
             </ThemedText>
           </MainButton>
         </View>
       ) : (
         <ShowResults
-          lives={lives}
-          adLoaded={adLoaded}
-          onGoHomePress={handleGoHome}
-          onNextTaskPress={goToNextTask}
-          onTryAgainPress={handleTryAgain}
           isAllAnswersCorrect={isAllAnswersCorrect}
-          onWatchAdPress={() => {
-            showAdForReward(
-              () => {
-                // Called when user earns reward
-                dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-                // Reset task - free retry after watching ad
-                setAnswer([]);
-                setHasAppliedLifePenalty(false);
-                hasAppliedLifePenaltyRef.current = false;
-              },
-              () => {
-                // Called when ad closes (regardless of reward)
-                setDisplayTaskResults(false);
-              }
-            );
-          }}
-          levelCompletionState={
-            isFinalTaskInLevel
-              ? {
-                  hasNextLevel,
-                  isCompleted: true,
-                  onGoHomePress: handleGoHome,
-                  onNextLevelPress: handleNextLevel,
-                }
-              : undefined
-          }
+          {...showResultsProps}
         />
       )}
     </>

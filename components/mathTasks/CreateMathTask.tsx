@@ -4,13 +4,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { DropZoneColors } from "@/constants/Colors";
 import { CreateMathTaskType } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
-import useAppContext from "@/hooks/useAppContext";
-import useGoogleAd from "@/hooks/useGoogleAd";
+import { useTaskLifecycle } from "@/hooks/useTaskLifecycle";
 import { checkAnswers } from "@/utils/game";
-import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LayoutRectangle, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -72,9 +69,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
 
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
-  const [displayTaskResults, setDisplayTaskResults] = useState(false);
-  // const [hasAppliedLifePenalty, setHasAppliedLifePenalty] = useState(false);
-  const hasAppliedLifePenaltyRef = useRef(false);
   const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
@@ -87,15 +81,30 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
   const [resetKey, setResetKey] = useState(0);
   const isBothValuesSet = leftValue !== null && rightValue !== null;
 
-  const {
-    dispatch,
-    state: { availableLevels, lives },
-  } = useAppContext();
-  const router = useRouter();
-  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
+  const checkIfCorrect = useCallback((): boolean => {
+    return checkAnswers(leftValue, rightValue, task.operation, task.result);
+  }, [leftValue, rightValue, task.operation, task.result]);
 
-  const levelNumber = Number(level);
-  const hasNextLevel = levelNumber < availableLevels;
+  const resetTaskState = useCallback(() => {
+    setLeftValue(null);
+    setRightValue(null);
+    initializedRef.current = false;
+    setResetKey((prev) => prev + 1);
+  }, []);
+
+  const {
+    displayTaskResults,
+    handleCheckAnswers,
+    showResultsProps,
+  } = useTaskLifecycle({
+    level,
+    maxLevelStep,
+    isFinalTaskInLevel,
+    checkIfCorrect,
+    resetTaskState,
+  });
+
+  const isAllAnswersCorrect = checkIfCorrect();
 
   const generateAllPositions = useCallback(
     (numbers: number[]): Map<number, NumberPosition> => {
@@ -103,28 +112,22 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         return new Map();
       }
 
-      // Simple 2x2 grid for 4 numbers with guaranteed spacing
       const availableWidth = containerLayout.width - GRID_MARGIN * 2;
       const availableHeight = CONTAINER_HEIGHT - GRID_MARGIN * 2;
 
-      // Divide space evenly into a 2x2 grid
       const cellWidth = availableWidth / GRID_COLS;
       const cellHeight = availableHeight / GRID_ROWS;
 
-      // Maximum random offset to add natural positioning while preventing overlaps
       const maxOffsetX = Math.min(30, (cellWidth - DRAGGABLE_NUMBER_SIZE * DRAG_SCALE) / 2);
       const maxOffsetY = Math.min(30, (cellHeight - DRAGGABLE_NUMBER_SIZE * DRAG_SCALE) / 2);
 
-      // Create all 4 grid positions (2x2 = 4 positions) with random offsets
       const gridPositions: NumberPosition[] = [];
 
       for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
-          // Center the number within each grid cell
           const baseX = GRID_MARGIN + col * cellWidth + (cellWidth - DRAGGABLE_NUMBER_SIZE) / 2;
           const baseY = GRID_MARGIN + row * cellHeight + (cellHeight - DRAGGABLE_NUMBER_SIZE) / 2;
 
-          // Add random offset for more natural look
           const randomOffsetX = (Math.random() - 0.5) * 2 * maxOffsetX;
           const randomOffsetY = (Math.random() - 0.5) * 2 * maxOffsetY;
 
@@ -135,10 +138,8 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         }
       }
 
-      // Shuffle positions
       const shuffledPositions = gridPositions.sort(() => Math.random() - 0.5);
 
-      // Assign positions to numbers
       const positionsMap = new Map<number, NumberPosition>();
       numbers.forEach((number, index) => {
         positionsMap.set(number, shuffledPositions[index] || { x: GRID_MARGIN, y: GRID_MARGIN });
@@ -155,20 +156,17 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         return { x: 0, y: 0 };
       }
 
-      // Simple 2x2 grid fallback for drag-back positioning
       const availableWidth = containerLayout.width - GRID_MARGIN * 2;
       const availableHeight = CONTAINER_HEIGHT - GRID_MARGIN * 2;
 
       const cellWidth = availableWidth / GRID_COLS;
       const cellHeight = availableHeight / GRID_ROWS;
 
-      // Find an unoccupied grid cell
       for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
           const x = GRID_MARGIN + col * cellWidth + (cellWidth - DRAGGABLE_NUMBER_SIZE) / 2;
           const y = GRID_MARGIN + row * cellHeight + (cellHeight - DRAGGABLE_NUMBER_SIZE) / 2;
 
-          // Check if position is occupied
           let isOccupied = false;
           for (const [num, existingPos] of existingPositions) {
             if (excludeNumber !== undefined && num === excludeNumber) {
@@ -181,7 +179,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
           }
 
           if (!isOccupied) {
-            // Add small random offset
             const offsetX = (Math.random() - 0.5) * 40;
             const offsetY = (Math.random() - 0.5) * 40;
             return { x: x + offsetX, y: y + offsetY };
@@ -202,7 +199,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
       return;
     }
 
-    // Generate all positions at once to ensure proper spacing and randomization
     const initialPositions = generateAllPositions(numbers);
 
     setNumberPositions(initialPositions);
@@ -219,8 +215,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
   };
 
   const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayoutRect: LayoutRectangle): NumberPosition => {
-    // Calculate position so the number's center aligns with the drop zone's center
-    // Since transform scales from center, we just need to center the original bounds
     const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
     const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
 
@@ -229,7 +223,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
 
   const handleDrop = useCallback(
     async (x: number, y: number, number: number) => {
-      // Clear if number was already placed
       if (leftValue === number) setLeftValue(null);
       if (rightValue === number) setRightValue(null);
 
@@ -240,7 +233,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         height: DRAGGABLE_NUMBER_SIZE,
       };
 
-      // Measure all refs fresh at drop time for accurate positioning
       const [leftZoneLayout, rightZoneLayout, freshContainerLayout] = await Promise.all([
         measureView(leftZoneRef),
         measureView(rightZoneRef),
@@ -252,7 +244,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         return;
       }
 
-      // Check left zone
       if (doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
         if (leftValue !== null) animateNumberToRandomPosition(leftValue);
         setLeftValue(number);
@@ -262,7 +253,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         return;
       }
 
-      // Check right zone
       if (doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
         if (rightValue !== null) animateNumberToRandomPosition(rightValue);
         setRightValue(number);
@@ -272,68 +262,10 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
         return;
       }
 
-      // Not snapped to any zone
       animateNumberToRandomPosition(number);
     },
     [leftValue, rightValue, animateNumberToRandomPosition, getDropZonePosition]
   );
-
-  const finalizeTaskProgress = useCallback(() => {
-    const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
-
-    dispatch({
-      type: "GET_NEXT_TASK",
-      payload: {
-        isCorrect,
-        maxLevelStep,
-      },
-    });
-
-    setDisplayTaskResults(false);
-    setLeftValue(null);
-    setRightValue(null);
-    initializedRef.current = false;
-    // setHasAppliedLifePenalty(false);
-    hasAppliedLifePenaltyRef.current = false;
-  }, [leftValue, rightValue, task.operation, task.result, dispatch, maxLevelStep]);
-
-  const nextLevelValue = (levelNumber + 1).toString();
-  const isAllAnswersCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
-
-  const { goToNextTask, handleGoHome, handleNextLevel } = createLevelNavigationHandlers({
-    isFinalTaskInLevel,
-    hasNextLevel,
-    finalizeTaskProgress,
-    router,
-    nextLevelValue,
-  });
-
-  const handleCheckAnswers = useCallback(() => {
-    // Use ref for synchronous check to prevent double life loss on rapid taps
-    if (hasAppliedLifePenaltyRef.current) {
-      setDisplayTaskResults(true);
-      return;
-    }
-
-    const isCorrect = checkAnswers(leftValue, rightValue, task.operation, task.result);
-
-    if (!isCorrect) {
-      hasAppliedLifePenaltyRef.current = true;
-      dispatch({ type: "LOSE_LIFE" });
-      // setHasAppliedLifePenalty(true);
-    }
-
-    setDisplayTaskResults(true);
-  }, [leftValue, rightValue, task.operation, task.result, dispatch]);
-
-  const handleTryAgain = useCallback(() => {
-    setLeftValue(null);
-    setRightValue(null);
-    setDisplayTaskResults(false);
-    initializedRef.current = false;
-    hasAppliedLifePenaltyRef.current = false;
-    setResetKey((prev) => prev + 1);
-  }, []);
 
   return (
     <>
@@ -427,7 +359,6 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
             justifyContent: "center",
           }}
         >
-          {/* <MainButton disabled={!isBothValuesSet} onPress={checkAnswers}> */}
           <MainButton disabled={!isBothValuesSet} onPress={handleCheckAnswers}>
             <ThemedText
               type="defaultSemiBold"
@@ -435,47 +366,14 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
                 fontSize: 20,
               }}
             >
-              {displayTaskResults ? "Nākamais uzdevums" : "Pārbaudīt"}
+              Pārbaudīt
             </ThemedText>
           </MainButton>
         </View>
       ) : (
         <ShowResults
-          lives={lives}
-          adLoaded={adLoaded}
-          onGoHomePress={handleGoHome}
           isAllAnswersCorrect={isAllAnswersCorrect}
-          onNextTaskPress={goToNextTask}
-          onTryAgainPress={handleTryAgain}
-          onWatchAdPress={() => {
-            showAdForReward(
-              () => {
-                // Called when user earns reward
-                dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-                // Reset task - free retry after watching ad
-                setLeftValue(null);
-                setRightValue(null);
-                initializedRef.current = false;
-                // setHasAppliedLifePenalty(false);
-                hasAppliedLifePenaltyRef.current = false;
-                setResetKey((prev) => prev + 1);
-              },
-              () => {
-                // Called when ad closes (regardless of reward)
-                setDisplayTaskResults(false);
-              }
-            );
-          }}
-          levelCompletionState={
-            isFinalTaskInLevel
-              ? {
-                  hasNextLevel,
-                  isCompleted: true,
-                  onGoHomePress: handleGoHome,
-                  onNextLevelPress: handleNextLevel,
-                }
-              : undefined
-          }
+          {...showResultsProps}
         />
       )}
     </>
@@ -500,7 +398,6 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
   const positionX = useSharedValue(initialPosition.x);
   const positionY = useSharedValue(initialPosition.y);
 
-  // use a shared value (not a React ref) for data accessed in worklets
   const isSnappedSV = useSharedValue(isSnapped);
 
   useEffect(() => {

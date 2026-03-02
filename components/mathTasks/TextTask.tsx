@@ -5,13 +5,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { TextTaskType } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
-import useAppContext from "@/hooks/useAppContext";
-import useGoogleAd from "@/hooks/useGoogleAd";
-import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
+import { useTaskLifecycle } from "@/hooks/useTaskLifecycle";
 import { getButtonStateColor } from "@/utils/utils";
 import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
 
 interface TextTaskProps {
@@ -35,21 +32,11 @@ export function TextTask({
   const isDarkMode = colorScheme === "dark";
   const colors = Colors[isDarkMode ? "dark" : "light"];
 
-  const {
-    dispatch,
-    state: { availableLevels, lives },
-  } = useAppContext();
-
-  const router = useRouter();
-  const { loaded: adLoaded, showAdForReward } = useGoogleAd();
-
   const [userAnswer, setUserAnswer] = useState("");
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
-  const [displayTaskResults, setDisplayTaskResults] = useState(false);
-  const hasAppliedLifePenaltyRef = useRef(false);
 
-  const levelNumber = Number(level);
-  const hasNextLevel = levelNumber < availableLevels;
+  // Generate options once and store in a ref so removing an answer doesn't re-shuffle
+  const shuffledOptionsRef = useRef<{ id: number; value: number; isCorrect: boolean }[] | null>(null);
 
   const allOptions = useMemo(() => {
     if (!showAsMultipleChoice) return [];
@@ -75,17 +62,23 @@ export function TextTask({
     const wrong2 = generateWrong(() => correctAnswer - Math.floor(Math.random() * 5) - 1);
     const wrong3 = generateWrong(() => correctAnswer + Math.floor(Math.random() * 10) + 6);
 
-    return [
+    const options = [
       { id: 1, value: correctAnswer, isCorrect: true },
       { id: 2, value: wrong1, isCorrect: false },
       { id: 3, value: wrong2, isCorrect: false },
       { id: 4, value: wrong3, isCorrect: false },
     ];
+
+    // Shuffle once and store
+    shuffledOptionsRef.current = options.sort(() => Math.random() - 0.5);
+
+    return shuffledOptionsRef.current;
   }, [showAsMultipleChoice, task.result]);
 
-  // Filter and shuffle separately so removing an answer doesn't regenerate all values
+  // Filter removed answers without re-shuffling the order
   const multipleChoiceOptions = useMemo(() => {
-    return allOptions.filter((opt) => !removedAnswerIds.includes(opt.id)).sort(() => Math.random() - 0.5);
+    const source = shuffledOptionsRef.current ?? allOptions;
+    return source.filter((opt) => !removedAnswerIds.includes(opt.id));
   }, [allOptions, removedAnswerIds]);
 
   const isAnswerCorrect = showAsMultipleChoice
@@ -93,56 +86,37 @@ export function TextTask({
     : Number(userAnswer) === task.result;
   const hasAnswer = showAsMultipleChoice ? selectedOptionId !== null : userAnswer.trim().length > 0;
 
-  const finalizeTaskProgress = () => {
-    dispatch({
-      type: "GET_NEXT_TASK",
-      payload: {
-        isCorrect: isAnswerCorrect,
-        maxLevelStep,
-      },
-    });
+  const checkIfCorrect = useCallback((): boolean => {
+    return isAnswerCorrect;
+  }, [isAnswerCorrect]);
 
+  const resetTaskState = useCallback(() => {
     setUserAnswer("");
     setSelectedOptionId(null);
-    setDisplayTaskResults(false);
-    hasAppliedLifePenaltyRef.current = false;
-  };
+  }, []);
 
-  const nextLevelValue = (levelNumber + 1).toString();
-
-  const { goToNextTask, handleGoHome, handleNextLevel } = createLevelNavigationHandlers({
+  const {
+    displayTaskResults,
+    handleCheckAnswers: handleCheckFromHook,
+    showResultsProps,
+  } = useTaskLifecycle({
+    level,
+    maxLevelStep,
     isFinalTaskInLevel,
-    hasNextLevel,
-    finalizeTaskProgress,
-    router,
-    nextLevelValue,
+    checkIfCorrect,
+    resetTaskState,
   });
 
-  const handleCheckAnswer = () => {
+  const handleCheckAnswer = useCallback(() => {
     Keyboard.dismiss();
+    handleCheckFromHook();
 
-    if (hasAppliedLifePenaltyRef.current) {
-      setDisplayTaskResults(true);
-      return;
-    }
-
-    if (!isAnswerCorrect) {
-      hasAppliedLifePenaltyRef.current = true;
-      dispatch({ type: "LOSE_LIFE" });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    } else {
+    if (isAnswerCorrect) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-
-    setDisplayTaskResults(true);
-  };
-
-  const handleTryAgain = () => {
-    setUserAnswer("");
-    setSelectedOptionId(null);
-    setDisplayTaskResults(false);
-    hasAppliedLifePenaltyRef.current = false;
-  };
+  }, [handleCheckFromHook, isAnswerCorrect]);
 
   const getInputBorderColor = () => {
     if (!displayTaskResults) {
@@ -235,35 +209,8 @@ export function TextTask({
 
       {displayTaskResults && (
         <ShowResults
-          lives={lives}
-          adLoaded={adLoaded}
-          onGoHomePress={handleGoHome}
-          onNextTaskPress={goToNextTask}
-          onTryAgainPress={handleTryAgain}
           isAllAnswersCorrect={isAnswerCorrect}
-          onWatchAdPress={() => {
-            showAdForReward(
-              () => {
-                dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-                setUserAnswer("");
-                setSelectedOptionId(null);
-                hasAppliedLifePenaltyRef.current = false;
-              },
-              () => {
-                setDisplayTaskResults(false);
-              }
-            );
-          }}
-          levelCompletionState={
-            isFinalTaskInLevel
-              ? {
-                  hasNextLevel,
-                  isCompleted: true,
-                  onGoHomePress: handleGoHome,
-                  onNextLevelPress: handleNextLevel,
-                }
-              : undefined
-          }
+          {...showResultsProps}
         />
       )}
     </>
@@ -271,12 +218,6 @@ export function TextTask({
 }
 
 const styles = StyleSheet.create({
-  contentContainer: {
-    flex: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    alignItems: "center",
-  },
   iconContainer: {
     marginTop: 20,
     marginBottom: 16,
@@ -316,19 +257,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     marginBottom: 20,
-  },
-  correctAnswerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 16,
-  },
-  correctAnswerLabel: {
-    fontSize: 18,
-  },
-  correctAnswerValue: {
-    fontSize: 24,
-    fontWeight: "bold",
   },
   buttonContainer: {
     display: "flex",
