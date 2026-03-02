@@ -24,7 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, { SlideInRight, SlideOutLeft } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ADDITIONAL_TOP_PADDING = 12;
@@ -57,36 +57,16 @@ export default function GameLevelScreen() {
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
 
-  // Slide animation when task changes
-  const translateX = useSharedValue(0);
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
+  // Reset hint state when task changes
   const prevTaskRef = useRef(currentTaskInLevel);
 
   useEffect(() => {
     if (prevTaskRef.current !== currentTaskInLevel) {
       prevTaskRef.current = currentTaskInLevel;
-      // Reset hint state for the new task
       setRemovedAnswerIds([]);
       setShowTextTaskAsMultipleChoice(false);
-
-      const enterEasing = Easing.out(Easing.cubic);
-
-      // New task just rendered — hide it off-screen right immediately, then slide in
-      translateX.value = 250;
-      scale.value = 0.92;
-      opacity.value = 0;
-
-      translateX.value = withTiming(0, { duration: 250, easing: enterEasing });
-      scale.value = withTiming(1, { duration: 250, easing: enterEasing });
-      opacity.value = withTiming(1, { duration: 250, easing: enterEasing });
     }
   }, [currentTaskInLevel]);
-
-  const taskAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { scale: scale.value }],
-    opacity: opacity.value,
-  }));
 
   const canRemoveAnswer = useMemo(() => {
     if (!currentTask) return false;
@@ -255,36 +235,45 @@ export default function GameLevelScreen() {
             Palīdzība
           </ThemedText>
         </Pressable>
-        <Animated.View style={[styles.levelView, taskAnimatedStyle]}>
-          {isMultiAnswerMathTask(currentTask) && (
-            <MathTaskWithResult
-              level={level}
-              task={currentTask}
-              maxLevelStep={maxLevelStep}
-              removedAnswerIds={removedAnswerIds}
-              isFinalTaskInLevel={isFinalTaskInLevel}
-            />
-          )}
-          {isCreateMathTask(currentTask) && (
-            <CreateMathTask
-              level={level}
-              task={currentTask}
-              maxLevelStep={maxLevelStep}
-              removedAnswerIds={removedAnswerIds}
-              isFinalTaskInLevel={isFinalTaskInLevel}
-            />
-          )}
-          {isTextTask(currentTask) && (
-            <TextTask
-              level={level}
-              task={currentTask}
-              maxLevelStep={maxLevelStep}
-              removedAnswerIds={removedAnswerIds}
-              isFinalTaskInLevel={isFinalTaskInLevel}
-              showAsMultipleChoice={showTextTaskAsMultipleChoice}
-            />
-          )}
-        </Animated.View>
+        <View style={styles.levelView}>
+          <Animated.View
+            key={currentTaskInLevel}
+            style={styles.taskContainer}
+            entering={SlideInRight.duration(250).withInitialValues({ transform: [{ translateX: 250 }] })}
+            exiting={SlideOutLeft.duration(200).withCallback(() => {
+              "worklet";
+            }).withInitialValues({ transform: [{ translateX: 0 }], position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" })}
+          >
+            {isMultiAnswerMathTask(currentTask) && (
+              <MathTaskWithResult
+                level={level}
+                task={currentTask}
+                maxLevelStep={maxLevelStep}
+                removedAnswerIds={removedAnswerIds}
+                isFinalTaskInLevel={isFinalTaskInLevel}
+              />
+            )}
+            {isCreateMathTask(currentTask) && (
+              <CreateMathTask
+                level={level}
+                task={currentTask}
+                maxLevelStep={maxLevelStep}
+                removedAnswerIds={removedAnswerIds}
+                isFinalTaskInLevel={isFinalTaskInLevel}
+              />
+            )}
+            {isTextTask(currentTask) && (
+              <TextTask
+                level={level}
+                task={currentTask}
+                maxLevelStep={maxLevelStep}
+                removedAnswerIds={removedAnswerIds}
+                isFinalTaskInLevel={isFinalTaskInLevel}
+                showAsMultipleChoice={showTextTaskAsMultipleChoice}
+              />
+            )}
+          </Animated.View>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -313,6 +302,9 @@ const styles = StyleSheet.create({
   levelView: {
     flex: 1,
     paddingTop: 10,
+  },
+  taskContainer: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
