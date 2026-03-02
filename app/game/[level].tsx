@@ -24,7 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ADDITIONAL_TOP_PADDING = 12;
@@ -57,8 +57,9 @@ export default function GameLevelScreen() {
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
 
-  // Slide-left animation when task changes
+  // Slide animation when task changes
   const translateX = useSharedValue(0);
+  const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const prevTaskRef = useRef(currentTaskInLevel);
 
@@ -68,22 +69,22 @@ export default function GameLevelScreen() {
       // Reset hint state for the new task
       setRemovedAnswerIds([]);
       setShowTextTaskAsMultipleChoice(false);
-      // Slide out left + fade, then snap right off-screen, then slide in + fade
-      translateX.value = withSequence(
-        withTiming(-300, { duration: 200 }),
-        withTiming(300, { duration: 0 }),
-        withTiming(0, { duration: 200 })
-      );
-      opacity.value = withSequence(
-        withTiming(0, { duration: 200 }),
-        withTiming(0, { duration: 0 }),
-        withTiming(1, { duration: 200 })
-      );
+
+      const enterEasing = Easing.out(Easing.cubic);
+
+      // New task just rendered — hide it off-screen right immediately, then slide in
+      translateX.value = 250;
+      scale.value = 0.92;
+      opacity.value = 0;
+
+      translateX.value = withTiming(0, { duration: 250, easing: enterEasing });
+      scale.value = withTiming(1, { duration: 250, easing: enterEasing });
+      opacity.value = withTiming(1, { duration: 250, easing: enterEasing });
     }
   }, [currentTaskInLevel]);
 
   const taskAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: translateX.value }, { scale: scale.value }],
     opacity: opacity.value,
   }));
 
