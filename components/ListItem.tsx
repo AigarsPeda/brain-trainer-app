@@ -80,30 +80,14 @@ type ListItemProps = {
   position: number;
   item: TaskInfoType;
   theme: "light" | "dark";
-  isCurrentLevel?: boolean;
   handleClick: () => void;
+  isCurrentLevel?: boolean;
   scrollY: SharedValue<number>;
 };
 
 const ListItem: FC<ListItemProps> = memo(
   ({ item, index, bgColor, position, theme, isCurrentLevel, handleClick, scrollY }) => {
     const pressScale = useSharedValue(1);
-    const pulseScale = useSharedValue(1);
-
-    useEffect(() => {
-      if (isCurrentLevel) {
-        pulseScale.value = withRepeat(
-          withSequence(
-            withTiming(1.08, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-            withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
-          ),
-          -1,
-          true
-        );
-      } else {
-        pulseScale.value = 1;
-      }
-    }, [isCurrentLevel, pulseScale]);
 
     // Calculate item's vertical position (memoized constant per item)
     const itemOffset = index * ITEM_HEIGHT;
@@ -115,7 +99,7 @@ const ListItem: FC<ListItemProps> = memo(
     const edgeDistance = VIEWPORT_HEIGHT * 0.45;
     const inputRange = [
       itemCenterOffset - edgeDistance, // Below center
-      itemCenterOffset,                 // At center
+      itemCenterOffset, // At center
     ];
 
     // Asymmetric scale animation: scales up from below, stays at 1.0 above center
@@ -136,13 +120,6 @@ const ListItem: FC<ListItemProps> = memo(
       };
     });
 
-    const pulseStyle = useAnimatedStyle(() => {
-      "worklet";
-      return {
-        transform: [{ scale: pulseScale.value }],
-      };
-    });
-
     // Memoize color info since it only depends on item properties
     const colorInfo = useMemo(
       () => getColorInfo(item.levelNumber, item.isLevelLocked, bgColor),
@@ -155,10 +132,10 @@ const ListItem: FC<ListItemProps> = memo(
     // Memoize position style
     const positionStyle = useMemo(
       () => ({
-        position: "absolute" as const,
         left: position * 72,
-        flexDirection: "column" as const,
+        position: "absolute" as const,
         alignItems: "center" as const,
+        flexDirection: "column" as const,
         justifyContent: "center" as const,
       }),
       [position]
@@ -177,7 +154,11 @@ const ListItem: FC<ListItemProps> = memo(
     return (
       <Animated.View style={[styles.listItem, rStyle]}>
         <View style={positionStyle}>
-          <Animated.View style={pulseStyle}>
+          <View style={styles.ringWrapper}>
+            <AnimatedRing
+              isVisible={!!isCurrentLevel}
+              color={theme === "dark" ? colorInfo.lightColor : colorInfo.darkColor}
+            />
             <Pressable
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
@@ -197,7 +178,7 @@ const ListItem: FC<ListItemProps> = memo(
                 </View>
               </LinearGradient>
             </Pressable>
-          </Animated.View>
+          </View>
           {!item.isLevelLocked && (
             <View style={styles.starContainer}>
               {STAR_ARRAY.map((_, index) => {
@@ -247,34 +228,34 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: 110,
     height: 110,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
   outerSquare: {
     width: 110,
     height: 110,
+    elevation: 10,
+    shadowRadius: 8,
     borderRadius: 24,
-    justifyContent: "center",
+    shadowOpacity: 0.3,
     alignItems: "center",
     shadowColor: "#000",
+    justifyContent: "center",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
   },
   innerSquare: {
     width: 100,
     height: 100,
     borderRadius: 20,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
   levelText: {
     fontSize: 32,
     color: "#fff",
   },
   starContainer: {
-    marginTop: 12,
+    marginTop: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -284,6 +265,66 @@ const styles = StyleSheet.create({
     height: 20,
     marginHorizontal: 2,
   },
+  ringWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 export default ListItem;
+
+const AnimatedRing: FC<{ isVisible: boolean; color: string }> = memo(({ isVisible, color }) => {
+  const ringOpacity = useSharedValue(0);
+  const ringScale = useSharedValue(0.8);
+
+  useEffect(() => {
+    if (isVisible) {
+      ringOpacity.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.3, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      );
+      ringScale.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.95, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      );
+    } else {
+      ringOpacity.value = 0;
+      ringScale.value = 0.8;
+    }
+  }, [isVisible, ringOpacity, ringScale]);
+
+  const ringStyle = useAnimatedStyle(() => {
+    "worklet";
+    return {
+      opacity: ringOpacity.value,
+      transform: [{ scale: ringScale.value }],
+    };
+  });
+
+  if (!isVisible) return null;
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          width: 130,
+          height: 130,
+          borderRadius: 30,
+          borderWidth: 3,
+          borderColor: color,
+          zIndex: -1,
+        },
+        ringStyle,
+      ]}
+    />
+  );
+});
