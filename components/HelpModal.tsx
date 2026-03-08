@@ -191,7 +191,6 @@ export function HelpModal({
                   <MainButton
                     onPress={() => {
                       onPurchaseHint();
-                      onClose();
                     }}
                     style={styles.purchaseButton}
                   >

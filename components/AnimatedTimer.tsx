@@ -4,6 +4,76 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 
 type AnimationDirection = "up" | "down" | "auto" | "countdown" | "countup";
+const PLACEHOLDER_DIGIT = " ";
+
+interface DigitRenderItem {
+  char: string;
+  key: string;
+  animateOnMount?: boolean;
+  mountPreviousDigit?: string;
+  compareIndex: number;
+}
+
+interface AlignedCharactersResult {
+  currentChars: string[];
+  previousChars: string[];
+  renderItems: DigitRenderItem[];
+}
+
+const isNumericString = (value: string) => /^\d+$/.test(value);
+
+const getInsertedDigitPreviousValue = (direction: AnimationDirection, digit: string) => {
+  if (direction === "countup" && digit !== PLACEHOLDER_DIGIT) {
+    return "0";
+  }
+
+  return PLACEHOLDER_DIGIT;
+};
+
+const buildNumericRenderItems = (
+  previousValue: string,
+  currentValue: string,
+  direction: AnimationDirection
+): DigitRenderItem[] => {
+  const slotCount = Math.max(previousValue.length, currentValue.length);
+  const currentChars = currentValue.split("");
+  const insertedSlots = Math.max(0, currentValue.length - previousValue.length);
+  const leadingOffset = slotCount - currentValue.length;
+
+  return currentChars.map((char, index) => ({
+    char,
+    key: `digit-place-${currentValue.length - index - 1}`,
+    animateOnMount: index < insertedSlots && char !== PLACEHOLDER_DIGIT,
+    mountPreviousDigit: index < insertedSlots ? getInsertedDigitPreviousValue(direction, char) : undefined,
+    compareIndex: leadingOffset + index,
+  }));
+};
+
+const getAlignedCharacters = (
+  previousValue: string,
+  currentValue: string,
+  direction: AnimationDirection
+): AlignedCharactersResult => {
+  if (isNumericString(previousValue) && isNumericString(currentValue)) {
+    const slotCount = Math.max(previousValue.length, currentValue.length);
+
+    return {
+      currentChars: currentValue.padStart(slotCount, PLACEHOLDER_DIGIT).split(""),
+      previousChars: previousValue.padStart(slotCount, PLACEHOLDER_DIGIT).split(""),
+      renderItems: buildNumericRenderItems(previousValue, currentValue, direction),
+    };
+  }
+
+  return {
+    currentChars: currentValue.split(""),
+    previousChars: previousValue.split(""),
+    renderItems: currentValue.split("").map((char, index) => ({
+      char,
+      key: char === ":" ? `colon-${index}` : `digit-${index}`,
+      compareIndex: index,
+    })),
+  };
+};
 
 interface AnimatedDigitProps {
   digit: string;
@@ -11,23 +81,36 @@ interface AnimatedDigitProps {
   height?: number;
   style?: TextStyle;
   direction?: AnimationDirection;
+  animateOnMount?: boolean;
+  mountPreviousDigit?: string;
 }
 
-function AnimatedDigit({ digit, style, height = 36, direction = "countdown", delay = 0 }: AnimatedDigitProps) {
+function AnimatedDigit({
+  digit,
+  style,
+  height = 36,
+  direction = "countdown",
+  delay = 0,
+  animateOnMount = false,
+  mountPreviousDigit,
+}: AnimatedDigitProps) {
   const { text: themeTextColor } = useThemeColor();
   const isAnimating = useRef(false);
   const previousDigitRef = useRef<string>(digit);
+  const hasMountedRef = useRef(false);
   const slideAnim = useRef(new Animated.Value(1)).current;
   const [displayDigit, setDisplayDigit] = useState(digit);
   const [previousDigit, setPreviousDigit] = useState<string | null>(null);
   const [animDirection, setAnimDirection] = useState<"up" | "down">("up");
 
   useEffect(() => {
-    if (previousDigitRef.current !== digit) {
-      const newNum = parseInt(digit, 10);
-      const prevNum = parseInt(previousDigitRef.current, 10);
+    const shouldAnimateMount = !hasMountedRef.current && animateOnMount && digit !== PLACEHOLDER_DIGIT;
 
-      // Determine animation direction
+    if (previousDigitRef.current !== digit || shouldAnimateMount) {
+      const fromDigit = shouldAnimateMount ? (mountPreviousDigit ?? PLACEHOLDER_DIGIT) : previousDigitRef.current;
+      const newNum = parseInt(digit, 10);
+      const prevNum = parseInt(fromDigit, 10);
+
       const resolvedDirection: "up" | "down" = (() => {
         if (direction === "countdown") return "up";
         if (direction === "countup") return "down";
@@ -40,13 +123,12 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
         return direction;
       })();
 
-      // Stop any ongoing animation
       if (isAnimating.current) {
         slideAnim.stopAnimation();
       }
 
       setAnimDirection(resolvedDirection);
-      setPreviousDigit(previousDigitRef.current);
+      setPreviousDigit(fromDigit);
       setDisplayDigit(digit);
       previousDigitRef.current = digit;
       slideAnim.setValue(0);
@@ -65,11 +147,9 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
         }
       });
     }
-  }, [digit, slideAnim, direction]);
+    hasMountedRef.current = true;
+  }, [animateOnMount, delay, digit, direction, mountPreviousDigit, slideAnim]);
 
-  // Direction determines where old digit goes and where new digit comes from
-  // "up": old slides up (negative Y), new comes from bottom (positive Y)
-  // "down": old slides down (positive Y), new comes from top (negative Y)
   const oldExitY = animDirection === "up" ? -height : height;
   const newEnterY = animDirection === "up" ? height : -height;
 
@@ -93,6 +173,8 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
     outputRange: [0, 0.5, 1],
   });
 
+  const renderDigit = (value: string) => (value === PLACEHOLDER_DIGIT ? "" : value);
+
   return (
     <View style={[styles.digitContainer, { height }]}>
       {previousDigit !== null && (
@@ -107,7 +189,7 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
             },
           ]}
         >
-          {previousDigit}
+          {renderDigit(previousDigit)}
         </Animated.Text>
       )}
       <Animated.Text
@@ -121,7 +203,7 @@ function AnimatedDigit({ digit, style, height = 36, direction = "countdown", del
           },
         ]}
       >
-        {displayDigit}
+        {renderDigit(displayDigit)}
       </Animated.Text>
     </View>
   );
@@ -152,12 +234,14 @@ export function AnimatedTimer({
   digitHeight = 36,
   direction = "countdown",
 }: AnimatedTimerProps) {
-  const digits = time.split("");
-  const previousDigitsRef = useRef<string[]>(digits);
+  const previousTimeRef = useRef(time);
+  const { currentChars, previousChars, renderItems } = getAlignedCharacters(previousTimeRef.current, time, direction);
+  const isNumericTransition = isNumericString(previousTimeRef.current) && isNumericString(time);
 
-  const changedDigitIndices = digits.reduce<number[]>((acc, char, index) => {
+  const changedDigitIndices = renderItems.reduce<number[]>((acc, item, index) => {
+    const { char, compareIndex } = item;
     if (char === ":") return acc;
-    const previousChar = previousDigitsRef.current[index];
+    const previousChar = previousChars[compareIndex];
     if (previousChar !== char) acc.push(index);
     return acc;
   }, []);
@@ -167,10 +251,11 @@ export function AnimatedTimer({
   const baseDelayMs = 70;
 
   useEffect(() => {
-    previousDigitsRef.current = digits;
-  }, [digits]);
+    previousTimeRef.current = time;
+  }, [time]);
 
   const getDelayForIndex = (index: number) => {
+    if (isNumericTransition) return 0;
     if (!hasSimultaneousChange) return 0;
     const order = cascadeOrder.indexOf(index);
     if (order === -1) return 0;
@@ -179,19 +264,21 @@ export function AnimatedTimer({
 
   return (
     <View style={[styles.timerContainer, containerStyle]}>
-      {digits.map((char, index) =>
+      {renderItems.map(({ char, key, animateOnMount, mountPreviousDigit }, index) =>
         char === ":" ? (
-          <ThemedText key={`colon-${index}`} style={[style, separatorStyle]}>
+          <ThemedText key={key} style={[style, separatorStyle]}>
             :
           </ThemedText>
         ) : (
           <AnimatedDigit
-            key={`digit-${index}`}
+            key={key}
             digit={char}
             style={style}
             height={digitHeight}
             direction={direction}
             delay={getDelayForIndex(index)}
+            animateOnMount={animateOnMount}
+            mountPreviousDigit={mountPreviousDigit}
           />
         )
       )}
