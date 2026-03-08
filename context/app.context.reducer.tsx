@@ -153,6 +153,26 @@ export const initialContext: AppContextType = {
 export const AppContext = createContext<AppContextType>(initialContext);
 
 // Helper Functions
+const getLevelResultsEntry = (
+  results: AppContextStateType["results"],
+  level: number
+): { tasksResults: TaskResultType[] } => {
+  return results[level.toString()] ?? { tasksResults: [] };
+};
+
+export const getTaskInLevelForSelection = (
+  state: Pick<AppContextStateType, "levels" | "results">,
+  level: number
+): number => {
+  const selectedLevel = state.levels.find((item) => item.levelNumber === level);
+
+  if (selectedLevel?.isLevelCompleted) {
+    return 1;
+  }
+
+  return getLevelResultsEntry(state.results, level).tasksResults.length + 1;
+};
+
 const appendTaskResult = (
   state: AppContextStateType,
   correctnessPercentage: number
@@ -301,7 +321,15 @@ interface GetNextLevel {
   };
 }
 
+interface SelectLevelActionType {
+  type: "SELECT_LEVEL";
+  payload: {
+    level: number;
+  };
+}
+
 export type AppContextActionType =
+  | SelectLevelActionType
   | GetNextLevel
   | SetNameActionType
   | SetThemeActionType
@@ -323,6 +351,22 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
     case "SET_THEME":
       return { ...state, theme: action.payload };
+
+    case "SELECT_LEVEL": {
+      const { level } = action.payload;
+
+      return {
+        ...state,
+        game: {
+          currentLevel: level,
+          currentTaskInLevel: getTaskInLevelForSelection(state, level),
+        },
+        results: {
+          ...state.results,
+          [level.toString()]: getLevelResultsEntry(state.results, level),
+        },
+      };
+    }
 
     case "GET_NEXT_TASK": {
       const { isCorrect, maxLevelStep } = action.payload;

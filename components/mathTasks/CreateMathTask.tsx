@@ -9,21 +9,41 @@ import { checkAnswers } from "@/utils/game";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LayoutRectangle, ScrollView, StyleSheet, View } from "react-native";
+import { LayoutRectangle, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
 // Constants
-const DRAGGABLE_NUMBER_SIZE = 75;
-const DROP_ZONE_SIZE = 110;
 const CONTAINER_HEIGHT = 220;
 const GRID_COLS = 2;
 const GRID_ROWS = 2;
 const GRID_MARGIN = 20;
 const DRAG_SCALE = 1.7;
-const SNAPPED_SCALE = 1.4;
 const NORMAL_SCALE = 1;
+
+type ResponsiveCreateMathLayout = {
+  dropZoneSize: number;
+  draggableNumberSize: number;
+  equationFontSize: number;
+  rowGap: number;
+  draggableNumberFontSize: number;
+  snappedScale: number;
+};
+
+export const getResponsiveCreateMathLayout = (width: number): ResponsiveCreateMathLayout => {
+  const baseLayout =
+    width >= 390
+      ? { dropZoneSize: 110, draggableNumberSize: 75, equationFontSize: 40, rowGap: 16, draggableNumberFontSize: 32 }
+      : width >= 360
+        ? { dropZoneSize: 96, draggableNumberSize: 70, equationFontSize: 32, rowGap: 12, draggableNumberFontSize: 30 }
+        : { dropZoneSize: 84, draggableNumberSize: 64, equationFontSize: 28, rowGap: 8, draggableNumberFontSize: 28 };
+
+  return {
+    ...baseLayout,
+    snappedScale: Math.min(1.4, (baseLayout.dropZoneSize - 8) / baseLayout.draggableNumberSize),
+  };
+};
 
 const measureView = (ref: React.RefObject<View | null>): Promise<LayoutRectangle> => {
   return new Promise((resolve) => {
@@ -47,9 +67,13 @@ const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   );
 };
 
-const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayoutRect: LayoutRectangle): NumberPosition => {
-  const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
-  const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
+const getDropZonePosition = (
+  zoneLayout: LayoutRectangle,
+  containerLayoutRect: LayoutRectangle,
+  draggableNumberSize: number
+): NumberPosition => {
+  const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - draggableNumberSize) / 2;
+  const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - draggableNumberSize) / 2;
 
   return { x: relativeX, y: relativeY };
 };
@@ -74,11 +98,14 @@ export function CreateMathTask({
   isFinalTaskInLevel,
   removedAnswerIds = [],
 }: CreateMathTaskProps) {
+  const { width } = useWindowDimensions();
   const colorScheme = useAppColorScheme();
   const leftZoneRef = useRef<View | null>(null);
   const rightZoneRef = useRef<View | null>(null);
   const containerRef = useRef<View | null>(null);
   const dropZoneColors = DropZoneColors[colorScheme ?? "dark"];
+  const { dropZoneSize, draggableNumberSize, equationFontSize, rowGap, draggableNumberFontSize, snappedScale } =
+    useMemo(() => getResponsiveCreateMathLayout(width), [width]);
 
   const [leftValue, setLeftValue] = useState<number | null>(null);
   const [rightValue, setRightValue] = useState<number | null>(null);
@@ -127,15 +154,15 @@ export function CreateMathTask({
       const cellWidth = availableWidth / GRID_COLS;
       const cellHeight = availableHeight / GRID_ROWS;
 
-      const maxOffsetX = Math.min(30, (cellWidth - DRAGGABLE_NUMBER_SIZE * DRAG_SCALE) / 2);
-      const maxOffsetY = Math.min(30, (cellHeight - DRAGGABLE_NUMBER_SIZE * DRAG_SCALE) / 2);
+      const maxOffsetX = Math.max(0, Math.min(30, (cellWidth - draggableNumberSize * DRAG_SCALE) / 2));
+      const maxOffsetY = Math.max(0, Math.min(30, (cellHeight - draggableNumberSize * DRAG_SCALE) / 2));
 
       const gridPositions: NumberPosition[] = [];
 
       for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
-          const baseX = GRID_MARGIN + col * cellWidth + (cellWidth - DRAGGABLE_NUMBER_SIZE) / 2;
-          const baseY = GRID_MARGIN + row * cellHeight + (cellHeight - DRAGGABLE_NUMBER_SIZE) / 2;
+          const baseX = GRID_MARGIN + col * cellWidth + (cellWidth - draggableNumberSize) / 2;
+          const baseY = GRID_MARGIN + row * cellHeight + (cellHeight - draggableNumberSize) / 2;
 
           const randomOffsetX = (Math.random() - 0.5) * 2 * maxOffsetX;
           const randomOffsetY = (Math.random() - 0.5) * 2 * maxOffsetY;
@@ -156,7 +183,7 @@ export function CreateMathTask({
 
       return positionsMap;
     },
-    [containerLayout]
+    [containerLayout, draggableNumberSize]
   );
 
   const generateRandomPosition = useCallback(
@@ -170,26 +197,29 @@ export function CreateMathTask({
 
       const cellWidth = availableWidth / GRID_COLS;
       const cellHeight = availableHeight / GRID_ROWS;
+      const minimumSpacing = draggableNumberSize * 0.65;
+      const offsetRangeX = Math.max(0, Math.min(20, (cellWidth - draggableNumberSize) / 2));
+      const offsetRangeY = Math.max(0, Math.min(20, (cellHeight - draggableNumberSize) / 2));
 
       for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
-          const x = GRID_MARGIN + col * cellWidth + (cellWidth - DRAGGABLE_NUMBER_SIZE) / 2;
-          const y = GRID_MARGIN + row * cellHeight + (cellHeight - DRAGGABLE_NUMBER_SIZE) / 2;
+          const x = GRID_MARGIN + col * cellWidth + (cellWidth - draggableNumberSize) / 2;
+          const y = GRID_MARGIN + row * cellHeight + (cellHeight - draggableNumberSize) / 2;
 
           let isOccupied = false;
           for (const [num, existingPos] of existingPositions) {
             if (excludeNumber !== undefined && num === excludeNumber) {
               continue;
             }
-            if (Math.abs(x - existingPos.x) < 50 && Math.abs(y - existingPos.y) < 50) {
+            if (Math.abs(x - existingPos.x) < minimumSpacing && Math.abs(y - existingPos.y) < minimumSpacing) {
               isOccupied = true;
               break;
             }
           }
 
           if (!isOccupied) {
-            const offsetX = (Math.random() - 0.5) * 40;
-            const offsetY = (Math.random() - 0.5) * 40;
+            const offsetX = (Math.random() - 0.5) * 2 * offsetRangeX;
+            const offsetY = (Math.random() - 0.5) * 2 * offsetRangeY;
             return { x: x + offsetX, y: y + offsetY };
           }
         }
@@ -197,8 +227,12 @@ export function CreateMathTask({
 
       return { x: GRID_MARGIN, y: GRID_MARGIN };
     },
-    [containerLayout]
+    [containerLayout, draggableNumberSize]
   );
+
+  useEffect(() => {
+    initializedRef.current = false;
+  }, [draggableNumberSize]);
 
   useEffect(() => {
     if (!containerLayout) {
@@ -236,10 +270,10 @@ export function CreateMathTask({
       }
 
       const draggedItemBox: LayoutRectangle = {
-        x: x - DRAGGABLE_NUMBER_SIZE / 2,
-        y: y - DRAGGABLE_NUMBER_SIZE / 2,
-        width: DRAGGABLE_NUMBER_SIZE,
-        height: DRAGGABLE_NUMBER_SIZE,
+        x: x - draggableNumberSize / 2,
+        y: y - draggableNumberSize / 2,
+        width: draggableNumberSize,
+        height: draggableNumberSize,
       };
 
       const [leftZoneLayout, rightZoneLayout, freshContainerLayout] = await Promise.all([
@@ -258,7 +292,7 @@ export function CreateMathTask({
           animateNumberToRandomPosition(leftValue);
         }
         setLeftValue(number);
-        const dropPosition = getDropZonePosition(leftZoneLayout, freshContainerLayout);
+        const dropPosition = getDropZonePosition(leftZoneLayout, freshContainerLayout, draggableNumberSize);
         setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         return;
@@ -269,7 +303,7 @@ export function CreateMathTask({
           animateNumberToRandomPosition(rightValue);
         }
         setRightValue(number);
-        const dropPosition = getDropZonePosition(rightZoneLayout, freshContainerLayout);
+        const dropPosition = getDropZonePosition(rightZoneLayout, freshContainerLayout, draggableNumberSize);
         setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         return;
@@ -277,7 +311,7 @@ export function CreateMathTask({
 
       animateNumberToRandomPosition(number);
     },
-    [leftValue, rightValue, animateNumberToRandomPosition]
+    [leftValue, rightValue, animateNumberToRandomPosition, draggableNumberSize]
   );
 
   return (
@@ -295,6 +329,7 @@ export function CreateMathTask({
                 width: "100%",
                 display: "flex",
                 flexDirection: "row",
+                paddingHorizontal: 16,
               }}
             >
               <ThemedText type="subtitle">Izveido</ThemedText>
@@ -302,45 +337,55 @@ export function CreateMathTask({
                 vienādojumu
               </ThemedText>
             </View>
-
-            <View
-              style={{
-                gap: 16,
-                paddingTop: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
+            <View testID="equation-row" style={[styles.equationRow, { gap: rowGap }]}>
               <View
                 ref={leftZoneRef}
+                testID="left-drop-zone"
                 style={[
                   styles.dropZone,
                   {
+                    width: dropZoneSize,
+                    height: dropZoneSize,
                     borderColor: dropZoneColors.border,
                     backgroundColor: dropZoneColors.background,
                   },
                 ]}
               />
 
-              <ThemedText type="defaultSemiBold" style={styles.operationText}>
+              <ThemedText type="defaultSemiBold" style={[styles.operationText, { fontSize: equationFontSize }]}>
                 {task.operation}
               </ThemedText>
 
               <View
                 ref={rightZoneRef}
+                testID="right-drop-zone"
                 style={[
                   styles.dropZone,
                   {
+                    width: dropZoneSize,
+                    height: dropZoneSize,
                     borderColor: dropZoneColors.border,
                     backgroundColor: dropZoneColors.background,
                   },
                 ]}
               />
 
-              <ThemedText type="defaultSemiBold" style={styles.operationText}>
-                = {task.result}
+              <ThemedText type="defaultSemiBold" style={[styles.operationText, { fontSize: equationFontSize }]}>
+                =
               </ThemedText>
+
+              <View style={styles.resultContainer}>
+                <ThemedText
+                  testID="result-text"
+                  type="defaultSemiBold"
+                  style={[styles.operationText, styles.resultText, { fontSize: equationFontSize }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                >
+                  {task.result}
+                </ThemedText>
+              </View>
             </View>
 
             <View
@@ -361,6 +406,9 @@ export function CreateMathTask({
                   <DraggableNumber
                     key={number}
                     number={number}
+                    size={draggableNumberSize}
+                    fontSize={draggableNumberFontSize}
+                    snappedScale={snappedScale}
                     initialPosition={position}
                     isSnapped={leftValue === number || rightValue === number}
                     onDrop={(x, y) => handleDrop(x, y, number)}
@@ -392,12 +440,23 @@ export function CreateMathTask({
 
 interface DraggableNumberProps {
   number: number;
+  size: number;
+  fontSize: number;
+  snappedScale: number;
   isSnapped: boolean;
   initialPosition: NumberPosition;
   onDrop: (x: number, y: number) => void;
 }
 
-const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: DraggableNumberProps) => {
+const DraggableNumber = ({
+  number,
+  size,
+  fontSize,
+  snappedScale,
+  initialPosition,
+  onDrop,
+  isSnapped,
+}: DraggableNumberProps) => {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
@@ -412,8 +471,8 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
 
   useEffect(() => {
     isSnappedSV.value = isSnapped;
-    scale.value = withSpring(isSnapped ? SNAPPED_SCALE : NORMAL_SCALE);
-  }, [isSnapped, scale, isSnappedSV]);
+    scale.value = withSpring(isSnapped ? snappedScale : NORMAL_SCALE);
+  }, [isSnapped, scale, isSnappedSV, snappedScale]);
 
   useEffect(() => {
     positionX.value = withSpring(initialPosition.x);
@@ -440,7 +499,7 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
       scheduleOnRN(onDrop, absoluteX, absoluteY);
       zIndex.value = 0;
       isDragging.value = false;
-      scale.value = withSpring(isSnappedSV.value ? SNAPPED_SCALE : NORMAL_SCALE);
+      scale.value = withSpring(isSnappedSV.value ? snappedScale : NORMAL_SCALE);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -470,13 +529,14 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
     <GestureDetector gesture={panGesture}>
       <Animated.View style={animatedStyle}>
         <LinearGradient
+          testID={`draggable-number-${number}`}
           end={{ x: 0.5, y: 1 }}
           start={{ x: 0.5, y: 0 }}
-          style={styles.numberContainer}
+          style={[styles.numberContainer, { width: size, height: size, borderRadius: Math.max(8, size * 0.14) }]}
           colors={gradientColors as [string, string]}
         >
           <Animated.View style={overlayStyle} pointerEvents="none" />
-          <ThemedText type="defaultSemiBold" style={{ fontSize: 32, color: textColor, textAlign: "center" }}>
+          <ThemedText type="defaultSemiBold" style={{ fontSize, color: textColor, textAlign: "center" }}>
             {number}
           </ThemedText>
         </LinearGradient>
@@ -504,12 +564,20 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   dropZone: {
-    width: DROP_ZONE_SIZE,
-    height: DROP_ZONE_SIZE,
     borderWidth: 3,
     borderRadius: 12,
+    flexShrink: 0,
     alignItems: "center",
     justifyContent: "center",
+  },
+  equationRow: {
+    width: "100%",
+    paddingTop: 30,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "nowrap",
   },
   numbersContainer: {
     height: CONTAINER_HEIGHT,
@@ -518,14 +586,19 @@ const styles = StyleSheet.create({
     overflow: "visible",
   },
   operationText: {
-    fontSize: 40,
+    flexShrink: 0,
+  },
+  resultContainer: {
+    minWidth: 0,
+    flexShrink: 1,
+    justifyContent: "center",
+  },
+  resultText: {
+    minWidth: 0,
   },
   numberContainer: {
-    width: DRAGGABLE_NUMBER_SIZE,
-    height: DRAGGABLE_NUMBER_SIZE,
     elevation: 2,
     borderWidth: 1,
-    borderRadius: 8,
     shadowRadius: 4,
     shadowOpacity: 0.1,
     shadowColor: "#000",

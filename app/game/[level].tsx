@@ -14,7 +14,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
 import { HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
-import { isCreateMathTask, isMultiAnswerMathTask, isTextTask } from "@/context/app.context.reducer";
+import {
+  getTaskInLevelForSelection,
+  isCreateMathTask,
+  isMultiAnswerMathTask,
+  isTextTask,
+} from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { useLevelData } from "@/hooks/useLevelData";
@@ -38,7 +43,9 @@ export default function GameLevelScreen() {
       lives,
       theme,
       lastLifeLostAt,
-      game: { currentTaskInLevel },
+      levels,
+      results,
+      game: { currentLevel, currentTaskInLevel },
     },
     dispatch,
     getTaskExplanation,
@@ -51,22 +58,40 @@ export default function GameLevelScreen() {
   const [showGemAnimation, setShowGemAnimation] = useState(false);
   const [removedAnswerIds, setRemovedAnswerIds] = useState<number[]>([]);
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: string };
+  const levelNumber = Number(level);
   const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
-  const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, currentTaskInLevel);
+  const selectedTaskInLevel =
+    !Number.isNaN(levelNumber) && levelNumber > 0
+      ? getTaskInLevelForSelection({ levels, results }, levelNumber)
+      : currentTaskInLevel;
+  const effectiveTaskInLevel = levelNumber === currentLevel ? currentTaskInLevel : selectedTaskInLevel;
+  const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, effectiveTaskInLevel);
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (Number.isNaN(levelNumber) || levelNumber < 1) {
+      return;
+    }
+
+    dispatch({
+      type: "SELECT_LEVEL",
+      payload: { level: levelNumber },
+    });
+  }, [dispatch, levelNumber]);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
 
   // Reset hint state when task changes
-  const prevTaskRef = useRef(currentTaskInLevel);
+  const taskIdentity = `${level}-${effectiveTaskInLevel}`;
+  const prevTaskRef = useRef(taskIdentity);
 
   useEffect(() => {
-    if (prevTaskRef.current !== currentTaskInLevel) {
-      prevTaskRef.current = currentTaskInLevel;
+    if (prevTaskRef.current !== taskIdentity) {
+      prevTaskRef.current = taskIdentity;
       setRemovedAnswerIds([]);
       setShowTextTaskAsMultipleChoice(false);
     }
-  }, [currentTaskInLevel]);
+  }, [taskIdentity]);
 
   const canRemoveAnswer = useMemo(() => {
     if (!currentTask) {
@@ -225,7 +250,7 @@ export default function GameLevelScreen() {
               router.back();
             }}
           />
-          <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={currentTaskInLevel} />
+          <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={effectiveTaskInLevel} />
           <StatisticsItem
             src={Heart}
             stat={lives}
@@ -243,7 +268,7 @@ export default function GameLevelScreen() {
         </Pressable>
         <View style={styles.levelView}>
           <Animated.View
-            key={currentTaskInLevel}
+            key={`${level}-${currentTask.id}-${currentTask.taskNumberInLevel}`}
             style={styles.taskContainer}
             pointerEvents="box-none"
             entering={SlideInRight.duration(250).withInitialValues({ transform: [{ translateX: 250 }] })}
