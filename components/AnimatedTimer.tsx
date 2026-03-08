@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
+import { Animated, Easing, StyleProp, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 
 type AnimationDirection = "up" | "down" | "auto" | "countdown" | "countup";
 const PLACEHOLDER_DIGIT = " ";
@@ -79,7 +79,8 @@ interface AnimatedDigitProps {
   digit: string;
   delay?: number;
   height?: number;
-  style?: TextStyle;
+  width?: number;
+  style?: StyleProp<TextStyle>;
   direction?: AnimationDirection;
   animateOnMount?: boolean;
   mountPreviousDigit?: string;
@@ -89,6 +90,7 @@ function AnimatedDigit({
   digit,
   style,
   height = 36,
+  width,
   direction = "countdown",
   delay = 0,
   animateOnMount = false,
@@ -175,14 +177,15 @@ function AnimatedDigit({
 
   const renderDigit = (value: string) => (value === PLACEHOLDER_DIGIT ? "" : value);
 
+  const digitStyle = [styles.digitTextBase, { color: themeTextColor }, style];
+
   return (
-    <View style={[styles.digitContainer, { height }]}>
+    <View style={[styles.digitContainer, { height, width }]}>
       {previousDigit !== null && (
         <Animated.Text
           style={[
-            { color: themeTextColor },
-            style,
             styles.digitAbsolute,
+            ...digitStyle,
             {
               transform: [{ translateY: oldTranslateY }],
               opacity: oldOpacity,
@@ -194,13 +197,14 @@ function AnimatedDigit({
       )}
       <Animated.Text
         style={[
-          { color: themeTextColor },
-          style,
-          previousDigit !== null && styles.digitAbsolute,
-          previousDigit !== null && {
-            transform: [{ translateY: newTranslateY }],
-            opacity: newOpacity,
-          },
+          styles.digitAbsolute,
+          ...digitStyle,
+          previousDigit !== null
+            ? {
+                transform: [{ translateY: newTranslateY }],
+                opacity: newOpacity,
+              }
+            : undefined,
         ]}
       >
         {renderDigit(displayDigit)}
@@ -211,9 +215,10 @@ function AnimatedDigit({
 
 interface AnimatedTimerProps {
   time: string;
-  style?: TextStyle;
-  separatorStyle?: TextStyle;
-  containerStyle?: ViewStyle;
+  style?: StyleProp<TextStyle>;
+  separatorStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+  /** If omitted, derived from style.lineHeight or style.fontSize */
   digitHeight?: number;
   /**
    * Animation direction:
@@ -231,9 +236,15 @@ export function AnimatedTimer({
   style,
   separatorStyle,
   containerStyle,
-  digitHeight = 36,
+  digitHeight,
   direction = "countdown",
 }: AnimatedTimerProps) {
+  const textStyle = StyleSheet.flatten(style);
+  const fontSize = textStyle?.fontSize ?? 16;
+  const lineHeight = textStyle?.lineHeight ?? Math.ceil(fontSize * 1.2);
+  const resolvedHeight = digitHeight ?? lineHeight;
+  const digitWidth = Math.ceil(fontSize * 0.65);
+
   const previousTimeRef = useRef(time);
   const { currentChars, previousChars, renderItems } = getAlignedCharacters(previousTimeRef.current, time, direction);
   const isNumericTransition = isNumericString(previousTimeRef.current) && isNumericString(time);
@@ -274,7 +285,8 @@ export function AnimatedTimer({
             key={key}
             digit={char}
             style={style}
-            height={digitHeight}
+            height={resolvedHeight}
+            width={digitWidth}
             direction={direction}
             delay={getDelayForIndex(index)}
             animateOnMount={animateOnMount}
@@ -293,12 +305,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   digitContainer: {
-    width: 20,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
   },
   digitAbsolute: {
     position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+  digitTextBase: {
+    textAlign: "center",
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    fontVariant: ["tabular-nums"],
   },
 });
