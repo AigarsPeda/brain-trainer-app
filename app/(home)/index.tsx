@@ -127,16 +127,24 @@ export default function HomeScreen() {
   const theme = state.theme ?? "light";
 
   const initialScrollIndex = useMemo(() => {
-    if (!state.levels) return 0;
+    if (!state.levels) {
+      return 0;
+    }
     const firstLockedIndex = state.levels.findIndex((l) => l.isLevelLocked);
-    if (firstLockedIndex <= 0) return 0;
+    if (firstLockedIndex <= 0) {
+      return 0;
+    }
     return firstLockedIndex - 1;
   }, [state.levels]);
 
   const lastAvailableTaskIndex = useMemo(() => {
-    if (!state.levels) return -1;
+    if (!state.levels) {
+      return -1;
+    }
     const firstLockedIndex = state.levels.findIndex((l) => l.isLevelLocked);
-    if (firstLockedIndex <= 0) return state.levels.length - 1;
+    if (firstLockedIndex <= 0) {
+      return state.levels.length - 1;
+    }
     return firstLockedIndex - 1;
   }, [state.levels]);
 
@@ -147,7 +155,7 @@ export default function HomeScreen() {
   }, [lastAvailableTaskIndex]);
 
   const handleViewableItemsChanged = useCallback(
-    (viewableItems: { index: number | null }[]) => {
+    (viewableItems: Array<{ index: number | null }>) => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }

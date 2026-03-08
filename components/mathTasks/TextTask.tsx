@@ -316,6 +316,9 @@ const styles = StyleSheet.create({
     marginBottom: 26,
     alignItems: "center",
     justifyContent: "center",
+    position: "relative",
+    zIndex: 20,
+    elevation: 20,
   },
   buttonText: {
     fontSize: 20,

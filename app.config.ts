@@ -24,6 +24,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "expo-image",
     "expo-web-browser",
     [
       "react-native-google-mobile-ads",
@@ -45,7 +46,6 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
   },
-  newArchEnabled: true,
 };
 
 export default config;

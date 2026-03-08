@@ -9,7 +9,7 @@ import { checkAnswers } from "@/utils/game";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LayoutRectangle, StyleSheet, View } from "react-native";
+import { LayoutRectangle, ScrollView, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
@@ -269,112 +269,109 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
 
   return (
     <>
-      <View>
-        <View
-          style={{
-            gap: 6,
-            width: "100%",
-            display: "flex",
-            flexDirection: "row",
-          }}
-        >
-          <ThemedText type="subtitle">Izveido</ThemedText>
-          <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
-            vienādojumu
-          </ThemedText>
-        </View>
-
-        <View
-          style={{
-            gap: 16,
-            paddingTop: 30,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View
-            ref={leftZoneRef}
-            style={[
-              styles.dropZone,
-              {
-                borderColor: dropZoneColors.border,
-                backgroundColor: dropZoneColors.background,
-              },
-            ]}
-          />
-
-          <ThemedText type="defaultSemiBold" style={styles.operationText}>
-            {task.operation}
-          </ThemedText>
-
-          <View
-            ref={rightZoneRef}
-            style={[
-              styles.dropZone,
-              {
-                borderColor: dropZoneColors.border,
-                backgroundColor: dropZoneColors.background,
-              },
-            ]}
-          />
-
-          <ThemedText type="defaultSemiBold" style={styles.operationText}>
-            = {task.result}
-          </ThemedText>
-        </View>
-
-        <View
-          ref={containerRef}
-          onLayout={() => {
-            containerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
-              setContainerLayout({ x: pageX, y: pageY, width, height });
-            });
-          }}
-          style={styles.numbersContainer}
-        >
-          {numbers.map((number) => {
-            const position = numberPositions.get(number);
-            if (!position) {
-              return null;
-            }
-            return (
-              <DraggableNumber
-                key={number}
-                number={number}
-                initialPosition={position}
-                isSnapped={leftValue === number || rightValue === number}
-                onDrop={(x, y) => handleDrop(x, y, number)}
-              />
-            );
-          })}
-        </View>
-      </View>
       {!displayTaskResults ? (
-        <View
-          style={{
-            display: "flex",
-            marginBottom: 26,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <MainButton disabled={!isBothValuesSet} onPress={handleCheckAnswers}>
-            <ThemedText
-              type="defaultSemiBold"
+        <View style={styles.taskLayout}>
+          <ScrollView
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.contentContainer}
+          >
+            <View
               style={{
-                fontSize: 20,
+                gap: 6,
+                width: "100%",
+                display: "flex",
+                flexDirection: "row",
               }}
             >
-              Pārbaudīt
-            </ThemedText>
-          </MainButton>
+              <ThemedText type="subtitle">Izveido</ThemedText>
+              <ThemedText type="subtitle" style={{ color: "#D81E5B" }}>
+                vienādojumu
+              </ThemedText>
+            </View>
+
+            <View
+              style={{
+                gap: 16,
+                paddingTop: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View
+                ref={leftZoneRef}
+                style={[
+                  styles.dropZone,
+                  {
+                    borderColor: dropZoneColors.border,
+                    backgroundColor: dropZoneColors.background,
+                  },
+                ]}
+              />
+
+              <ThemedText type="defaultSemiBold" style={styles.operationText}>
+                {task.operation}
+              </ThemedText>
+
+              <View
+                ref={rightZoneRef}
+                style={[
+                  styles.dropZone,
+                  {
+                    borderColor: dropZoneColors.border,
+                    backgroundColor: dropZoneColors.background,
+                  },
+                ]}
+              />
+
+              <ThemedText type="defaultSemiBold" style={styles.operationText}>
+                = {task.result}
+              </ThemedText>
+            </View>
+
+            <View
+              ref={containerRef}
+              onLayout={() => {
+                containerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
+                  setContainerLayout({ x: pageX, y: pageY, width, height });
+                });
+              }}
+              style={styles.numbersContainer}
+            >
+              {numbers.map((number) => {
+                const position = numberPositions.get(number);
+                if (!position) {
+                  return null;
+                }
+                return (
+                  <DraggableNumber
+                    key={number}
+                    number={number}
+                    initialPosition={position}
+                    isSnapped={leftValue === number || rightValue === number}
+                    onDrop={(x, y) => handleDrop(x, y, number)}
+                  />
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <View style={styles.buttonContainer}>
+            <MainButton disabled={!isBothValuesSet} onPress={handleCheckAnswers}>
+              <ThemedText
+                type="defaultSemiBold"
+                style={{
+                  fontSize: 20,
+                }}
+              >
+                Pārbaudīt
+              </ThemedText>
+            </MainButton>
+          </View>
         </View>
       ) : (
-        <ShowResults
-          isAllAnswersCorrect={isAllAnswersCorrect}
-          {...showResultsProps}
-        />
+        <ShowResults isAllAnswersCorrect={isAllAnswersCorrect} {...showResultsProps} />
       )}
     </>
   );
@@ -476,6 +473,23 @@ const DraggableNumber = ({ number, initialPosition, onDrop, isSnapped }: Draggab
 };
 
 const styles = StyleSheet.create({
+  taskLayout: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  contentContainer: {
+    flexGrow: 1,
+    paddingBottom: 16,
+  },
+  buttonContainer: {
+    marginBottom: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    zIndex: 20,
+    elevation: 20,
+  },
   dropZone: {
     width: DROP_ZONE_SIZE,
     height: DROP_ZONE_SIZE,

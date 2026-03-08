@@ -2,7 +2,6 @@ import globals from "globals";
 import js from "@eslint/js";
 import reactPlugin from "eslint-plugin-react";
 import typescript from "typescript-eslint";
-import prettierPlugin from "eslint-plugin-prettier";
 import prettierConfig from "eslint-plugin-prettier/recommended";
 import importPlugin from "eslint-plugin-import";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
@@ -15,13 +14,18 @@ export default [
   importPlugin.flatConfigs.typescript,
   prettierConfig,
   {
-    ignores: ["metro.config.js", "/node_modules/*", "/android/*", "/ios/*", "/coverage/*", "/.expo/*", "*.typegen.ts"],
+    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
+    ignores: [
+      "metro.config.js",
+      "**/node_modules/**",
+      "android/**",
+      "ios/**",
+      "coverage/**",
+      ".expo/**",
+      "**/*.typegen.ts",
+    ],
     plugins: {
-      import: importPlugin,
       "react-hooks": reactHooksPlugin,
-      reactPlugin,
-      typescript,
-      prettierPlugin,
     },
     languageOptions: {
       parser,
@@ -46,8 +50,14 @@ export default [
       },
     },
     rules: {
-      ...reactHooksPlugin.configs.recommended.rules,
-      "import/no-cycle": 1,
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+      "import/no-cycle": [
+        1,
+        {
+          ignoreExternal: true,
+        },
+      ],
       "prettier/prettier": [
         "warn",
         {
@@ -64,8 +74,6 @@ export default [
       // "react-native/no-color-literals": "error",
       // TODO: re-enable when eslint-plugin-react-native supports ESLint 9+
       // "react-native/no-single-element-style-arrays": "error",
-      // "react-hooks/rules-of-hooks": "error",
-      // "react-hooks/exhaustive-deps": "warn",
       // object = { x } instead of { x: x }
       "object-shorthand": "error",
       // Type[] instead of Array<Type>

@@ -96,6 +96,7 @@ export function MainButton({
     <View style={[styles.container, style]}>
       {/* Shadow stays still underneath */}
       <View
+        pointerEvents="none"
         style={[
           styles.shadowLayer,
           {
