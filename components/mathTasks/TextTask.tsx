@@ -9,7 +9,7 @@ import { useTaskLifecycle } from "@/hooks/useTaskLifecycle";
 import { getButtonStateColor } from "@/utils/utils";
 import * as Haptics from "expo-haptics";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
+import { Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 interface TextTaskProps {
   level: string;
@@ -31,6 +31,8 @@ export function TextTask({
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
   const colors = Colors[isDarkMode ? "dark" : "light"];
+  const iconShellBackground = isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.32)";
+  const iconShellBorder = isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.22)";
 
   const [userAnswer, setUserAnswer] = useState("");
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
@@ -108,6 +110,10 @@ export function TextTask({
   });
 
   const handleCheckAnswer = useCallback(() => {
+    if (!hasAnswer) {
+      return;
+    }
+
     Keyboard.dismiss();
     handleCheckFromHook();
 
@@ -128,20 +134,39 @@ export function TextTask({
   return (
     <>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 125 : 0}
       >
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
-          <View>
-            <View style={styles.iconContainer}>
-              <Image source={task.icon} style={styles.icon} resizeMode="contain" />
-            </View>
+        <ScrollView
+          bounces={false}
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.taskContent}>
+            <View style={styles.questionBlock}>
+              <View style={styles.iconContainer}>
+                <View
+                  style={[
+                    styles.iconShell,
+                    {
+                      backgroundColor: iconShellBackground,
+                      borderColor: iconShellBorder,
+                    },
+                  ]}
+                >
+                  <View style={styles.iconBadge}>
+                    <Image source={task.icon} style={styles.icon} resizeMode="contain" />
+                  </View>
+                </View>
+              </View>
 
-            <View style={styles.questionContainer}>
-              <ThemedText type="subtitle" style={styles.questionText}>
-                {task.question}
-              </ThemedText>
+              <View style={styles.questionContainer}>
+                <ThemedText type="subtitle" style={styles.questionText}>
+                  {task.question}
+                </ThemedText>
+              </View>
             </View>
 
             {showAsMultipleChoice ? (
@@ -163,7 +188,7 @@ export function TextTask({
                         }
                       }}
                     >
-                      <ThemedText type="defaultSemiBold" style={{ fontSize: 30 }}>
+                      <ThemedText type="defaultSemiBold" style={styles.optionText}>
                         {option.value}
                       </ThemedText>
                     </MathTaskButton>
@@ -186,7 +211,7 @@ export function TextTask({
                   maxLength={10}
                   placeholder="?"
                   autoFocus={true}
-                  keyboardType="numeric"
+                  keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
                   editable={!displayTaskResults}
                   placeholderTextColor={colors.placeholder}
                   onSubmitEditing={hasAnswer ? handleCheckAnswer : undefined}
@@ -204,42 +229,68 @@ export function TextTask({
               </MainButton>
             </View>
           )}
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
 
-      {displayTaskResults && (
-        <ShowResults
-          isAllAnswersCorrect={isAnswerCorrect}
-          {...showResultsProps}
-        />
-      )}
+      {displayTaskResults && <ShowResults isAllAnswersCorrect={isAnswerCorrect} {...showResultsProps} />}
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: "100%",
+  },
+  contentContainer: {
+    flexGrow: 1,
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  taskContent: {
+    gap: 24,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  questionBlock: {
+    width: "100%",
+    gap: 18,
+    alignItems: "center",
+  },
   iconContainer: {
-    marginTop: 20,
-    marginBottom: 16,
+    alignItems: "center",
+  },
+  iconShell: {
+    width: 88,
+    height: 88,
+    borderWidth: 1,
+    borderRadius: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconBadge: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     alignItems: "center",
     justifyContent: "center",
   },
   icon: {
-    width: 100,
-    height: 100,
+    width: 54,
+    height: 54,
   },
   questionContainer: {
-    marginBottom: 20,
-    paddingHorizontal: 16,
+    width: "100%",
   },
   questionText: {
-    textAlign: "center",
-    fontSize: 22,
-    lineHeight: 32,
+    fontSize: 24,
+    lineHeight: 38,
+    textAlign: "left",
   },
   inputContainer: {
+    width: "100%",
     alignItems: "center",
-    marginBottom: 20,
   },
   input: {
     width: 150,
@@ -251,12 +302,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   multipleChoiceContainer: {
+    width: "100%",
     rowGap: 20,
     flexWrap: "wrap",
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginBottom: 20,
+  },
+  optionText: {
+    fontSize: 30,
   },
   buttonContainer: {
     display: "flex",

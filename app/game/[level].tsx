@@ -239,10 +239,9 @@ export default function GameLevelScreen() {
           <Animated.View
             key={currentTaskInLevel}
             style={styles.taskContainer}
+            pointerEvents="box-none"
             entering={SlideInRight.duration(250).withInitialValues({ transform: [{ translateX: 250 }] })}
-            exiting={SlideOutLeft.duration(200).withCallback(() => {
-              "worklet";
-            }).withInitialValues({ transform: [{ translateX: 0 }], position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" })}
+            exiting={SlideOutLeft.duration(200).withInitialValues({ transform: [{ translateX: 0 }], position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" })}
           >
             {isMultiAnswerMathTask(currentTask) && (
               <MathTaskWithResult
@@ -305,6 +304,7 @@ const styles = StyleSheet.create({
   },
   taskContainer: {
     flex: 1,
+    width: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",

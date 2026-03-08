@@ -27,8 +27,9 @@ export function AnimatedMathVisual({ explanation, isPlaying, onReplay }: Animate
   const colorScheme = useAppColorScheme();
   const isDark = colorScheme === "dark";
 
-  const boxBackground = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.6)";
-  const boxBorder = isDark ? "rgba(196, 181, 253, 0.3)" : "rgba(106, 74, 203, 0.2)";
+  const boxBackground = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.78)";
+  const boxBorder = isDark ? "rgba(196, 181, 253, 0.12)" : "rgba(106, 74, 203, 0.08)";
+  const groupBackground = isDark ? "rgba(196, 181, 253, 0.08)" : "rgba(255, 255, 255, 0.52)";
 
   const { visualItems, example } = explanation;
   const operation = visualItems.operationSymbol;
@@ -64,6 +65,7 @@ export function AnimatedMathVisual({ explanation, isPlaying, onReplay }: Animate
           isPlaying={isPlaying}
           boxBackground={boxBackground}
           boxBorder={boxBorder}
+          groupBackground={groupBackground}
           isDark={isDark}
         />
       )}
@@ -446,15 +448,15 @@ interface MultiplicationAnimationProps {
   isPlaying: boolean;
   boxBackground: string;
   boxBorder: string;
+  groupBackground: string;
   isDark: boolean;
 }
 
 function MultiplicationAnimation({
   groups,
   isPlaying,
-  boxBackground,
   boxBorder,
-  isDark,
+  groupBackground,
 }: MultiplicationAnimationProps) {
   const groupAnimations = groups.map(() => useSharedValue(0));
 
@@ -481,7 +483,7 @@ function MultiplicationAnimation({
             key={`group-${index}`}
             style={[
               styles.groupBox,
-              { backgroundColor: boxBackground, borderColor: isDark ? "#c4b5fd" : "#6a4acb" },
+              { backgroundColor: groupBackground, borderColor: boxBorder },
               animatedStyle,
             ]}
           >
@@ -657,8 +659,8 @@ const styles = StyleSheet.create({
     minWidth: 50,
     maxWidth: "45%",
     minHeight: 44,
-    borderWidth: 1,
-    borderRadius: 10,
+    borderWidth: 0,
+    borderRadius: 16,
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
@@ -684,11 +686,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   groupBox: {
+    minWidth: 46,
+    minHeight: 46,
     padding: 8,
-    borderWidth: 2,
-    borderRadius: 10,
+    borderWidth: 1,
+    borderRadius: 14,
     alignItems: "center",
-    borderStyle: "dashed",
+    justifyContent: "center",
   },
   groupEmoji: {
     fontSize: 20,
@@ -710,8 +714,8 @@ const styles = StyleSheet.create({
   divisionBox: {
     gap: 2,
     padding: 8,
-    borderWidth: 2,
-    borderRadius: 10,
+    borderWidth: 0,
+    borderRadius: 14,
     alignItems: "center",
     flexDirection: "row",
     flexWrap: "wrap",
@@ -735,10 +739,10 @@ const styles = StyleSheet.create({
   },
   replayButton: {
     marginTop: 4,
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    backgroundColor: "rgba(106, 74, 203, 0.15)",
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(106, 74, 203, 0.12)",
   },
   replayText: {
     fontSize: 13,

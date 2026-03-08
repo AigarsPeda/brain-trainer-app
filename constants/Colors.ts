@@ -163,10 +163,10 @@ export const SwitchColors = {
 
 export const HintModalColors = {
   dark: {
-    boxBackground: "rgba(255, 255, 255, 0.1)",
-    boxBorder: "rgba(196, 181, 253, 0.3)",
-    visualSectionBackground: "rgba(106, 74, 203, 0.15)",
-    modalBackdrop: "rgba(0, 0, 0, 0.5)",
+    boxBackground: "rgba(255, 255, 255, 0.08)",
+    boxBorder: "rgba(196, 181, 253, 0.14)",
+    visualSectionBackground: "rgba(91, 70, 181, 0.26)",
+    modalBackdrop: "rgba(8, 6, 24, 0.78)",
     closeButtonBackground: "#6a4acb",
     closeButtonText: "#ffffff",
     exampleLabel: "#c4b5fd",
@@ -178,10 +178,10 @@ export const HintModalColors = {
     groupBoxBorder: "#c4b5fd",
   },
   light: {
-    boxBackground: "rgba(255, 255, 255, 0.6)",
-    boxBorder: "rgba(106, 74, 203, 0.2)",
-    visualSectionBackground: "rgba(106, 74, 203, 0.25)",
-    modalBackdrop: "rgba(0, 0, 0, 0.5)",
+    boxBackground: "rgba(255, 255, 255, 0.82)",
+    boxBorder: "rgba(106, 74, 203, 0.1)",
+    visualSectionBackground: "rgba(106, 74, 203, 0.18)",
+    modalBackdrop: "rgba(15, 23, 42, 0.62)",
     closeButtonBackground: "#6a4acb",
     closeButtonText: "#ffffff",
     exampleLabel: "#5a3d9e",

@@ -50,18 +50,25 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
 
   const colors = HintModalColors[isDark ? "dark" : "light"];
   const boxBackground = colors.boxBackground;
-  const boxBorder = colors.boxBorder;
   const visualSectionBackground = colors.visualSectionBackground;
+  const modalBackdrop = colors.modalBackdrop;
 
   return (
     <Modal visible={visible} animationType="fade" transparent statusBarTranslucent onRequestClose={() => {}}>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalBackdrop} />
+        <View style={[styles.modalBackdrop, { backgroundColor: modalBackdrop }]} />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContent}>
-          <ThemedView style={styles.modalBox}>
+          <ThemedView
+            style={[
+              styles.modalBox,
+              isDark ? styles.modalBoxDark : styles.modalBoxLight,
+            ]}
+          >
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
               <View style={styles.titleContainer}>
-                <Image source={Bulb} style={styles.bulbIcon} contentFit="contain" />
+                <View style={[styles.bulbShell, isDark ? styles.bulbShellDark : styles.bulbShellLight]}>
+                  <Image source={Bulb} style={styles.bulbIcon} contentFit="contain" />
+                </View>
                 <ThemedText type="subtitle" style={styles.title}>
                   {title}
                 </ThemedText>
@@ -69,14 +76,20 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
 
               <View style={[styles.visualSection, { backgroundColor: visualSectionBackground }]}>
                 <ThemedText
-                  style={styles.exampleLabel}
+                  style={[styles.exampleLabel, isDark ? styles.exampleLabelDark : styles.exampleLabelLight]}
                   lightColor={HintModalColors.light.exampleLabel}
                   darkColor={HintModalColors.dark.exampleLabel}
                 >
                   Piemērs:
                 </ThemedText>
 
-                <View style={[styles.equationContainer, { backgroundColor: boxBackground, borderColor: boxBorder }]}>
+                <View
+                  style={[
+                    styles.equationContainer,
+                    { backgroundColor: boxBackground },
+                    isDark ? styles.equationContainerDark : styles.equationContainerLight,
+                  ]}
+                >
                   <ThemedText
                     style={styles.equationText}
                     lightColor={HintModalColors.light.equationText}
@@ -118,11 +131,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingHorizontal: 24,
+    paddingVertical: 32,
     justifyContent: "center",
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: HintModalColors.light.modalBackdrop,
   },
   modalContent: {
     width: "100%",
@@ -132,44 +145,93 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   modalBox: {
-    gap: 8,
-    padding: 20,
+    gap: 12,
+    padding: 22,
     width: "100%",
-    borderRadius: 20,
+    borderRadius: 26,
+  },
+  modalBoxDark: {
+    shadowColor: "#000000",
+    shadowOpacity: 0.42,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 18 },
+    elevation: 18,
+  },
+  modalBoxLight: {
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 14,
   },
   titleContainer: {
-    gap: 8,
-    marginBottom: 8,
+    gap: 12,
+    marginBottom: 4,
     flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  bulbShell: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
     justifyContent: "center",
   },
+  bulbShellDark: {
+    backgroundColor: "rgba(196, 181, 253, 0.14)",
+  },
+  bulbShellLight: {
+    backgroundColor: "rgba(106, 74, 203, 0.12)",
+  },
   bulbIcon: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
   },
   title: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 22,
+    lineHeight: 26,
   },
   visualSection: {
-    padding: 16,
-    borderWidth: 1,
-    borderRadius: 20,
-    marginVertical: 8,
+    padding: 18,
+    borderRadius: 24,
+    marginTop: 4,
+    marginBottom: 10,
     alignItems: "center",
-    borderColor: "rgba(106, 74, 203, 0.2)",
   },
   exampleLabel: {
-    fontSize: 14,
-    marginBottom: 8,
-    fontWeight: "600",
+    fontSize: 13,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: "hidden",
+  },
+  exampleLabelDark: {
+    backgroundColor: "rgba(196, 181, 253, 0.08)",
+  },
+  exampleLabelLight: {
+    backgroundColor: "rgba(255, 255, 255, 0.38)",
   },
   equationContainer: {
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    borderRadius: 18,
+    marginBottom: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+  },
+  equationContainerDark: {
+    shadowColor: "#000000",
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  equationContainerLight: {
+    shadowColor: "#312e81",
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
   equationText: {
     fontSize: 28,
@@ -181,8 +243,8 @@ const styles = StyleSheet.create({
   },
   closeButtonContainer: {
     width: "100%",
-    marginTop: 12,
-    marginBottom: 20,
+    marginTop: 8,
+    marginBottom: 8,
     alignItems: "center",
   },
   modalCloseButton: {
