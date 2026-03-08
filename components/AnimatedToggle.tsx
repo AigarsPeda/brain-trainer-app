@@ -40,10 +40,12 @@ export function AnimatedToggle({ items, selectedKey, onSelect, style, animationD
         easing: Easing.out(Easing.cubic),
       });
     }
-  }, [selectedIndex, animationDuration]);
+  }, [animationDuration, selectedIndex, slidePosition]);
 
-  const handleSelect = (key: string, index: number) => {
-    if (key === selectedKey) return;
+  const handleSelect = (key: string) => {
+    if (key === selectedKey) {
+      return;
+    }
     onSelect(key);
   };
 
@@ -60,10 +62,10 @@ export function AnimatedToggle({ items, selectedKey, onSelect, style, animationD
       <Animated.View
         style={[styles.sliderIndicator, { backgroundColor: colors.indicatorBackground }, sliderIndicatorStyle]}
       />
-      {items.map((item, index) => {
+      {items.map((item) => {
         const isSelected = item.key === selectedKey;
         return (
-          <Pressable key={item.key} style={styles.toggleButton} onPress={() => handleSelect(item.key, index)}>
+          <Pressable key={item.key} style={styles.toggleButton} onPress={() => handleSelect(item.key)}>
             <ThemedText style={[styles.toggleText, isSelected && { color: colors.activeText }]}>
               {item.label}
             </ThemedText>

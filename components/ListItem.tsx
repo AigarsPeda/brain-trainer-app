@@ -309,7 +309,9 @@ const AnimatedRing: FC<{ isVisible: boolean; color: string }> = memo(({ isVisibl
     };
   });
 
-  if (!isVisible) return null;
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Animated.View
@@ -328,3 +330,5 @@ const AnimatedRing: FC<{ isVisible: boolean; color: string }> = memo(({ isVisibl
     />
   );
 });
+
+AnimatedRing.displayName = "AnimatedRing";

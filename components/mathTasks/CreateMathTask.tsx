@@ -47,6 +47,13 @@ const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   );
 };
 
+const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayoutRect: LayoutRectangle): NumberPosition => {
+  const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
+  const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
+
+  return { x: relativeX, y: relativeY };
+};
+
 interface NumberPosition {
   x: number;
   y: number;
@@ -60,7 +67,13 @@ interface CreateMathTaskProps {
   removedAnswerIds?: number[];
 }
 
-export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, removedAnswerIds = [] }: CreateMathTaskProps) {
+export function CreateMathTask({
+  level,
+  task,
+  maxLevelStep,
+  isFinalTaskInLevel,
+  removedAnswerIds = [],
+}: CreateMathTaskProps) {
   const colorScheme = useAppColorScheme();
   const leftZoneRef = useRef<View | null>(null);
   const rightZoneRef = useRef<View | null>(null);
@@ -92,11 +105,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
     setResetKey((prev) => prev + 1);
   }, []);
 
-  const {
-    displayTaskResults,
-    handleCheckAnswers,
-    showResultsProps,
-  } = useTaskLifecycle({
+  const { displayTaskResults, handleCheckAnswers, showResultsProps } = useTaskLifecycle({
     level,
     maxLevelStep,
     isFinalTaskInLevel,
@@ -205,26 +214,26 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
     initializedRef.current = true;
   }, [containerLayout, numbers, generateAllPositions, resetKey]);
 
-  const animateNumberToRandomPosition = (num: number) => {
-    setNumberPositions((prev) => {
-      const cloned = new Map(prev);
-      const newPosition = generateRandomPosition(prev, num);
-      cloned.set(num, newPosition);
-      return cloned;
-    });
-  };
-
-  const getDropZonePosition = (zoneLayout: LayoutRectangle, containerLayoutRect: LayoutRectangle): NumberPosition => {
-    const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - DRAGGABLE_NUMBER_SIZE) / 2;
-    const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - DRAGGABLE_NUMBER_SIZE) / 2;
-
-    return { x: relativeX, y: relativeY };
-  };
+  const animateNumberToRandomPosition = useCallback(
+    (num: number) => {
+      setNumberPositions((prev) => {
+        const cloned = new Map(prev);
+        const newPosition = generateRandomPosition(prev, num);
+        cloned.set(num, newPosition);
+        return cloned;
+      });
+    },
+    [generateRandomPosition]
+  );
 
   const handleDrop = useCallback(
     async (x: number, y: number, number: number) => {
-      if (leftValue === number) setLeftValue(null);
-      if (rightValue === number) setRightValue(null);
+      if (leftValue === number) {
+        setLeftValue(null);
+      }
+      if (rightValue === number) {
+        setRightValue(null);
+      }
 
       const draggedItemBox: LayoutRectangle = {
         x: x - DRAGGABLE_NUMBER_SIZE / 2,
@@ -245,7 +254,9 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
       }
 
       if (doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
-        if (leftValue !== null) animateNumberToRandomPosition(leftValue);
+        if (leftValue !== null) {
+          animateNumberToRandomPosition(leftValue);
+        }
         setLeftValue(number);
         const dropPosition = getDropZonePosition(leftZoneLayout, freshContainerLayout);
         setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
@@ -254,7 +265,9 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
       }
 
       if (doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
-        if (rightValue !== null) animateNumberToRandomPosition(rightValue);
+        if (rightValue !== null) {
+          animateNumberToRandomPosition(rightValue);
+        }
         setRightValue(number);
         const dropPosition = getDropZonePosition(rightZoneLayout, freshContainerLayout);
         setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
@@ -264,7 +277,7 @@ export function CreateMathTask({ level, task, maxLevelStep, isFinalTaskInLevel, 
 
       animateNumberToRandomPosition(number);
     },
-    [leftValue, rightValue, animateNumberToRandomPosition, getDropZonePosition]
+    [leftValue, rightValue, animateNumberToRandomPosition]
   );
 
   return (

@@ -16,7 +16,9 @@ interface StreakBonusModalProps {
 export function StreakBonusModal({ visible, onClaim, bonus }: StreakBonusModalProps) {
   const { tint } = useThemeColor();
 
-  if (!bonus) return null;
+  if (!bonus) {
+    return null;
+  }
 
   return (
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClaim}>

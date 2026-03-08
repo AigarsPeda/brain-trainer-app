@@ -38,7 +38,9 @@ function AnimatedFlatListInner<T extends { levelNumber?: number }>(
   const flatListRef = useRef<FlatList<T>>(null);
 
   const initialContentOffset = useMemo(() => {
-    if (initialScrollIndex === undefined || initialScrollIndex <= 0) return undefined;
+    if (initialScrollIndex === undefined || initialScrollIndex <= 0) {
+      return undefined;
+    }
     const screenHeight = Dimensions.get("window").height;
     // Center the item in viewport - item center at screen center
     const y = Math.max(0, itemHeight * initialScrollIndex + paddingTop - screenHeight / 2 + itemHeight / 2);

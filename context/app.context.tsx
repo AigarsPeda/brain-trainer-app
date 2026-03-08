@@ -50,7 +50,9 @@ export const AppContextProvider = ({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
-    if (!isInitializedRef.current) return;
+    if (!isInitializedRef.current) {
+      return;
+    }
 
     const persistState = async () => {
       try {
@@ -79,7 +81,9 @@ export const AppContextProvider = ({ children }: { children: React.ReactNode }) 
   }, [state.lives, state.lastLifeLostAt, clearTimer]);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) {
+      return;
+    }
 
     scheduleLifeRestore();
 

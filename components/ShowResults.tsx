@@ -50,7 +50,7 @@ export function ShowResults({
 
   const snapPoints = useMemo(() => {
     return [levelCompletionState?.isCompleted ? "65%" : "55%"];
-  }, [levelCompletionState?.isCompleted, lives]);
+  }, [levelCompletionState?.isCompleted]);
 
   // Slow down bottom sheet animations for better UX
   const animationConfigs = useBottomSheetTimingConfigs({

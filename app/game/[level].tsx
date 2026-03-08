@@ -69,7 +69,9 @@ export default function GameLevelScreen() {
   }, [currentTaskInLevel]);
 
   const canRemoveAnswer = useMemo(() => {
-    if (!currentTask) return false;
+    if (!currentTask) {
+      return false;
+    }
 
     if (isTextTask(currentTask)) {
       return !showTextTaskAsMultipleChoice;
@@ -89,7 +91,9 @@ export default function GameLevelScreen() {
   }, [currentTask?.taskType, theme]);
 
   const currentTaskExplanation = useMemo(() => {
-    if (!currentTask) return null;
+    if (!currentTask) {
+      return null;
+    }
     return getTaskExplanation(currentTask);
   }, [currentTask, getTaskExplanation]);
 
@@ -105,7 +109,9 @@ export default function GameLevelScreen() {
   };
 
   const handleRemoveWrongAnswer = () => {
-    if (!currentTask) return;
+    if (!currentTask) {
+      return;
+    }
 
     dispatch({ type: "SPEND_GEMS", payload: REMOVE_WRONG_ANSWER_COST });
 
@@ -114,7 +120,7 @@ export default function GameLevelScreen() {
       return;
     }
 
-    const incorrectOptions: { id: number }[] = isMultiAnswerMathTask(currentTask)
+    const incorrectOptions: Array<{ id: number }> = isMultiAnswerMathTask(currentTask)
       ? findIncorrectMultiAnswerOptions(currentTask, removedAnswerIds)
       : findIncorrectCreateMathOptions(currentTask, removedAnswerIds);
 
@@ -241,7 +247,15 @@ export default function GameLevelScreen() {
             style={styles.taskContainer}
             pointerEvents="box-none"
             entering={SlideInRight.duration(250).withInitialValues({ transform: [{ translateX: 250 }] })}
-            exiting={SlideOutLeft.duration(200).withInitialValues({ transform: [{ translateX: 0 }], position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" })}
+            exiting={SlideOutLeft.duration(200).withInitialValues({
+              transform: [{ translateX: 0 }],
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: "none",
+            })}
           >
             {isMultiAnswerMathTask(currentTask) && (
               <MathTaskWithResult

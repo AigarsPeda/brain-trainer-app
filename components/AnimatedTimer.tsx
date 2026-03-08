@@ -114,8 +114,12 @@ function AnimatedDigit({
       const prevNum = parseInt(fromDigit, 10);
 
       const resolvedDirection: "up" | "down" = (() => {
-        if (direction === "countdown") return "up";
-        if (direction === "countup") return "down";
+        if (direction === "countdown") {
+          return "up";
+        }
+        if (direction === "countup") {
+          return "down";
+        }
         if (direction === "auto") {
           if (!isNaN(prevNum) && !isNaN(newNum)) {
             return newNum < prevNum ? "up" : "down";
@@ -246,14 +250,18 @@ export function AnimatedTimer({
   const digitWidth = Math.ceil(fontSize * 0.65);
 
   const previousTimeRef = useRef(time);
-  const { currentChars, previousChars, renderItems } = getAlignedCharacters(previousTimeRef.current, time, direction);
+  const { previousChars, renderItems } = getAlignedCharacters(previousTimeRef.current, time, direction);
   const isNumericTransition = isNumericString(previousTimeRef.current) && isNumericString(time);
 
   const changedDigitIndices = renderItems.reduce<number[]>((acc, item, index) => {
     const { char, compareIndex } = item;
-    if (char === ":") return acc;
+    if (char === ":") {
+      return acc;
+    }
     const previousChar = previousChars[compareIndex];
-    if (previousChar !== char) acc.push(index);
+    if (previousChar !== char) {
+      acc.push(index);
+    }
     return acc;
   }, []);
 
@@ -266,10 +274,16 @@ export function AnimatedTimer({
   }, [time]);
 
   const getDelayForIndex = (index: number) => {
-    if (isNumericTransition) return 0;
-    if (!hasSimultaneousChange) return 0;
+    if (isNumericTransition) {
+      return 0;
+    }
+    if (!hasSimultaneousChange) {
+      return 0;
+    }
     const order = cascadeOrder.indexOf(index);
-    if (order === -1) return 0;
+    if (order === -1) {
+      return 0;
+    }
     return order * baseDelayMs;
   };
 

@@ -60,7 +60,9 @@ export function StreakBonusSheet({
     []
   );
 
-  if (!visible) return null;
+  if (!visible) {
+    return null;
+  }
 
   return (
     <View style={styles.absoluteContainer} pointerEvents="box-none">

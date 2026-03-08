@@ -31,7 +31,7 @@ class AdManager {
   private isLoaded = false;
   private isInitialized = false;
   private error: string | null = null;
-  private unsubscribers: (() => void)[] = [];
+  private unsubscribers: Array<() => void> = [];
   private rewardedAd: RewardedAd | null = null;
   private static instance: AdManager | null = null;
   private listeners: Set<AdStateListener> = new Set();
@@ -49,7 +49,9 @@ class AdManager {
   }
 
   async initialize() {
-    if (this.isInitialized) return;
+    if (this.isInitialized) {
+      return;
+    }
 
     try {
       await MobileAds().initialize();
@@ -85,7 +87,7 @@ class AdManager {
     this.unsubscribers.forEach((unsub) => {
       try {
         unsub();
-      } catch (e) {
+      } catch {
         // Ignore cleanup errors
       }
     });

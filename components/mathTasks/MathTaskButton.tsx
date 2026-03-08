@@ -29,6 +29,8 @@ export function MathTaskButton({
   const [translateY] = useState(new Animated.Value(0));
   const [animProgress, setAnimProgress] = useState(0);
   const colorAnim = useRef(new Animated.Value(0)).current;
+  const [nextBackgroundStart, nextBackgroundEnd] = gradientColor.background;
+  const [nextShadowStart, nextShadowEnd] = gradientColor.shadow;
 
   // Store previous colors for interpolation
   const prevColorsRef = useRef(gradientColor);
@@ -37,7 +39,10 @@ export function MathTaskButton({
   useEffect(() => {
     // Store previous colors before updating target
     prevColorsRef.current = targetColorsRef.current;
-    targetColorsRef.current = gradientColor;
+    targetColorsRef.current = {
+      background: [nextBackgroundStart, nextBackgroundEnd],
+      shadow: [nextShadowStart, nextShadowEnd],
+    };
 
     // Reset animation and animate to new colors
     colorAnim.setValue(0);
@@ -57,13 +62,7 @@ export function MathTaskButton({
     return () => {
       colorAnim.removeListener(listener);
     };
-  }, [
-    gradientColor.background[0],
-    gradientColor.background[1],
-    gradientColor.shadow[0],
-    gradientColor.shadow[1],
-    colorAnim,
-  ]);
+  }, [colorAnim, nextBackgroundEnd, nextBackgroundStart, nextShadowEnd, nextShadowStart]);
 
   const handlePressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

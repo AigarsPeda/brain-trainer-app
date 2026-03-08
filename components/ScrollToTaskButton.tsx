@@ -19,7 +19,7 @@ export const ScrollToTaskButton: FC<ScrollToTaskButtonProps> = ({ onPress, visib
 
   useEffect(() => {
     opacity.value = withTiming(visible ? 1 : 0, { duration: 300 });
-  }, [visible]);
+  }, [opacity, visible]);
 
   const handlePressIn = () => {
     scale.value = withSpring(0.9);

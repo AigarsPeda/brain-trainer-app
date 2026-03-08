@@ -199,10 +199,18 @@ const advanceToNextLevel = (
 const calculateStars = (tasksResults: TaskResultType[]): number => {
   const totalPercentage = tasksResults.reduce((sum, taskResult) => sum + taskResult.correctnessPercentage, 0);
 
-  if (totalPercentage >= 90) return 5;
-  if (totalPercentage >= 75) return 4;
-  if (totalPercentage >= 60) return 3;
-  if (totalPercentage >= 40) return 2;
+  if (totalPercentage >= 90) {
+    return 5;
+  }
+  if (totalPercentage >= 75) {
+    return 4;
+  }
+  if (totalPercentage >= 60) {
+    return 3;
+  }
+  if (totalPercentage >= 40) {
+    return 2;
+  }
   return 1;
 };
 
@@ -408,7 +416,10 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         ...state,
         gems: state.gems + achievement.gems,
         claimedTaskAchievements: [...state.claimedTaskAchievements, milestone],
-        taskAchievementClaimDates: { ...state.taskAchievementClaimDates, [milestone]: new Date().toISOString().split("T")[0] },
+        taskAchievementClaimDates: {
+          ...state.taskAchievementClaimDates,
+          [milestone]: new Date().toISOString().split("T")[0],
+        },
       };
     }
 

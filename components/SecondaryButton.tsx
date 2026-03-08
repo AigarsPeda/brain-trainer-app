@@ -12,12 +12,7 @@ export function SecondaryButton({ onPress, children, style }: SecondaryButtonPro
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.button,
-        { borderColor },
-        pressed && styles.buttonPressed,
-        style,
-      ]}
+      style={({ pressed }) => [styles.button, { borderColor }, pressed && styles.buttonPressed, style]}
       onPress={onPress}
     >
       {children}

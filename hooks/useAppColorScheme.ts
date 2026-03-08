@@ -1,7 +1,7 @@
 import useAppContext from "@/hooks/useAppContext";
-import type { ColorSchemeName } from "react-native";
+import type { ThemeType } from "@/context/app.context.reducer";
 
-export function useAppColorScheme(): ColorSchemeName {
+export function useAppColorScheme(): ThemeType {
   const { state } = useAppContext();
   return state.theme ?? "light";
 }

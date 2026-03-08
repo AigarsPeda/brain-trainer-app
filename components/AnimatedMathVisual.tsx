@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   FadeIn,
+  makeMutable,
+  SharedValue,
   useAnimatedStyle,
-  useSharedValue,
   withDelay,
   withSpring,
   withTiming,
+  useSharedValue,
 } from "react-native-reanimated";
 import { ThemedText } from "./ThemedText";
 
@@ -104,8 +106,209 @@ interface AdditionAnimationProps {
   isDark: boolean;
 }
 
+function useSharedValueArray(length: number, initialValue: number): Array<SharedValue<number>> {
+  const valuesRef = useRef<Array<SharedValue<number>>>([]);
+
+  if (valuesRef.current.length < length) {
+    for (let index = valuesRef.current.length; index < length; index++) {
+      valuesRef.current.push(makeMutable(initialValue));
+    }
+  } else if (valuesRef.current.length > length) {
+    valuesRef.current = valuesRef.current.slice(0, length);
+  }
+
+  return valuesRef.current;
+}
+
+interface AnimatedVisualTextProps {
+  item: MathVisualItem;
+  itemSize: number;
+  animatedStyle: ReturnType<typeof useAnimatedStyle>;
+  textStyle?: object;
+  imageStyle?: object;
+  itemKey: string;
+}
+
+function AnimatedVisualItem({
+  item,
+  itemKey,
+  itemSize,
+  animatedStyle,
+  textStyle,
+  imageStyle,
+}: AnimatedVisualTextProps) {
+  if (typeof item === "string") {
+    return (
+      <Animated.Text key={itemKey} style={[styles.itemEmoji, { fontSize: itemSize }, textStyle, animatedStyle]}>
+        {item}
+      </Animated.Text>
+    );
+  }
+
+  return (
+    <Animated.Image
+      key={itemKey}
+      source={item}
+      style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, imageStyle, animatedStyle]}
+    />
+  );
+}
+
+interface AdditionAnimatedItemProps {
+  item: MathVisualItem;
+  itemSize: number;
+  animation: SharedValue<number>;
+  itemKey: string;
+}
+
+function AdditionIncomingItem({ item, itemKey, itemSize, animation }: AdditionAnimatedItemProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: animation.value,
+    transform: [{ translateX: (1 - animation.value) * 80 }, { scale: 0.5 + animation.value * 0.5 }],
+  }));
+
+  return <AnimatedVisualItem item={item} itemKey={itemKey} itemSize={itemSize} animatedStyle={animatedStyle} />;
+}
+
+function AdditionRightItem({ item, itemKey, itemSize, animation }: AdditionAnimatedItemProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 1 - animation.value,
+    transform: [{ scale: 1 - animation.value * 0.5 }],
+  }));
+
+  return <AnimatedVisualItem item={item} itemKey={itemKey} itemSize={itemSize} animatedStyle={animatedStyle} />;
+}
+
+interface SubtractionMovingItemProps {
+  item: MathVisualItem;
+  itemKey: string;
+  itemSize: number;
+  moveAnimation: SharedValue<number>;
+  itemOpacity: SharedValue<number>;
+  slideDistance: number;
+  verticalOffset: number;
+}
+
+function SubtractionMovingItem({
+  item,
+  itemKey,
+  itemSize,
+  moveAnimation,
+  itemOpacity,
+  slideDistance,
+  verticalOffset,
+}: SubtractionMovingItemProps) {
+  const animatedStyle = useAnimatedStyle(() => {
+    const moveProgress = moveAnimation.value;
+    return {
+      opacity: moveProgress > 0.01 ? 1 : itemOpacity.value,
+      transform: [{ translateX: moveProgress * slideDistance }, { translateY: moveProgress * verticalOffset }],
+    };
+  });
+
+  return <AnimatedVisualItem item={item} itemKey={itemKey} itemSize={itemSize} animatedStyle={animatedStyle} />;
+}
+
+interface SubtractionStaticItemProps {
+  item: MathVisualItem;
+  itemKey: string;
+  itemSize: number;
+  opacityValue: SharedValue<number>;
+}
+
+function SubtractionStaticItem({ item, itemKey, itemSize, opacityValue }: SubtractionStaticItemProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacityValue.value,
+  }));
+
+  return <AnimatedVisualItem item={item} itemKey={itemKey} itemSize={itemSize} animatedStyle={animatedStyle} />;
+}
+
+interface MultiplicationGroupItemProps {
+  group: MathVisualItem;
+  animation: SharedValue<number>;
+  boxBorder: string;
+  groupBackground: string;
+  itemKey: string;
+}
+
+function MultiplicationGroupItem({
+  group,
+  animation,
+  boxBorder,
+  groupBackground,
+  itemKey,
+}: MultiplicationGroupItemProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: animation.value,
+    transform: [{ scale: animation.value }, { translateY: (1 - animation.value) * 20 }],
+  }));
+
+  return (
+    <Animated.View
+      key={itemKey}
+      style={[styles.groupBox, { backgroundColor: groupBackground, borderColor: boxBorder }, animatedStyle]}
+    >
+      {typeof group === "string" ? (
+        <ThemedText style={styles.groupEmoji}>{group}</ThemedText>
+      ) : (
+        <Animated.Image source={group} style={{ width: 28, height: 28, marginHorizontal: 2 }} />
+      )}
+    </Animated.View>
+  );
+}
+
+interface DivisionInitialItemProps {
+  item: MathVisualItem;
+  itemKey: string;
+  animation: SharedValue<number>;
+}
+
+function DivisionInitialItem({ item, itemKey, animation }: DivisionInitialItemProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 1 - animation.value,
+    transform: [{ scale: 1 - animation.value * 0.3 }],
+  }));
+
+  return <AnimatedVisualItem item={item} itemKey={itemKey} itemSize={28} animatedStyle={animatedStyle} />;
+}
+
+interface DivisionGroupItemProps {
+  item: MathVisualItem;
+  itemKey: string;
+  animation: SharedValue<number>;
+  horizontalOffset: number;
+}
+
+function DivisionGroupItem({ item, itemKey, animation, horizontalOffset }: DivisionGroupItemProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: animation.value,
+    transform: [
+      { translateY: (1 - animation.value) * -50 },
+      { translateX: (1 - animation.value) * -horizontalOffset },
+      { scale: 0.5 + animation.value * 0.5 },
+    ],
+  }));
+
+  if (typeof item === "string") {
+    return (
+      <Animated.Text key={itemKey} style={[styles.groupItemEmoji, animatedStyle]}>
+        {item}
+      </Animated.Text>
+    );
+  }
+
+  return (
+    <Animated.Image
+      key={itemKey}
+      source={item}
+      style={[{ width: 24, height: 24, marginHorizontal: 2 }, animatedStyle]}
+    />
+  );
+}
+
 function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, boxBorder }: AdditionAnimationProps) {
-  const itemAnimations = rightItems.map(() => useSharedValue(0));
+  const itemAnimations = useSharedValueArray(rightItems.length, 0);
   const rightBoxOpacity = useSharedValue(1);
   const leftBoxCenterX = useSharedValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -116,6 +319,8 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
   const itemSize = totalItems > 6 ? 20 : 28;
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     if (isPlaying) {
       itemAnimations.forEach((anim) => (anim.value = 0));
       rightBoxOpacity.value = 1;
@@ -130,7 +335,7 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
       rightBoxOpacity.value = withDelay(rightItems.length * 400 + 600, withTiming(0, { duration: 300 }));
 
       // Measure and center the left box after right box disappears
-      setTimeout(
+      timeoutId = setTimeout(
         () => {
           if (leftBoxRef.current && containerWidth > 0) {
             leftBoxRef.current.measure((x, y, width) => {
@@ -147,7 +352,13 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
         rightItems.length * 400 + 900
       );
     }
-  }, [isPlaying, containerWidth]);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [containerWidth, isPlaying, itemAnimations, leftBoxCenterX, rightBoxOpacity, rightItems.length]);
 
   const rightBoxStyle = useAnimatedStyle(() => ({
     opacity: rightBoxOpacity.value,
@@ -185,22 +396,13 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
         )}
         {/* Items that fly in */}
         {rightItems.map((item, index) => {
-          const animatedStyle = useAnimatedStyle(() => ({
-            opacity: itemAnimations[index].value,
-            transform: [
-              { translateX: (1 - itemAnimations[index].value) * 80 },
-              { scale: 0.5 + itemAnimations[index].value * 0.5 },
-            ],
-          }));
-          return typeof item === "string" ? (
-            <Animated.Text key={`flying-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
-              {item}
-            </Animated.Text>
-          ) : (
-            <Animated.Image
-              key={`flying-img-${index}`}
-              source={item}
-              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+          return (
+            <AdditionIncomingItem
+              key={`flying-${index}`}
+              item={item}
+              itemKey={`flying-${index}`}
+              itemSize={itemSize}
+              animation={itemAnimations[index]}
             />
           );
         })}
@@ -216,19 +418,13 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
         ]}
       >
         {rightItems.map((item, index) => {
-          const animatedStyle = useAnimatedStyle(() => ({
-            opacity: 1 - itemAnimations[index].value,
-            transform: [{ scale: 1 - itemAnimations[index].value * 0.5 }],
-          }));
-          return typeof item === "string" ? (
-            <Animated.Text key={`right-${index}`} style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}>
-              {item}
-            </Animated.Text>
-          ) : (
-            <Animated.Image
-              key={`right-img-${index}`}
-              source={item}
-              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+          return (
+            <AdditionRightItem
+              key={`right-${index}`}
+              item={item}
+              itemKey={`right-${index}`}
+              itemSize={itemSize}
+              animation={itemAnimations[index]}
             />
           );
         })}
@@ -262,13 +458,13 @@ function SubtractionAnimation({
   const itemsRemaining = leftItems.length - itemsToRemove;
 
   // Animation values for items being moved (last N items)
-  const moveAnimations = Array.from({ length: itemsToRemove }, () => useSharedValue(0));
+  const moveAnimations = useSharedValueArray(itemsToRemove, 0);
   const rightBoxOpacity = useSharedValue(0);
 
   // Animation values for initial box fade in and slide
   const leftBoxOpacity = useSharedValue(0);
   const leftBoxTranslateX = useSharedValue(50); // Start from right (center position)
-  const itemOpacities = Array.from({ length: leftItems.length }, () => useSharedValue(0));
+  const itemOpacities = useSharedValueArray(leftItems.length, 0);
 
   // Calculate item size based on total number of items
   const totalItems = leftItems.length;
@@ -305,17 +501,11 @@ function SubtractionAnimation({
       leftBoxOpacity.value = withTiming(1, { duration: boxFadeInDuration });
 
       // Step 2: Slide the box to the left
-      leftBoxTranslateX.value = withDelay(
-        boxSlideDelay,
-        withSpring(0, { damping: 15, stiffness: 100 })
-      );
+      leftBoxTranslateX.value = withDelay(boxSlideDelay, withSpring(0, { damping: 15, stiffness: 100 }));
 
       // Step 3: Fade in items one by one
       itemOpacities.forEach((anim, index) => {
-        anim.value = withDelay(
-          itemFadeInStart + index * itemFadeInDelay,
-          withTiming(1, { duration: 300 })
-        );
+        anim.value = withDelay(itemFadeInStart + index * itemFadeInDelay, withTiming(1, { duration: 300 }));
       });
 
       // Step 4: Show right box after items fade in
@@ -323,13 +513,19 @@ function SubtractionAnimation({
 
       // Step 5: Animate each item sliding to the right box one by one with spring effect
       moveAnimations.forEach((anim, index) => {
-        anim.value = withDelay(
-          index * 500 + totalFadeInTime + 400,
-          withSpring(1, { damping: 12, stiffness: 100 })
-        );
+        anim.value = withDelay(index * 500 + totalFadeInTime + 400, withSpring(1, { damping: 12, stiffness: 100 }));
       });
     }
-  }, [isPlaying]);
+  }, [
+    isPlaying,
+    itemFadeInStart,
+    itemOpacities,
+    leftBoxOpacity,
+    leftBoxTranslateX,
+    moveAnimations,
+    rightBoxOpacity,
+    totalFadeInTime,
+  ]);
 
   const leftBoxStyle = useAnimatedStyle(() => ({
     opacity: leftBoxOpacity.value,
@@ -369,52 +565,27 @@ function SubtractionAnimation({
             const moveIndex = index - itemsRemaining;
             // Calculate vertical offset - items need to move up to their new position in right box
             const verticalOffset = -itemsRemaining * (itemSize - 14);
-            const animatedStyle = useAnimatedStyle(() => {
-              const moveProgress = moveAnimations[moveIndex].value;
-              // Once move starts (moveProgress > 0), keep full opacity; otherwise use fade-in opacity
-              const opacity = moveProgress > 0.01 ? 1 : itemOpacities[index].value;
-              return {
-                opacity,
-                transform: [
-                  { translateX: moveProgress * slideDistance },
-                  { translateY: moveProgress * verticalOffset },
-                ],
-              };
-            });
-
-            return typeof item === "string" ? (
-              <Animated.Text
+            return (
+              <SubtractionMovingItem
                 key={`item-${index}`}
-                style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}
-              >
-                {item}
-              </Animated.Text>
-            ) : (
-              <Animated.Image
-                key={`item-img-${index}`}
-                source={item}
-                style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+                item={item}
+                itemKey={`item-${index}`}
+                itemSize={itemSize}
+                moveAnimation={moveAnimations[moveIndex]}
+                itemOpacity={itemOpacities[index]}
+                slideDistance={slideDistance}
+                verticalOffset={verticalOffset}
               />
             );
           }
 
-          // Remaining items - use controlled opacity animation
-          const animatedStyle = useAnimatedStyle(() => ({
-            opacity: itemOpacities[index].value,
-          }));
-
-          return typeof item === "string" ? (
-            <Animated.Text
+          return (
+            <SubtractionStaticItem
               key={`item-${index}`}
-              style={[styles.itemEmoji, { fontSize: itemSize }, animatedStyle]}
-            >
-              {item}
-            </Animated.Text>
-          ) : (
-            <Animated.Image
-              key={`item-img-${index}`}
-              source={item}
-              style={[{ width: itemSize, height: itemSize, marginHorizontal: 2 }, animatedStyle]}
+              item={item}
+              itemKey={`item-${index}`}
+              itemSize={itemSize}
+              opacityValue={itemOpacities[index]}
             />
           );
         })}
@@ -452,13 +623,8 @@ interface MultiplicationAnimationProps {
   isDark: boolean;
 }
 
-function MultiplicationAnimation({
-  groups,
-  isPlaying,
-  boxBorder,
-  groupBackground,
-}: MultiplicationAnimationProps) {
-  const groupAnimations = groups.map(() => useSharedValue(0));
+function MultiplicationAnimation({ groups, isPlaying, boxBorder, groupBackground }: MultiplicationAnimationProps) {
+  const groupAnimations = useSharedValueArray(groups.length, 0);
 
   useEffect(() => {
     if (isPlaying) {
@@ -469,30 +635,20 @@ function MultiplicationAnimation({
         anim.value = withDelay(index * 500 + 300, withSpring(1, { damping: 8, stiffness: 100 }));
       });
     }
-  }, [isPlaying]);
+  }, [groupAnimations, isPlaying]);
 
   return (
     <View style={styles.groupsRow}>
       {groups.map((group, index) => {
-        const animatedStyle = useAnimatedStyle(() => ({
-          opacity: groupAnimations[index].value,
-          transform: [{ scale: groupAnimations[index].value }, { translateY: (1 - groupAnimations[index].value) * 20 }],
-        }));
         return (
-          <Animated.View
+          <MultiplicationGroupItem
             key={`group-${index}`}
-            style={[
-              styles.groupBox,
-              { backgroundColor: groupBackground, borderColor: boxBorder },
-              animatedStyle,
-            ]}
-          >
-            {typeof group === "string" ? (
-              <ThemedText style={styles.groupEmoji}>{group}</ThemedText>
-            ) : (
-              <Animated.Image source={group} style={{ width: 28, height: 28, marginHorizontal: 2 }} />
-            )}
-          </Animated.View>
+            itemKey={`group-${index}`}
+            group={group}
+            animation={groupAnimations[index]}
+            boxBorder={boxBorder}
+            groupBackground={groupBackground}
+          />
         );
       })}
     </View>
@@ -517,7 +673,7 @@ function DivisionAnimation({ groups, divisor, isPlaying, boxBackground, boxBorde
   const itemsPerGroup = totalItems / divisor;
 
   // Create animation values for each item moving to its group
-  const itemAnimations = groups.map(() => useSharedValue(0));
+  const itemAnimations = useSharedValueArray(groups.length, 0);
   const initialBoxOpacity = useSharedValue(1);
   const smallBoxesOpacity = useSharedValue(0);
   const smallBoxesTranslateY = useSharedValue(0);
@@ -546,7 +702,7 @@ function DivisionAnimation({ groups, divisor, isPlaying, boxBackground, boxBorde
         withSpring(-30, { damping: 15, stiffness: 100 })
       );
     }
-  }, [isPlaying]);
+  }, [initialBoxOpacity, isPlaying, itemAnimations, smallBoxesOpacity, smallBoxesTranslateY, totalItems]);
 
   const initialBoxStyle = useAnimatedStyle(() => ({
     opacity: initialBoxOpacity.value,
@@ -579,23 +735,12 @@ function DivisionAnimation({ groups, divisor, isPlaying, boxBackground, boxBorde
         ]}
       >
         {groups.map((item, index) => {
-          const animatedStyle = useAnimatedStyle(() => ({
-            opacity: 1 - itemAnimations[index].value,
-            transform: [{ scale: 1 - itemAnimations[index].value * 0.3 }],
-          }));
-          return typeof item === "string" ? (
-            <Animated.Text
+          return (
+            <DivisionInitialItem
               key={`initial-${index}`}
-              entering={FadeIn.delay(index * 80)}
-              style={[styles.itemEmoji, animatedStyle]}
-            >
-              {item}
-            </Animated.Text>
-          ) : (
-            <Animated.Image
-              key={`initial-img-${index}`}
-              source={item}
-              style={[{ width: 28, height: 28, marginHorizontal: 2 }, animatedStyle]}
+              item={item}
+              itemKey={`initial-${index}`}
+              animation={itemAnimations[index]}
             />
           );
         })}
@@ -611,23 +756,13 @@ function DivisionAnimation({ groups, divisor, isPlaying, boxBackground, boxBorde
               style={[styles.divisionBox, { backgroundColor: boxBackground, borderColor: boxBorder }]}
             >
               {groupIndices.map((itemIndex) => {
-                const animatedStyle = useAnimatedStyle(() => ({
-                  opacity: itemAnimations[itemIndex].value,
-                  transform: [
-                    { translateY: (1 - itemAnimations[itemIndex].value) * -50 },
-                    { translateX: (1 - itemAnimations[itemIndex].value) * -horizontalOffset },
-                    { scale: 0.5 + itemAnimations[itemIndex].value * 0.5 },
-                  ],
-                }));
-                return typeof groups[itemIndex] === "string" ? (
-                  <Animated.Text key={`group-item-${itemIndex}`} style={[styles.groupItemEmoji, animatedStyle]}>
-                    {groups[itemIndex]}
-                  </Animated.Text>
-                ) : (
-                  <Animated.Image
-                    key={`group-item-img-${itemIndex}`}
-                    source={groups[itemIndex]}
-                    style={[{ width: 24, height: 24, marginHorizontal: 2 }, animatedStyle]}
+                return (
+                  <DivisionGroupItem
+                    key={`group-item-${itemIndex}`}
+                    item={groups[itemIndex]}
+                    itemKey={`group-item-${itemIndex}`}
+                    animation={itemAnimations[itemIndex]}
+                    horizontalOffset={horizontalOffset}
                   />
                 );
               })}

@@ -2,10 +2,7 @@ import { MainButton } from "@/components/MainButton";
 import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
-import type {
-  MultiAnswerMathTaskType,
-  TaskAnswerType,
-} from "@/context/app.context.reducer";
+import type { MultiAnswerMathTaskType, TaskAnswerType } from "@/context/app.context.reducer";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import { useTaskLifecycle } from "@/hooks/useTaskLifecycle";
 import { getAnswersOfTask, getGradientColor, isEquationCorrect } from "@/utils/utils";
@@ -20,7 +17,13 @@ interface MathTaskWithResultProps {
   removedAnswerIds?: number[];
 }
 
-export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalTaskInLevel, removedAnswerIds = [] }: MathTaskWithResultProps) {
+export default function MathTaskWithResult({
+  level,
+  task,
+  maxLevelStep,
+  isFinalTaskInLevel,
+  removedAnswerIds = [],
+}: MathTaskWithResultProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
 
@@ -37,11 +40,7 @@ export default function MathTaskWithResult({ level, task, maxLevelStep, isFinalT
     setAnswer([]);
   }, []);
 
-  const {
-    displayTaskResults,
-    handleCheckAnswers,
-    showResultsProps,
-  } = useTaskLifecycle({
+  const { displayTaskResults, handleCheckAnswers, showResultsProps } = useTaskLifecycle({
     level,
     maxLevelStep,
     isFinalTaskInLevel,

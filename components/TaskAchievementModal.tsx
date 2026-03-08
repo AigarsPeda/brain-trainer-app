@@ -20,7 +20,9 @@ export function TaskAchievementModal({ visible, onClaim, achievement }: TaskAchi
   const colorScheme = useAppColorScheme();
   const buttonTextColor = ButtonColors.primary[colorScheme === "dark" ? "dark" : "light"].text;
 
-  if (!achievement) return null;
+  if (!achievement) {
+    return null;
+  }
 
   return (
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClaim}>

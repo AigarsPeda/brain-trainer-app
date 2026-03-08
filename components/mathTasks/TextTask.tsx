@@ -38,10 +38,12 @@ export function TextTask({
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
 
   // Generate options once and store in a ref so removing an answer doesn't re-shuffle
-  const shuffledOptionsRef = useRef<{ id: number; value: number; isCorrect: boolean }[] | null>(null);
+  const shuffledOptionsRef = useRef<Array<{ id: number; value: number; isCorrect: boolean }> | null>(null);
 
   const allOptions = useMemo(() => {
-    if (!showAsMultipleChoice) return [];
+    if (!showAsMultipleChoice) {
+      return [];
+    }
 
     const correctAnswer = task.result;
     const wrongValues = new Set<number>();
@@ -55,7 +57,9 @@ export function TextTask({
         }
       }
       let fallback = correctAnswer + wrongValues.size + 1;
-      while (wrongValues.has(fallback)) fallback++;
+      while (wrongValues.has(fallback)) {
+        fallback++;
+      }
       wrongValues.add(fallback);
       return fallback;
     };
@@ -122,7 +126,7 @@ export function TextTask({
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-  }, [handleCheckFromHook, isAnswerCorrect]);
+  }, [handleCheckFromHook, hasAnswer, isAnswerCorrect]);
 
   const getInputBorderColor = () => {
     if (!displayTaskResults) {

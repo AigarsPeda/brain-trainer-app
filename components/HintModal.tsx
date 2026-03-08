@@ -58,12 +58,7 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
       <View style={styles.modalOverlay}>
         <View style={[styles.modalBackdrop, { backgroundColor: modalBackdrop }]} />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContent}>
-          <ThemedView
-            style={[
-              styles.modalBox,
-              isDark ? styles.modalBoxDark : styles.modalBoxLight,
-            ]}
-          >
+          <ThemedView style={[styles.modalBox, isDark ? styles.modalBoxDark : styles.modalBoxLight]}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
               <View style={styles.titleContainer}>
                 <View style={[styles.bulbShell, isDark ? styles.bulbShellDark : styles.bulbShellLight]}>
@@ -105,8 +100,8 @@ export function HintModal({ visible, onClose, explanation }: HintModalProps) {
                     isPlaying={isAnimationPlaying}
                     onReplay={handleReplayAnimation}
                   />
+                </View>
               </View>
-            </View>
             </ScrollView>
 
             <View style={styles.closeButtonContainer}>

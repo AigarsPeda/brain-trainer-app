@@ -8,7 +8,6 @@ import { StatisticsItem } from "@/components/StatisticsItem";
 import Settings from "@/assets/images/settings.png";
 import useAppContext from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 
@@ -21,7 +20,6 @@ interface UserStatisticsProps {
 export function UserStatistics({ onLivesPress, onGemsPress, onStreakPress }: UserStatisticsProps) {
   const { state } = useAppContext();
   const { width } = useWindowDimensions();
-  const iconColor = useThemeColor({}, "icon");
 
   const [settingsVisible, setSettingsVisible] = useState(false);
   const livesAnimatedStyle = usePulseOnChange(state.lives);

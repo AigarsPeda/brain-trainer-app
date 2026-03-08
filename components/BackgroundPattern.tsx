@@ -89,14 +89,14 @@ const poissonDiskSampling = (
   height: number,
   minDist: number,
   rng: SeededRandom
-): { x: number; y: number }[] => {
+): Array<{ x: number; y: number }> => {
   const cellSize = minDist / Math.SQRT2;
   const gridWidth = Math.ceil(width / cellSize);
   const gridHeight = Math.ceil(height / cellSize);
-  const grid: (number | null)[][] = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(null));
+  const grid: Array<Array<number | null>> = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(null));
 
   const activeList: number[] = [];
-  const points: { x: number; y: number }[] = [];
+  const points: Array<{ x: number; y: number }> = [];
 
   const getGridCell = (x: number, y: number): [number, number] => {
     return [Math.floor(x / cellSize), Math.floor(y / cellSize)];
@@ -104,7 +104,9 @@ const poissonDiskSampling = (
 
   // Check if a point is valid (far enough from all neighbors)
   const isValidPoint = (x: number, y: number): boolean => {
-    if (x < 0 || x >= width || y < 0 || y >= height) return false;
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+      return false;
+    }
 
     const [cellX, cellY] = getGridCell(x, y);
 
@@ -119,7 +121,9 @@ const poissonDiskSampling = (
           if (pointIndex !== null) {
             const neighbor = points[pointIndex];
             const distSq = (x - neighbor.x) ** 2 + (y - neighbor.y) ** 2;
-            if (distSq < minDist * minDist) return false;
+            if (distSq < minDist * minDist) {
+              return false;
+            }
           }
         }
       }
@@ -232,7 +236,7 @@ const AnimatedSymbol = ({
         true
       )
     );
-  }, []);
+  }, [index, opacity]);
 
   const animatedProps = useAnimatedProps(() => {
     return {
@@ -256,7 +260,7 @@ const AnimatedSymbol = ({
   );
 };
 
-export const BackgroundPattern = memo(() => {
+function BackgroundPatternComponent() {
   const { width, height } = useWindowDimensions();
   const positions = useMemo(() => getRandomPositions(width, height), [width, height]);
   const patternColor = useThemeColor({ light: "#6366f1", dark: "#a5b4fc" }, "text");
@@ -271,4 +275,9 @@ export const BackgroundPattern = memo(() => {
       </Svg>
     </View>
   );
-});
+}
+
+BackgroundPatternComponent.displayName = "BackgroundPattern";
+
+export const BackgroundPattern = memo(BackgroundPatternComponent);
+BackgroundPattern.displayName = "BackgroundPattern";
