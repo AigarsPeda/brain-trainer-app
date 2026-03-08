@@ -6,10 +6,14 @@ import pica from "@/assets/images/pica.png";
 import {
   MathOperation,
   TaskType,
+  TextTaskType,
   isCreateMathTask,
   isMultiAnswerMathTask,
   isTextTask,
 } from "@/context/app.context.reducer";
+import type { ImageSourcePropType } from "react-native";
+
+export type MathVisualItem = string | ImageSourcePropType;
 
 export type MathExplanation = {
   title: string;
@@ -20,15 +24,15 @@ export type MathExplanation = {
     result: number;
   };
   visualItems: {
-    leftItems: string[];
-    rightItems: string[];
+    leftItems: MathVisualItem[];
+    rightItems: MathVisualItem[];
     operationSymbol: string;
   };
 };
 
 export const getMathExplanation = (task: TaskType): MathExplanation => {
   if (isTextTask(task)) {
-    return getTextTaskExplanation(task.result);
+    return getTextTaskExplanation(task);
   }
 
   if (isCreateMathTask(task)) {
@@ -50,10 +54,33 @@ export const getMathExplanation = (task: TaskType): MathExplanation => {
 /**
  * Returns an explanation for text-based tasks
  */
-const getTextTaskExplanation = (_result: number): MathExplanation => {
+const getTextTaskExplanation = (task: TextTaskType): MathExplanation => {
+  if (isSubtractionTextTask(task.question)) {
+    return getTextSubtractionExplanation(task.icon);
+  }
+
+  return getTextAdditionExplanation(task.icon);
+};
+
+const isSubtractionTextTask = (question: string): boolean => {
+  const normalizedQuestion = question.toLowerCase();
+
+  return [
+    "apēdu",
+    "atdevu",
+    "pārdeva",
+    "paņēma",
+    "nokrita",
+    "novāca",
+    "palika",
+  ].some((keyword) => normalizedQuestion.includes(keyword));
+};
+
+const getTextAdditionExplanation = (itemIcon?: ImageSourcePropType): MathExplanation => {
   const left = 3;
   const right = 2;
   const exampleResult = left + right;
+  const visualItem = itemIcon ?? books;
 
   return {
     title: "Ja kaut ko iedod vai pievieno - saskaiti!",
@@ -64,9 +91,31 @@ const getTextTaskExplanation = (_result: number): MathExplanation => {
       result: exampleResult,
     },
     visualItems: {
-      leftItems: [books, books, books],
-      rightItems: [books, books],
+      leftItems: Array(left).fill(visualItem),
+      rightItems: Array(right).fill(visualItem),
       operationSymbol: "+",
+    },
+  };
+};
+
+const getTextSubtractionExplanation = (itemIcon?: ImageSourcePropType): MathExplanation => {
+  const left = 5;
+  const right = 2;
+  const exampleResult = left - right;
+  const visualItem = itemIcon ?? banana;
+
+  return {
+    title: "Ja kaut ko noņem, apēd vai atdod - atņem!",
+    example: {
+      left,
+      right,
+      operation: "-",
+      result: exampleResult,
+    },
+    visualItems: {
+      leftItems: Array(left).fill(visualItem),
+      rightItems: Array(right).fill(visualItem),
+      operationSymbol: "-",
     },
   };
 };

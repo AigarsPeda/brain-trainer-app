@@ -1,6 +1,6 @@
 import Refresh from "@/assets/images/refresh.png";
 import { useAppColorScheme } from "@/hooks/useAppColorScheme";
-import { MathExplanation } from "@/utils/mathExplanations";
+import { MathExplanation, MathVisualItem } from "@/utils/mathExplanations";
 import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
@@ -96,8 +96,8 @@ export function AnimatedMathVisual({ explanation, isPlaying, onReplay }: Animate
 // Items from right group fly over to join left group
 // ============================================
 interface AdditionAnimationProps {
-  leftItems: string[];
-  rightItems: string[];
+  leftItems: MathVisualItem[];
+  rightItems: MathVisualItem[];
   isPlaying: boolean;
   boxBackground: string;
   boxBorder: string;
@@ -242,8 +242,8 @@ function AdditionAnimation({ leftItems, rightItems, isPlaying, boxBackground, bo
 // Items fade out and fly away
 // ============================================
 interface SubtractionAnimationProps {
-  leftItems: string[];
-  rightItems: string[];
+  leftItems: MathVisualItem[];
+  rightItems: MathVisualItem[];
   result: number;
   isPlaying: boolean;
   boxBackground: string;
@@ -444,7 +444,7 @@ function SubtractionAnimation({
 // Groups appear one by one
 // ============================================
 interface MultiplicationAnimationProps {
-  groups: string[];
+  groups: MathVisualItem[];
   isPlaying: boolean;
   boxBackground: string;
   boxBorder: string;
@@ -504,7 +504,7 @@ function MultiplicationAnimation({
 // Items split into equal groups
 // ============================================
 interface DivisionAnimationProps {
-  groups: string[];
+  groups: MathVisualItem[];
   divisor: number;
   isPlaying: boolean;
   boxBackground: string;
