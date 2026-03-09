@@ -76,21 +76,21 @@ export type AppContextStateType = {
   lives: number;
   theme: ThemeType;
   daysInARow: number;
+  levels: TaskInfoType[];
+  availableLevels: number;
   lastPlayedDate: string | null;
   lastLifeLostAt: number | null;
   claimedStreakBonuses: number[];
+  currentTaskAttemptCount: number;
   claimedTaskAchievements: number[];
   streakBonusClaimDates: Record<number, string>;
   taskAchievementClaimDates: Record<number, string>;
-  currentTaskAttemptCount: number;
+  game: { currentLevel: number; currentTaskInLevel: number };
   results: {
     [level: string]: {
       tasksResults: TaskResultType[];
     };
   };
-  levels: TaskInfoType[];
-  availableLevels: number;
-  game: { currentLevel: number; currentTaskInLevel: number };
 };
 
 export type AppContextType = {
@@ -124,25 +124,25 @@ const initializeLevels = (): TaskInfoType[] => {
 
 export const initialState: AppContextStateType = {
   gems: 0,
-  lives: INITIAL_LIVES,
   theme: "dark",
+  daysInARow: 0,
+  name: "Aigars",
+  lastPlayedDate: null,
+  lastLifeLostAt: null,
+  lives: INITIAL_LIVES,
+  claimedStreakBonuses: [],
+  streakBonusClaimDates: {},
+  levels: initializeLevels(),
+  currentTaskAttemptCount: 0,
+  claimedTaskAchievements: [],
+  taskAchievementClaimDates: {},
+  availableLevels: TOTAL_LEVELS,
+  game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
   results: {
     "1": {
       tasksResults: [],
     },
   },
-  daysInARow: 0,
-  claimedStreakBonuses: [],
-  claimedTaskAchievements: [],
-  streakBonusClaimDates: {},
-  taskAchievementClaimDates: {},
-  lastPlayedDate: null,
-  lastLifeLostAt: null,
-  currentTaskAttemptCount: 0,
-  name: "Aigars",
-  game: { currentLevel: INITIAL_LEVEL, currentTaskInLevel: INITIAL_TASK },
-  availableLevels: TOTAL_LEVELS,
-  levels: initializeLevels(),
 };
 
 export const initialContext: AppContextType = {
