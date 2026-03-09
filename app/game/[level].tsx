@@ -60,6 +60,7 @@ export default function GameLevelScreen() {
   const { level } = useLocalSearchParams<"/game/[level]">() as { level: string };
   const levelNumber = Number(level);
   const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
+  const hasRenderedInitialTaskRef = useRef(false);
   const selectedTaskInLevel =
     !Number.isNaN(levelNumber) && levelNumber > 0
       ? getTaskInLevelForSelection({ levels, results }, levelNumber)
@@ -93,6 +94,10 @@ export default function GameLevelScreen() {
     }
   }, [taskIdentity]);
 
+  useEffect(() => {
+    hasRenderedInitialTaskRef.current = true;
+  }, []);
+
   const canRemoveAnswer = useMemo(() => {
     if (!currentTask) {
       return false;
@@ -121,6 +126,10 @@ export default function GameLevelScreen() {
     }
     return getTaskExplanation(currentTask);
   }, [currentTask, getTaskExplanation]);
+
+  const enteringTaskAnimation = hasRenderedInitialTaskRef.current
+    ? SlideInRight.duration(250).withInitialValues({ transform: [{ translateX: 250 }] })
+    : undefined;
 
   const closeHelpModal = () => {
     setOpenModal(null);
@@ -270,8 +279,7 @@ export default function GameLevelScreen() {
           <Animated.View
             key={`${level}-${currentTask.id}-${currentTask.taskNumberInLevel}`}
             style={styles.taskContainer}
-            pointerEvents="box-none"
-            entering={SlideInRight.duration(250).withInitialValues({ transform: [{ translateX: 250 }] })}
+            entering={enteringTaskAnimation}
             exiting={SlideOutLeft.duration(200).withInitialValues({
               transform: [{ translateX: 0 }],
               position: "absolute",
@@ -279,7 +287,6 @@ export default function GameLevelScreen() {
               left: 0,
               right: 0,
               bottom: 0,
-              pointerEvents: "none",
             })}
           >
             {isMultiAnswerMathTask(currentTask) && (
@@ -344,9 +351,7 @@ const styles = StyleSheet.create({
   taskContainer: {
     flex: 1,
     width: "100%",
-    display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
   },
   hintRow: {
     flexDirection: "row",

@@ -9,6 +9,8 @@ import { Animated, Dimensions, StyleSheet, TextStyle, TouchableOpacity, View, Vi
 
 const { width } = Dimensions.get("window");
 const BUTTON_WIDTH = width - 32;
+const BUTTON_HEIGHT = 60;
+const SHADOW_OFFSET = 6;
 
 type MainButtonVariant = "primary" | "secondary";
 
@@ -91,9 +93,16 @@ export function MainButton({
     interpolateColor(variantColors.shadow[1], disabledColors.shadow[1], animProgress),
   ];
   const textColor = disabled ? disabledColors.text : variantColors.text;
+  const { width: customWidth, height: customHeight, ...containerStyle } = style ?? {};
+  const resolvedWidth = typeof customWidth === "number" ? customWidth : BUTTON_WIDTH;
+  const resolvedHeight = typeof customHeight === "number" ? customHeight : BUTTON_HEIGHT;
+  const faceWidth = Math.max(0, resolvedWidth - 5);
 
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[styles.container, containerStyle, { width: resolvedWidth, height: resolvedHeight + SHADOW_OFFSET }]}
+      pointerEvents="box-none"
+    >
       {/* Shadow stays still underneath */}
       <View
         pointerEvents="none"
@@ -101,16 +110,15 @@ export function MainButton({
           styles.shadowLayer,
           {
             backgroundColor: shadowColors[1],
+            width: resolvedWidth,
+            height: resolvedHeight,
           },
-          style?.width ? { width: style.width } : null,
         ]}
       />
 
       {/* Button animates on press */}
       <Animated.View
-        style={{
-          transform: [{ translateY }],
-        }}
+        style={[styles.pressableLayer, { width: faceWidth, height: resolvedHeight, transform: [{ translateY }] }]}
       >
         <TouchableOpacity
           onPress={onPress}
@@ -118,17 +126,14 @@ export function MainButton({
           disabled={disabled}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          style={styles.buttonWrapper}
+          hitSlop={8}
+          style={[styles.buttonWrapper, { width: faceWidth, height: resolvedHeight }]}
         >
           <LinearGradient
             end={{ x: 0.5, y: 1 }}
             colors={gradientColors}
             start={{ x: 0.5, y: 0 }}
-            style={[
-              styles.button,
-              disabled && { opacity: 1 },
-              style?.width ? { width: (style.width as number) - 5 } : null,
-            ]}
+            style={[styles.button, disabled && { opacity: 1 }, { width: faceWidth, height: resolvedHeight }]}
           >
             {children || <ThemedText style={[styles.text, { color: textColor }, textStyle]}>Continue</ThemedText>}
           </LinearGradient>
@@ -141,26 +146,32 @@ export function MainButton({
 const styles = StyleSheet.create({
   container: {
     width: BUTTON_WIDTH,
-    height: 70, // slightly taller than button to allow for shadow offset
+    height: BUTTON_HEIGHT + SHADOW_OFFSET,
     justifyContent: "flex-start",
     alignItems: "center",
     position: "relative",
   },
   shadowLayer: {
     position: "absolute",
-    top: 6,
+    top: SHADOW_OFFSET,
     left: 0,
-    height: 60,
+    height: BUTTON_HEIGHT,
     width: BUTTON_WIDTH,
     borderRadius: 12,
     zIndex: 0,
   },
+  pressableLayer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   buttonWrapper: {
     borderRadius: 12,
     zIndex: 1, // ensure it's above the shadow
+    width: BUTTON_WIDTH - 5,
+    height: BUTTON_HEIGHT,
   },
   button: {
-    height: 60,
+    height: BUTTON_HEIGHT,
     width: BUTTON_WIDTH - 5,
     justifyContent: "center",
     alignItems: "center",

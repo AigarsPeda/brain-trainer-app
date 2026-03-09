@@ -81,7 +81,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <AppContextProvider>
         <AppContent />
       </AppContextProvider>

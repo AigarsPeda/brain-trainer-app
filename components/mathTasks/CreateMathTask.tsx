@@ -21,6 +21,9 @@ const GRID_ROWS = 2;
 const GRID_MARGIN = 20;
 const DRAG_SCALE = 1.7;
 const NORMAL_SCALE = 1;
+const BUTTON_BOTTOM_MARGIN = 26;
+const BUTTON_CONTAINER_HEIGHT = 70;
+const BUTTON_CONTENT_PADDING = 24;
 
 type ResponsiveCreateMathLayout = {
   dropZoneSize: number;
@@ -321,6 +324,7 @@ export function CreateMathTask({
           <ScrollView
             bounces={false}
             showsVerticalScrollIndicator={false}
+            style={styles.scrollView}
             contentContainerStyle={styles.contentContainer}
           >
             <View
@@ -549,17 +553,23 @@ const styles = StyleSheet.create({
   taskLayout: {
     flex: 1,
     width: "100%",
-    justifyContent: "space-between",
+    position: "relative",
+  },
+  scrollView: {
+    flex: 1,
+    width: "100%",
   },
   contentContainer: {
     flexGrow: 1,
-    paddingBottom: 16,
+    paddingBottom: BUTTON_BOTTOM_MARGIN + BUTTON_CONTAINER_HEIGHT + BUTTON_CONTENT_PADDING,
   },
   buttonContainer: {
-    marginBottom: 26,
+    position: "absolute",
+    right: 0,
+    bottom: BUTTON_BOTTOM_MARGIN,
+    left: 0,
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
     zIndex: 20,
     elevation: 20,
   },
