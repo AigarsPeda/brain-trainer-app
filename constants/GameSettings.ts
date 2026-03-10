@@ -20,13 +20,10 @@ import StreakIcon365 from "@/assets/images/streak-icon-365.png";
  */
 
 // Time in minutes before a life is restored
-export const LIFE_RESTORE_INTERVAL_MINUTES = 10;
+export const LIFE_RESTORE_INTERVAL_MINUTES = 30;
 
 // Maximum number of lives a player can have
-export const MAX_LIVES = 5;
-
-// Initial number of lives when starting the game
-export const INITIAL_LIVES = 5;
+export const MAX_LIVES = 3;
 
 // Initial game state values
 export const INITIAL_LEVEL = 1;
@@ -40,10 +37,10 @@ export const LIFE_RESTORE_INTERVAL_MS = LIFE_RESTORE_INTERVAL_MINUTES * 60 * 100
 export const GEMS_FROM_AD = 10;
 
 // Cost in gems to purchase a hint
-export const HINT_COST = 5;
+export const HINT_COST = 8;
 
 // Cost in gems to remove one incorrect answer
-export const REMOVE_WRONG_ANSWER_COST = 8;
+export const REMOVE_WRONG_ANSWER_COST = 21;
 
 // UI Layout constants
 export const ANDROID_TOP_PADDING = 25;
