@@ -1,8 +1,11 @@
+import { getLevel } from "@/data/levelLoader";
 import useAppContext from "@/hooks/useAppContext";
+import { buildLevelFeedbackSummary, buildTaskFeedbackEntries } from "@/utils/levelFeedback";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
+import { calculateTaskCorrectnessPercentage } from "@/utils/utils";
 import { useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 interface UseTaskLifecycleArgs {
   level: string;
@@ -10,6 +13,7 @@ interface UseTaskLifecycleArgs {
   resetTaskState: () => void;
   isFinalTaskInLevel: boolean;
   checkIfCorrect: () => boolean;
+  taskNumberInLevel: number;
 }
 
 export function useTaskLifecycle({
@@ -18,10 +22,11 @@ export function useTaskLifecycle({
   checkIfCorrect,
   resetTaskState,
   isFinalTaskInLevel,
+  taskNumberInLevel,
 }: UseTaskLifecycleArgs) {
   const {
     dispatch,
-    state: { availableLevels, lives },
+    state: { availableLevels, currentTaskAttemptCount, lives, results },
   } = useAppContext();
 
   const router = useRouter();
@@ -44,6 +49,45 @@ export function useTaskLifecycle({
   }, [dispatch, maxLevelStep, resetTaskState]);
 
   const nextLevelValue = (levelNumber + 1).toString();
+  const isCurrentTaskCorrect = checkIfCorrect();
+  const levelCompletionSummary = useMemo(() => {
+    if (!isFinalTaskInLevel || !isCurrentTaskCorrect) {
+      return undefined;
+    }
+
+    const levelTasks = getLevel(levelNumber);
+
+    if (!levelTasks) {
+      return undefined;
+    }
+
+    const levelKey = levelNumber.toString();
+    const currentCorrectnessPercentage = calculateTaskCorrectnessPercentage(
+      true,
+      currentTaskAttemptCount + 1,
+      maxLevelStep
+    );
+
+    const provisionalTaskResults = [
+      ...(results[levelKey]?.tasksResults ?? []).filter(
+        (taskResult) => taskResult.taskNumber !== taskNumberInLevel.toString()
+      ),
+      {
+        taskNumber: taskNumberInLevel.toString(),
+        correctnessPercentage: currentCorrectnessPercentage,
+      },
+    ];
+
+    return buildLevelFeedbackSummary(buildTaskFeedbackEntries(levelTasks, provisionalTaskResults), maxLevelStep);
+  }, [
+    currentTaskAttemptCount,
+    isCurrentTaskCorrect,
+    isFinalTaskInLevel,
+    levelNumber,
+    maxLevelStep,
+    results,
+    taskNumberInLevel,
+  ]);
 
   const { goToNextTask, handleGoHome, handleNextLevel } = createLevelNavigationHandlers({
     router,
@@ -100,6 +144,7 @@ export function useTaskLifecycle({
       ? {
           hasNextLevel,
           isCompleted: true,
+          summary: levelCompletionSummary,
           onGoHomePress: handleGoHome,
           onNextLevelPress: handleNextLevel,
         }

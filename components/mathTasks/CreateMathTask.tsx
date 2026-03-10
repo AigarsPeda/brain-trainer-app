@@ -132,6 +132,7 @@ export function CreateMathTask({
     level,
     maxLevelStep,
     isFinalTaskInLevel,
+    taskNumberInLevel: task.taskNumberInLevel,
     checkIfCorrect,
     resetTaskState,
   });

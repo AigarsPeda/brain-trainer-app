@@ -48,6 +48,7 @@ export default function MathTaskWithResult({
     level,
     maxLevelStep,
     isFinalTaskInLevel,
+    taskNumberInLevel: task.taskNumberInLevel,
     checkIfCorrect,
     resetTaskState,
   });

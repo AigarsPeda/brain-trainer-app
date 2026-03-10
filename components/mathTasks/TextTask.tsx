@@ -109,6 +109,7 @@ export function TextTask({
     level,
     maxLevelStep,
     isFinalTaskInLevel,
+    taskNumberInLevel: task.taskNumberInLevel,
     checkIfCorrect,
     resetTaskState,
   });
