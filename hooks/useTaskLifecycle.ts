@@ -14,6 +14,7 @@ interface UseTaskLifecycleArgs {
   isFinalTaskInLevel: boolean;
   checkIfCorrect: () => boolean;
   taskNumberInLevel: number;
+  getLevelCompletionDurationMs?: () => number;
 }
 
 export function useTaskLifecycle({
@@ -23,6 +24,7 @@ export function useTaskLifecycle({
   resetTaskState,
   isFinalTaskInLevel,
   taskNumberInLevel,
+  getLevelCompletionDurationMs,
 }: UseTaskLifecycleArgs) {
   const {
     dispatch,
@@ -33,6 +35,7 @@ export function useTaskLifecycle({
   const hasAppliedLifePenaltyRef = useRef(false);
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
+  const [completionTimeMs, setCompletionTimeMs] = useState<number | null>(null);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
@@ -78,9 +81,15 @@ export function useTaskLifecycle({
       },
     ];
 
-    return buildLevelFeedbackSummary(buildTaskFeedbackEntries(levelTasks, provisionalTaskResults), maxLevelStep);
+    return buildLevelFeedbackSummary(
+      buildTaskFeedbackEntries(levelTasks, provisionalTaskResults),
+      maxLevelStep,
+      completionTimeMs ?? getLevelCompletionDurationMs?.() ?? 0
+    );
   }, [
+    completionTimeMs,
     currentTaskAttemptCount,
+    getLevelCompletionDurationMs,
     isCurrentTaskCorrect,
     isFinalTaskInLevel,
     levelNumber,
@@ -109,10 +118,12 @@ export function useTaskLifecycle({
     if (!isCorrect) {
       hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
+    } else if (isFinalTaskInLevel) {
+      setCompletionTimeMs(getLevelCompletionDurationMs?.() ?? 0);
     }
 
     setDisplayTaskResults(true);
-  }, [checkIfCorrect, dispatch]);
+  }, [checkIfCorrect, dispatch, getLevelCompletionDurationMs, isFinalTaskInLevel]);
 
   const handleTryAgain = useCallback(() => {
     resetTaskState();

@@ -6,7 +6,7 @@ import { MainButton } from "@/components/MainButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { LevelFeedbackSummary } from "@/utils/levelFeedback";
+import { formatCompletionTime, LevelFeedbackSummary } from "@/utils/levelFeedback";
 import BottomSheet, { BottomSheetScrollView, useBottomSheetTimingConfigs } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { useMemo, useRef } from "react";
@@ -290,6 +290,13 @@ function LevelCompletionNotice({
           <ThemedView style={styles.feedbackStatsGrid}>
             <FeedbackStat label="Precizitāte" value={`${summary.accuracy}%`} accentColor={tint} />
             <FeedbackStat label="Labākā sērija" value={`${summary.bestStreak}`} accentColor={icon} />
+          </ThemedView>
+
+          <ThemedView style={styles.feedbackSection}>
+            <ThemedText type="defaultSemiBold" style={styles.feedbackSectionTitle}>
+              Pabeigšanas laiks
+            </ThemedText>
+            <ThemedText style={styles.feedbackBody}>{formatCompletionTime(summary.completionTimeMs)}</ThemedText>
           </ThemedView>
 
           <ThemedView style={styles.feedbackSection}>

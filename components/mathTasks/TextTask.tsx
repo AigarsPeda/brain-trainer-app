@@ -18,6 +18,7 @@ interface TextTaskProps {
   removedAnswerIds?: number[];
   isFinalTaskInLevel: boolean;
   showAsMultipleChoice?: boolean;
+  getLevelCompletionDurationMs?: () => number;
 }
 
 export function TextTask({
@@ -27,6 +28,7 @@ export function TextTask({
   isFinalTaskInLevel,
   removedAnswerIds = [],
   showAsMultipleChoice = false,
+  getLevelCompletionDurationMs,
 }: TextTaskProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -112,6 +114,7 @@ export function TextTask({
     taskNumberInLevel: task.taskNumberInLevel,
     checkIfCorrect,
     resetTaskState,
+    getLevelCompletionDurationMs,
   });
 
   const handleCheckAnswer = useCallback(() => {

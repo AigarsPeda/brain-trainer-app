@@ -1,4 +1,4 @@
-import { buildLevelFeedbackSummary, buildTaskFeedbackEntries } from "@/utils/levelFeedback";
+import { buildLevelFeedbackSummary, buildTaskFeedbackEntries, formatCompletionTime } from "@/utils/levelFeedback";
 import { TaskType } from "@/context/app.context.reducer";
 
 describe("level feedback", () => {
@@ -38,15 +38,23 @@ describe("level feedback", () => {
         { taskNumber: "2", correctnessPercentage: 10 },
         { taskNumber: "3", correctnessPercentage: 33.33 },
       ]),
-      3
+      3,
+      125000
     );
 
     expect(summary.accuracy).toBe(77);
     expect(summary.bestStreak).toBe(1);
+    expect(summary.completionTimeMs).toBe(125000);
     expect(summary.weakTaskTypes[0]).toMatchObject({
       taskType: "createMathTask",
       averageScore: 30,
     });
     expect(summary.recommendedNextStep).toContain("vienādojuma");
+  });
+
+  it("formats completion time for display", () => {
+    expect(formatCompletionTime(42000)).toBe("42 sek");
+    expect(formatCompletionTime(125000)).toBe("2 min 05 sek");
+    expect(formatCompletionTime(3900000)).toBe("1 h 5 min");
   });
 });

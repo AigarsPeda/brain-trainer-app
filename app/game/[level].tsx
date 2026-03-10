@@ -27,7 +27,7 @@ import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { findIncorrectCreateMathOptions, findIncorrectMultiAnswerOptions, selectRandomItem } from "@/utils/taskHelpers";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, View } from "react-native";
 import Animated, { SlideInRight, SlideOutLeft } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -61,6 +61,8 @@ export default function GameLevelScreen() {
   const levelNumber = Number(level);
   const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
   const hasRenderedInitialTaskRef = useRef(false);
+  const levelTimerLevelRef = useRef<number | null>(null);
+  const levelStartedAtRef = useRef<number | null>(null);
   const selectedTaskInLevel =
     !Number.isNaN(levelNumber) && levelNumber > 0
       ? getTaskInLevelForSelection({ levels, results }, levelNumber)
@@ -96,6 +98,25 @@ export default function GameLevelScreen() {
 
   useEffect(() => {
     hasRenderedInitialTaskRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!currentTask || Number.isNaN(levelNumber) || levelNumber < 1) {
+      return;
+    }
+
+    if (levelTimerLevelRef.current !== levelNumber) {
+      levelTimerLevelRef.current = levelNumber;
+      levelStartedAtRef.current = Date.now();
+    }
+  }, [currentTask, levelNumber]);
+
+  const getLevelCompletionDurationMs = useCallback(() => {
+    if (!levelStartedAtRef.current) {
+      return 0;
+    }
+
+    return Date.now() - levelStartedAtRef.current;
   }, []);
 
   const canRemoveAnswer = useMemo(() => {
@@ -296,6 +317,7 @@ export default function GameLevelScreen() {
                 maxLevelStep={maxLevelStep}
                 removedAnswerIds={removedAnswerIds}
                 isFinalTaskInLevel={isFinalTaskInLevel}
+                getLevelCompletionDurationMs={getLevelCompletionDurationMs}
               />
             )}
             {isCreateMathTask(currentTask) && (
@@ -305,6 +327,7 @@ export default function GameLevelScreen() {
                 maxLevelStep={maxLevelStep}
                 removedAnswerIds={removedAnswerIds}
                 isFinalTaskInLevel={isFinalTaskInLevel}
+                getLevelCompletionDurationMs={getLevelCompletionDurationMs}
               />
             )}
             {isTextTask(currentTask) && (
@@ -315,6 +338,7 @@ export default function GameLevelScreen() {
                 removedAnswerIds={removedAnswerIds}
                 isFinalTaskInLevel={isFinalTaskInLevel}
                 showAsMultipleChoice={showTextTaskAsMultipleChoice}
+                getLevelCompletionDurationMs={getLevelCompletionDurationMs}
               />
             )}
           </Animated.View>

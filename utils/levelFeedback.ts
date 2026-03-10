@@ -15,6 +15,7 @@ export type WeakTaskTypeSummary = {
 export type LevelFeedbackSummary = {
   accuracy: number;
   bestStreak: number;
+  completionTimeMs: number;
   weakTaskTypes: WeakTaskTypeSummary[];
   recommendedNextStep: string;
 };
@@ -88,12 +89,34 @@ const getRecommendedNextStep = (weakTaskTypes: WeakTaskTypeSummary[], accuracy: 
   return "Rezultāts ir stabils. Mēģini nākamajā līmenī noturēt garāku pirmā mēģinājuma sēriju.";
 };
 
-export const buildLevelFeedbackSummary = (entries: TaskFeedbackEntry[], maxLevelStep: number): LevelFeedbackSummary => {
+export const formatCompletionTime = (completionTimeMs: number): string => {
+  const totalSeconds = Math.max(1, Math.round(completionTimeMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours} h ${minutes} min`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes} min ${seconds.toString().padStart(2, "0")} sek`;
+  }
+
+  return `${seconds} sek`;
+};
+
+export const buildLevelFeedbackSummary = (
+  entries: TaskFeedbackEntry[],
+  maxLevelStep: number,
+  completionTimeMs: number
+): LevelFeedbackSummary => {
   const accuracy = Math.round(entries.reduce((sum, entry) => sum + entry.correctnessPercentage, 0));
   const weakTaskTypes = getWeakTaskTypes(entries, maxLevelStep);
 
   return {
     accuracy,
+    completionTimeMs,
     weakTaskTypes,
     bestStreak: getBestFirstTryStreak(entries, maxLevelStep),
     recommendedNextStep: getRecommendedNextStep(weakTaskTypes, accuracy),

@@ -80,6 +80,7 @@ interface CreateMathTaskProps {
   task: CreateMathTaskType;
   isFinalTaskInLevel: boolean;
   removedAnswerIds?: number[];
+  getLevelCompletionDurationMs?: () => number;
 }
 
 export function CreateMathTask({
@@ -88,6 +89,7 @@ export function CreateMathTask({
   maxLevelStep,
   isFinalTaskInLevel,
   removedAnswerIds = [],
+  getLevelCompletionDurationMs,
 }: CreateMathTaskProps) {
   const { width } = useWindowDimensions();
   const colorScheme = useAppColorScheme();
@@ -135,6 +137,7 @@ export function CreateMathTask({
     taskNumberInLevel: task.taskNumberInLevel,
     checkIfCorrect,
     resetTaskState,
+    getLevelCompletionDurationMs,
   });
 
   const isAllAnswersCorrect = checkIfCorrect();

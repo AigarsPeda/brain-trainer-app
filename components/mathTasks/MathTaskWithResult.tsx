@@ -19,6 +19,7 @@ interface MathTaskWithResultProps {
   isFinalTaskInLevel: boolean;
   task: MultiAnswerMathTaskType;
   removedAnswerIds?: number[];
+  getLevelCompletionDurationMs?: () => number;
 }
 
 export default function MathTaskWithResult({
@@ -27,6 +28,7 @@ export default function MathTaskWithResult({
   maxLevelStep,
   isFinalTaskInLevel,
   removedAnswerIds = [],
+  getLevelCompletionDurationMs,
 }: MathTaskWithResultProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -51,6 +53,7 @@ export default function MathTaskWithResult({
     taskNumberInLevel: task.taskNumberInLevel,
     checkIfCorrect,
     resetTaskState,
+    getLevelCompletionDurationMs,
   });
 
   const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;
