@@ -4,6 +4,7 @@ import Animated, { SharedValue, useAnimatedScrollHandler, useSharedValue } from 
 
 // Fixed item height for getItemLayout optimization
 const ITEM_HEIGHT = 190; // 170 height + 20 marginTop from ListItem styles
+const INITIAL_FOCUS_Y_BIAS = -80;
 
 interface AnimatedFlatListProps<T> {
   itemHeight?: number;
@@ -36,26 +37,42 @@ function AnimatedFlatListInner<T extends { levelNumber?: number }>(
   } = props;
 
   const flatListRef = useRef<FlatList<T>>(null);
+  const hasInitialScrollTarget = initialScrollIndex !== undefined && initialScrollIndex > 0;
+
+  const getCenteredOffset = useCallback(
+    (index: number) => {
+      const screenHeight = Dimensions.get("window").height;
+      return Math.max(0, itemHeight * index + paddingTop - screenHeight / 2 + itemHeight / 2 - INITIAL_FOCUS_Y_BIAS);
+    },
+    [itemHeight, paddingTop]
+  );
+
+  const initialRenderIndex = useMemo(() => {
+    if (!hasInitialScrollTarget) {
+      return 0;
+    }
+
+    const screenHeight = Dimensions.get("window").height;
+    const itemsPerScreen = Math.ceil(screenHeight / itemHeight);
+    const itemsBeforeTarget = Math.max(1, Math.floor(itemsPerScreen / 2));
+
+    return Math.max(0, initialScrollIndex - itemsBeforeTarget);
+  }, [hasInitialScrollTarget, initialScrollIndex, itemHeight]);
 
   const initialContentOffset = useMemo(() => {
-    if (initialScrollIndex === undefined || initialScrollIndex <= 0) {
+    if (!hasInitialScrollTarget) {
       return undefined;
     }
-    const screenHeight = Dimensions.get("window").height;
-    // Center the item in viewport - item center at screen center
-    const y = Math.max(0, itemHeight * initialScrollIndex + paddingTop - screenHeight / 2 + itemHeight / 2);
-    return { x: 0, y };
-  }, [initialScrollIndex, itemHeight, paddingTop]);
+
+    return { x: 0, y: getCenteredOffset(initialScrollIndex) };
+  }, [getCenteredOffset, hasInitialScrollTarget, initialScrollIndex]);
 
   const scrollY = useSharedValue(initialContentOffset?.y ?? 0);
 
   // Expose scrollToIndex method to parent
   useImperativeHandle(ref, () => ({
     scrollToIndex: (index: number) => {
-      const screenHeight = Dimensions.get("window").height;
-      // Center the item in viewport - same calculation as initial offset
-      const offset = Math.max(0, itemHeight * index + paddingTop - screenHeight / 2 + itemHeight / 2);
-      flatListRef.current?.scrollToOffset({ offset, animated: true });
+      flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
     },
   }));
 
@@ -113,6 +130,16 @@ function AnimatedFlatListInner<T extends { levelNumber?: number }>(
     [paddingTop, paddingBottom, contentContainerStyle]
   );
 
+  const handleScrollToIndexFailed = useCallback(
+    ({ index }: { index: number }) => {
+      flatListRef.current?.scrollToOffset({
+        offset: getCenteredOffset(index),
+        animated: false,
+      });
+    },
+    [getCenteredOffset]
+  );
+
   return (
     <Animated.FlatList
       ref={flatListRef}
@@ -124,6 +151,7 @@ function AnimatedFlatListInner<T extends { levelNumber?: number }>(
       onScroll={scrollHandler}
       scrollEventThrottle={16}
       onViewableItemsChanged={handleViewableItemsChanged}
+      onScrollToIndexFailed={handleScrollToIndexFailed}
       viewabilityConfig={viewabilityConfig}
       // Performance optimizations
       initialNumToRender={8}
@@ -132,7 +160,8 @@ function AnimatedFlatListInner<T extends { levelNumber?: number }>(
       removeClippedSubviews={true}
       updateCellsBatchingPeriod={100}
       showsVerticalScrollIndicator={false}
-      {...(initialContentOffset && { contentOffset: initialContentOffset })}
+      contentOffset={initialContentOffset}
+      initialScrollIndex={hasInitialScrollTarget ? initialRenderIndex : undefined}
     />
   );
 }
