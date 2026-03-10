@@ -9,7 +9,7 @@ import { checkAnswers } from "@/utils/game";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LayoutRectangle, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { LayoutChangeEvent, LayoutRectangle, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
@@ -48,19 +48,6 @@ export const getResponsiveCreateMathLayout = (width: number): ResponsiveCreateMa
   };
 };
 
-const measureView = (ref: React.RefObject<View | null>): Promise<LayoutRectangle> => {
-  return new Promise((resolve) => {
-    if (!ref.current) {
-      resolve({ x: 0, y: 0, width: 0, height: 0 });
-      return;
-    }
-
-    ref.current.measure((x, y, width, height, pageX, pageY) => {
-      resolve({ x: pageX, y: pageY, width, height });
-    });
-  });
-};
-
 const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   return (
     boxA.x < boxB.x + boxB.width &&
@@ -70,13 +57,9 @@ const doBoxesIntersect = (boxA: LayoutRectangle, boxB: LayoutRectangle) => {
   );
 };
 
-const getDropZonePosition = (
-  zoneLayout: LayoutRectangle,
-  containerLayoutRect: LayoutRectangle,
-  draggableNumberSize: number
-): NumberPosition => {
-  const relativeX = zoneLayout.x - containerLayoutRect.x + (zoneLayout.width - draggableNumberSize) / 2;
-  const relativeY = zoneLayout.y - containerLayoutRect.y + (zoneLayout.height - draggableNumberSize) / 2;
+const getDropZonePosition = (zoneLayout: LayoutRectangle, draggableNumberSize: number): NumberPosition => {
+  const relativeX = zoneLayout.x + (zoneLayout.width - draggableNumberSize) / 2;
+  const relativeY = zoneLayout.y + (zoneLayout.height - draggableNumberSize) / 2;
 
   return { x: relativeX, y: relativeY };
 };
@@ -84,6 +67,11 @@ const getDropZonePosition = (
 interface NumberPosition {
   x: number;
   y: number;
+}
+
+interface CreateMathTaskOption {
+  id: number;
+  value: number;
 }
 
 interface CreateMathTaskProps {
@@ -103,34 +91,39 @@ export function CreateMathTask({
 }: CreateMathTaskProps) {
   const { width } = useWindowDimensions();
   const colorScheme = useAppColorScheme();
-  const leftZoneRef = useRef<View | null>(null);
-  const rightZoneRef = useRef<View | null>(null);
-  const containerRef = useRef<View | null>(null);
   const dropZoneColors = DropZoneColors[colorScheme ?? "dark"];
   const { dropZoneSize, draggableNumberSize, equationFontSize, rowGap, draggableNumberFontSize, snappedScale } =
     useMemo(() => getResponsiveCreateMathLayout(width), [width]);
 
-  const [leftValue, setLeftValue] = useState<number | null>(null);
-  const [rightValue, setRightValue] = useState<number | null>(null);
-  const [containerLayout, setContainerLayout] = useState<LayoutRectangle | null>(null);
+  const [leftOptionId, setLeftOptionId] = useState<number | null>(null);
+  const [rightOptionId, setRightOptionId] = useState<number | null>(null);
+  const [leftZoneLayout, setLeftZoneLayout] = useState<LayoutRectangle | null>(null);
+  const [rightZoneLayout, setRightZoneLayout] = useState<LayoutRectangle | null>(null);
+  const [numbersContainerLayout, setNumbersContainerLayout] = useState<LayoutRectangle | null>(null);
 
   const [numberPositions, setNumberPositions] = useState<Map<number, NumberPosition>>(new Map());
-  const numbers = useMemo(
-    () => task.options.filter((option) => !removedAnswerIds.includes(option.id)).map((item) => Number(item.number)),
+  const options = useMemo<CreateMathTaskOption[]>(
+    () =>
+      task.options
+        .filter((option) => !removedAnswerIds.includes(option.id))
+        .map((option) => ({ id: option.id, value: Number(option.number) })),
     [task.options, removedAnswerIds]
   );
+  const optionValueMap = useMemo(() => new Map(options.map((option) => [option.id, option.value])), [options]);
 
   const initializedRef = useRef(false);
   const [resetKey, setResetKey] = useState(0);
-  const isBothValuesSet = leftValue !== null && rightValue !== null;
+  const leftValue = leftOptionId !== null ? (optionValueMap.get(leftOptionId) ?? null) : null;
+  const rightValue = rightOptionId !== null ? (optionValueMap.get(rightOptionId) ?? null) : null;
+  const isBothValuesSet = leftOptionId !== null && rightOptionId !== null;
 
   const checkIfCorrect = useCallback((): boolean => {
     return checkAnswers(leftValue, rightValue, task.operation, task.result);
   }, [leftValue, rightValue, task.operation, task.result]);
 
   const resetTaskState = useCallback(() => {
-    setLeftValue(null);
-    setRightValue(null);
+    setLeftOptionId(null);
+    setRightOptionId(null);
     initializedRef.current = false;
     setResetKey((prev) => prev + 1);
   }, []);
@@ -145,14 +138,34 @@ export function CreateMathTask({
 
   const isAllAnswersCorrect = checkIfCorrect();
 
+  const updateLayout = useCallback(
+    (setter: React.Dispatch<React.SetStateAction<LayoutRectangle | null>>, event: LayoutChangeEvent) => {
+      const { x, y, width: nextWidth, height: nextHeight } = event.nativeEvent.layout;
+
+      setter((previous) => {
+        if (
+          previous?.x === x &&
+          previous?.y === y &&
+          previous?.width === nextWidth &&
+          previous?.height === nextHeight
+        ) {
+          return previous;
+        }
+
+        return { x, y, width: nextWidth, height: nextHeight };
+      });
+    },
+    []
+  );
+
   const generateAllPositions = useCallback(
-    (numbers: number[]): Map<number, NumberPosition> => {
-      if (!containerLayout) {
+    (optionIds: number[]): Map<number, NumberPosition> => {
+      if (!numbersContainerLayout) {
         return new Map();
       }
 
-      const availableWidth = containerLayout.width - GRID_MARGIN * 2;
-      const availableHeight = CONTAINER_HEIGHT - GRID_MARGIN * 2;
+      const availableWidth = numbersContainerLayout.width - GRID_MARGIN * 2;
+      const availableHeight = numbersContainerLayout.height - GRID_MARGIN * 2;
 
       const cellWidth = availableWidth / GRID_COLS;
       const cellHeight = availableHeight / GRID_ROWS;
@@ -180,23 +193,23 @@ export function CreateMathTask({
       const shuffledPositions = gridPositions.sort(() => Math.random() - 0.5);
 
       const positionsMap = new Map<number, NumberPosition>();
-      numbers.forEach((number, index) => {
-        positionsMap.set(number, shuffledPositions[index] || { x: GRID_MARGIN, y: GRID_MARGIN });
+      optionIds.forEach((optionId, index) => {
+        positionsMap.set(optionId, shuffledPositions[index] || { x: GRID_MARGIN, y: GRID_MARGIN });
       });
 
       return positionsMap;
     },
-    [containerLayout, draggableNumberSize]
+    [draggableNumberSize, numbersContainerLayout]
   );
 
   const generateRandomPosition = useCallback(
-    (existingPositions: Map<number, NumberPosition> = new Map(), excludeNumber?: number): NumberPosition => {
-      if (!containerLayout) {
+    (existingPositions: Map<number, NumberPosition> = new Map(), excludeOptionId?: number): NumberPosition => {
+      if (!numbersContainerLayout) {
         return { x: 0, y: 0 };
       }
 
-      const availableWidth = containerLayout.width - GRID_MARGIN * 2;
-      const availableHeight = CONTAINER_HEIGHT - GRID_MARGIN * 2;
+      const availableWidth = numbersContainerLayout.width - GRID_MARGIN * 2;
+      const availableHeight = numbersContainerLayout.height - GRID_MARGIN * 2;
 
       const cellWidth = availableWidth / GRID_COLS;
       const cellHeight = availableHeight / GRID_ROWS;
@@ -210,8 +223,8 @@ export function CreateMathTask({
           const y = GRID_MARGIN + row * cellHeight + (cellHeight - draggableNumberSize) / 2;
 
           let isOccupied = false;
-          for (const [num, existingPos] of existingPositions) {
-            if (excludeNumber !== undefined && num === excludeNumber) {
+          for (const [optionId, existingPos] of existingPositions) {
+            if (excludeOptionId !== undefined && optionId === excludeOptionId) {
               continue;
             }
             if (Math.abs(x - existingPos.x) < minimumSpacing && Math.abs(y - existingPos.y) < minimumSpacing) {
@@ -230,7 +243,7 @@ export function CreateMathTask({
 
       return { x: GRID_MARGIN, y: GRID_MARGIN };
     },
-    [containerLayout, draggableNumberSize]
+    [draggableNumberSize, numbersContainerLayout]
   );
 
   useEffect(() => {
@@ -238,83 +251,110 @@ export function CreateMathTask({
   }, [draggableNumberSize]);
 
   useEffect(() => {
-    if (!containerLayout) {
+    if (!numbersContainerLayout) {
       return;
     }
     if (initializedRef.current) {
       return;
     }
 
-    const initialPositions = generateAllPositions(numbers);
+    const initialPositions = generateAllPositions(options.map((option) => option.id));
 
     setNumberPositions(initialPositions);
     initializedRef.current = true;
-  }, [containerLayout, numbers, generateAllPositions, resetKey]);
+  }, [generateAllPositions, numbersContainerLayout, options, resetKey]);
 
   const animateNumberToRandomPosition = useCallback(
-    (num: number) => {
+    (optionId: number) => {
       setNumberPositions((prev) => {
         const cloned = new Map(prev);
-        const newPosition = generateRandomPosition(prev, num);
-        cloned.set(num, newPosition);
+        const newPosition = generateRandomPosition(prev, optionId);
+        cloned.set(optionId, newPosition);
         return cloned;
       });
     },
     [generateRandomPosition]
   );
 
-  const handleDrop = useCallback(
-    async (x: number, y: number, number: number) => {
-      if (leftValue === number) {
-        setLeftValue(null);
+  const getRelativeDropZoneLayout = useCallback(
+    (zoneLayout: LayoutRectangle | null): LayoutRectangle | null => {
+      if (!zoneLayout || !numbersContainerLayout) {
+        return null;
       }
-      if (rightValue === number) {
-        setRightValue(null);
+
+      return {
+        x: zoneLayout.x - numbersContainerLayout.x,
+        y: zoneLayout.y - numbersContainerLayout.y,
+        width: zoneLayout.width,
+        height: zoneLayout.height,
+      };
+    },
+    [numbersContainerLayout]
+  );
+
+  const handleDrop = useCallback(
+    (centerX: number, centerY: number, optionId: number) => {
+      if (!numbersContainerLayout) {
+        animateNumberToRandomPosition(optionId);
+        return;
+      }
+
+      if (leftOptionId === optionId) {
+        setLeftOptionId(null);
+      }
+      if (rightOptionId === optionId) {
+        setRightOptionId(null);
       }
 
       const draggedItemBox: LayoutRectangle = {
-        x: x - draggableNumberSize / 2,
-        y: y - draggableNumberSize / 2,
+        x: centerX - draggableNumberSize / 2,
+        y: centerY - draggableNumberSize / 2,
         width: draggableNumberSize,
         height: draggableNumberSize,
       };
 
-      const [leftZoneLayout, rightZoneLayout, freshContainerLayout] = await Promise.all([
-        measureView(leftZoneRef),
-        measureView(rightZoneRef),
-        measureView(containerRef),
-      ]);
+      const leftDropZoneLayout = getRelativeDropZoneLayout(leftZoneLayout);
+      const rightDropZoneLayout = getRelativeDropZoneLayout(rightZoneLayout);
 
-      if (freshContainerLayout.width === 0 || freshContainerLayout.height === 0) {
-        animateNumberToRandomPosition(number);
+      if (!leftDropZoneLayout || !rightDropZoneLayout) {
+        animateNumberToRandomPosition(optionId);
         return;
       }
 
-      if (doBoxesIntersect(draggedItemBox, leftZoneLayout)) {
-        if (leftValue !== null) {
-          animateNumberToRandomPosition(leftValue);
+      if (doBoxesIntersect(draggedItemBox, leftDropZoneLayout)) {
+        if (leftOptionId !== null && leftOptionId !== optionId) {
+          animateNumberToRandomPosition(leftOptionId);
         }
-        setLeftValue(number);
-        const dropPosition = getDropZonePosition(leftZoneLayout, freshContainerLayout, draggableNumberSize);
-        setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
+        setLeftOptionId(optionId);
+        const dropPosition = getDropZonePosition(leftDropZoneLayout, draggableNumberSize);
+        setNumberPositions((prev) => new Map(prev).set(optionId, dropPosition));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         return;
       }
 
-      if (doBoxesIntersect(draggedItemBox, rightZoneLayout)) {
-        if (rightValue !== null) {
-          animateNumberToRandomPosition(rightValue);
+      if (doBoxesIntersect(draggedItemBox, rightDropZoneLayout)) {
+        if (rightOptionId !== null && rightOptionId !== optionId) {
+          animateNumberToRandomPosition(rightOptionId);
         }
-        setRightValue(number);
-        const dropPosition = getDropZonePosition(rightZoneLayout, freshContainerLayout, draggableNumberSize);
-        setNumberPositions((prev) => new Map(prev).set(number, dropPosition));
+        setRightOptionId(optionId);
+        const dropPosition = getDropZonePosition(rightDropZoneLayout, draggableNumberSize);
+        setNumberPositions((prev) => new Map(prev).set(optionId, dropPosition));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         return;
       }
 
-      animateNumberToRandomPosition(number);
+      animateNumberToRandomPosition(optionId);
     },
-    [leftValue, rightValue, animateNumberToRandomPosition, draggableNumberSize]
+    [
+      animateNumberToRandomPosition,
+      draggableNumberSize,
+      getRelativeDropZoneLayout,
+      leftOptionId,
+      leftZoneLayout,
+      numbersContainerLayout,
+      rightOptionId,
+      rightZoneLayout,
+    ]
   );
 
   return (
@@ -341,84 +381,85 @@ export function CreateMathTask({
                 vienādojumu
               </ThemedText>
             </View>
-            <View testID="equation-row" style={[styles.equationRow, { gap: rowGap }]}>
-              <View
-                ref={leftZoneRef}
-                testID="left-drop-zone"
-                style={[
-                  styles.dropZone,
-                  {
-                    width: dropZoneSize,
-                    height: dropZoneSize,
-                    borderColor: dropZoneColors.border,
-                    backgroundColor: dropZoneColors.background,
-                  },
-                ]}
-              />
+            <View style={styles.boardLayout}>
+              <View testID="equation-row" style={[styles.equationRow, { gap: rowGap }]}>
+                <View
+                  testID="left-drop-zone"
+                  onLayout={(event) => updateLayout(setLeftZoneLayout, event)}
+                  style={[
+                    styles.dropZone,
+                    {
+                      width: dropZoneSize,
+                      height: dropZoneSize,
+                      borderColor: dropZoneColors.border,
+                      backgroundColor: dropZoneColors.background,
+                    },
+                  ]}
+                />
 
-              <ThemedText type="defaultSemiBold" style={[styles.operationText, { fontSize: equationFontSize }]}>
-                {task.operation}
-              </ThemedText>
-
-              <View
-                ref={rightZoneRef}
-                testID="right-drop-zone"
-                style={[
-                  styles.dropZone,
-                  {
-                    width: dropZoneSize,
-                    height: dropZoneSize,
-                    borderColor: dropZoneColors.border,
-                    backgroundColor: dropZoneColors.background,
-                  },
-                ]}
-              />
-
-              <ThemedText type="defaultSemiBold" style={[styles.operationText, { fontSize: equationFontSize }]}>
-                =
-              </ThemedText>
-
-              <View style={styles.resultContainer}>
-                <ThemedText
-                  testID="result-text"
-                  type="defaultSemiBold"
-                  style={[styles.operationText, styles.resultText, { fontSize: equationFontSize }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
-                >
-                  {task.result}
+                <ThemedText type="defaultSemiBold" style={[styles.operationText, { fontSize: equationFontSize }]}>
+                  {task.operation}
                 </ThemedText>
-              </View>
-            </View>
 
-            <View
-              ref={containerRef}
-              onLayout={() => {
-                containerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
-                  setContainerLayout({ x: pageX, y: pageY, width, height });
-                });
-              }}
-              style={styles.numbersContainer}
-            >
-              {numbers.map((number) => {
-                const position = numberPositions.get(number);
-                if (!position) {
-                  return null;
-                }
-                return (
-                  <DraggableNumber
-                    key={number}
-                    number={number}
-                    size={draggableNumberSize}
-                    fontSize={draggableNumberFontSize}
-                    snappedScale={snappedScale}
-                    initialPosition={position}
-                    isSnapped={leftValue === number || rightValue === number}
-                    onDrop={(x, y) => handleDrop(x, y, number)}
-                  />
-                );
-              })}
+                <View
+                  testID="right-drop-zone"
+                  onLayout={(event) => updateLayout(setRightZoneLayout, event)}
+                  style={[
+                    styles.dropZone,
+                    {
+                      width: dropZoneSize,
+                      height: dropZoneSize,
+                      borderColor: dropZoneColors.border,
+                      backgroundColor: dropZoneColors.background,
+                    },
+                  ]}
+                />
+
+                <ThemedText type="defaultSemiBold" style={[styles.operationText, { fontSize: equationFontSize }]}>
+                  =
+                </ThemedText>
+
+                <View style={styles.resultContainer}>
+                  <ThemedText
+                    testID="result-text"
+                    type="defaultSemiBold"
+                    style={[styles.operationText, styles.resultText, { fontSize: equationFontSize }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                  >
+                    {task.result}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View
+                onLayout={(event) => updateLayout(setNumbersContainerLayout, event)}
+                style={styles.numbersContainer}
+              >
+                {options.map((option) => {
+                  const position = numberPositions.get(option.id);
+                  const isSnapped = leftOptionId === option.id || rightOptionId === option.id;
+
+                  if (!position) {
+                    return null;
+                  }
+
+                  return (
+                    <DraggableNumber
+                      key={option.id}
+                      optionId={option.id}
+                      value={option.value}
+                      size={draggableNumberSize}
+                      fontSize={draggableNumberFontSize}
+                      snappedScale={snappedScale}
+                      initialPosition={position}
+                      isSnapped={isSnapped}
+                      onDrop={handleDrop}
+                    />
+                  );
+                })}
+              </View>
             </View>
           </ScrollView>
 
@@ -443,17 +484,19 @@ export function CreateMathTask({
 }
 
 interface DraggableNumberProps {
-  number: number;
+  optionId: number;
+  value: number;
   size: number;
   fontSize: number;
   snappedScale: number;
   isSnapped: boolean;
   initialPosition: NumberPosition;
-  onDrop: (x: number, y: number) => void;
+  onDrop: (centerX: number, centerY: number, optionId: number) => void;
 }
 
 const DraggableNumber = ({
-  number,
+  optionId,
+  value,
   size,
   fontSize,
   snappedScale,
@@ -498,9 +541,8 @@ const DraggableNumber = ({
       positionX.value = context.value.x + event.translationX;
       positionY.value = context.value.y + event.translationY;
     })
-    .onEnd((event) => {
-      const { absoluteX, absoluteY } = event;
-      scheduleOnRN(onDrop, absoluteX, absoluteY);
+    .onEnd(() => {
+      scheduleOnRN(onDrop, positionX.value + size / 2, positionY.value + size / 2, optionId);
       zIndex.value = 0;
       isDragging.value = false;
       scale.value = withSpring(isSnappedSV.value ? snappedScale : NORMAL_SCALE);
@@ -533,7 +575,7 @@ const DraggableNumber = ({
     <GestureDetector gesture={panGesture}>
       <Animated.View style={animatedStyle}>
         <LinearGradient
-          testID={`draggable-number-${number}`}
+          testID={`draggable-number-${optionId}`}
           end={{ x: 0.5, y: 1 }}
           start={{ x: 0.5, y: 0 }}
           style={[styles.numberContainer, { width: size, height: size, borderRadius: Math.max(8, size * 0.14) }]}
@@ -541,7 +583,7 @@ const DraggableNumber = ({
         >
           <Animated.View style={overlayStyle} pointerEvents="none" />
           <ThemedText type="defaultSemiBold" style={{ fontSize, color: textColor, textAlign: "center" }}>
-            {number}
+            {value}
           </ThemedText>
         </LinearGradient>
       </Animated.View>
@@ -562,6 +604,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: BUTTON_BOTTOM_MARGIN + BUTTON_CONTAINER_HEIGHT + BUTTON_CONTENT_PADDING,
+  },
+  boardLayout: {
+    width: "100%",
   },
   buttonContainer: {
     position: "absolute",

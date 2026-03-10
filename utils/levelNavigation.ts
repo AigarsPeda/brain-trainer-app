@@ -5,6 +5,7 @@ type LevelNavigationArgs = {
   hasNextLevel: boolean;
   nextLevelValue?: string;
   isFinalTaskInLevel: boolean;
+  canFinalizeTaskProgress: () => boolean;
   finalizeTaskProgress: () => void;
 };
 
@@ -19,6 +20,7 @@ export const createLevelNavigationHandlers = ({
   hasNextLevel,
   nextLevelValue,
   isFinalTaskInLevel,
+  canFinalizeTaskProgress,
   finalizeTaskProgress,
 }: LevelNavigationArgs): LevelNavigationHandlers => {
   const goToNextTask = () => {
@@ -30,7 +32,10 @@ export const createLevelNavigationHandlers = ({
   };
 
   const handleGoHome = () => {
-    finalizeTaskProgress();
+    if (canFinalizeTaskProgress()) {
+      finalizeTaskProgress();
+    }
+
     router.replace("/");
   };
 

@@ -65,15 +65,9 @@ const getTextTaskExplanation = (task: TextTaskType): MathExplanation => {
 const isSubtractionTextTask = (question: string): boolean => {
   const normalizedQuestion = question.toLowerCase();
 
-  return [
-    "apēdu",
-    "atdevu",
-    "pārdeva",
-    "paņēma",
-    "nokrita",
-    "novāca",
-    "palika",
-  ].some((keyword) => normalizedQuestion.includes(keyword));
+  return ["apēdu", "atdevu", "pārdeva", "paņēma", "nokrita", "novāca", "palika"].some((keyword) =>
+    normalizedQuestion.includes(keyword)
+  );
 };
 
 const getTextAdditionExplanation = (itemIcon?: ImageSourcePropType): MathExplanation => {
@@ -124,34 +118,42 @@ const getTextSubtractionExplanation = (itemIcon?: ImageSourcePropType): MathExpl
  * Detects the math operation from an equation string
  */
 const detectOperationFromEquation = (equation: string): MathOperation => {
-  if (equation.includes("+")) return "+";
-  if (equation.includes("-")) return "-";
-  if (equation.includes("×") || equation.includes("*")) return "×";
-  if (equation.includes("÷") || equation.includes("/")) return "÷";
+  if (equation.includes("+")) {
+    return "+";
+  }
+  if (equation.includes("-")) {
+    return "-";
+  }
+  if (equation.includes("×") || equation.includes("*")) {
+    return "×";
+  }
+  if (equation.includes("÷") || equation.includes("/")) {
+    return "÷";
+  }
   return "+"; // default
 };
 
 /**
  * Returns an explanation based on the operation type
  */
-const getExplanationForOperation = (operation: MathOperation, targetResult?: number): MathExplanation => {
+const getExplanationForOperation = (operation: MathOperation): MathExplanation => {
   switch (operation) {
     case "+":
-      return getAdditionExplanation(targetResult);
+      return getAdditionExplanation();
     case "-":
-      return getSubtractionExplanation(targetResult);
+      return getSubtractionExplanation();
     case "×":
     case "*":
-      return getMultiplicationExplanation(targetResult);
+      return getMultiplicationExplanation();
     case "÷":
     case "/":
-      return getDivisionExplanation(targetResult);
+      return getDivisionExplanation();
     default:
-      return getAdditionExplanation(targetResult);
+      return getAdditionExplanation();
   }
 };
 
-const getAdditionExplanation = (targetResult?: number): MathExplanation => {
+const getAdditionExplanation = (): MathExplanation => {
   // Use simple numbers for kids
   const left = 3;
   const right = 2;
@@ -173,7 +175,7 @@ const getAdditionExplanation = (targetResult?: number): MathExplanation => {
   };
 };
 
-const getSubtractionExplanation = (targetResult?: number): MathExplanation => {
+const getSubtractionExplanation = (): MathExplanation => {
   const left = 5;
   const right = 2;
   const result = left - right;
@@ -194,7 +196,7 @@ const getSubtractionExplanation = (targetResult?: number): MathExplanation => {
   };
 };
 
-const getMultiplicationExplanation = (targetResult?: number): MathExplanation => {
+const getMultiplicationExplanation = (): MathExplanation => {
   const left = 3;
   const right = 2;
   const result = left * right;
@@ -215,7 +217,7 @@ const getMultiplicationExplanation = (targetResult?: number): MathExplanation =>
   };
 };
 
-const getDivisionExplanation = (targetResult?: number): MathExplanation => {
+const getDivisionExplanation = (): MathExplanation => {
   const left = 6;
   const right = 2;
   const result = left / right;

@@ -11,7 +11,7 @@
     "ios": "npm run generate:levels && expo run:ios --device",
     "web": "npm run generate:levels && expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint",
+    "lint": "eslint .",
     "licenses": "node scripts/licenses.mjs",
     "dependencies": "npm run licenses"
   },

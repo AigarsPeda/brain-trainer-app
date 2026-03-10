@@ -3,18 +3,11 @@ import js from "@eslint/js";
 import reactPlugin from "eslint-plugin-react";
 import typescript from "typescript-eslint";
 import prettierConfig from "eslint-plugin-prettier/recommended";
-import importPlugin from "eslint-plugin-import";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import parser from "@typescript-eslint/parser";
 
 export default [
-  js.configs.recommended,
-  ...typescript.configs.recommended,
-  reactPlugin.configs.flat?.recommended,
-  importPlugin.flatConfigs.typescript,
-  prettierConfig,
   {
-    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
     ignores: [
       "metro.config.js",
       "**/node_modules/**",
@@ -23,7 +16,18 @@ export default [
       "coverage/**",
       ".expo/**",
       "**/*.typegen.ts",
+      "data/levelLoaders.generated.ts",
+      "expo-env.d.ts",
+      "scripts/**",
+      "types/**",
     ],
+  },
+  js.configs.recommended,
+  ...typescript.configs.recommended,
+  reactPlugin.configs.flat?.recommended,
+  prettierConfig,
+  {
+    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
     plugins: {
       "react-hooks": reactHooksPlugin,
     },
@@ -52,12 +56,6 @@ export default [
     rules: {
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "import/no-cycle": [
-        1,
-        {
-          ignoreExternal: true,
-        },
-      ],
       "prettier/prettier": [
         "warn",
         {

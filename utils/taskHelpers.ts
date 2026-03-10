@@ -15,7 +15,9 @@ export const findIncorrectMultiAnswerOptions = (
   removedAnswerIds: number[]
 ): TaskOptionType[] => {
   return task.options.filter((option) => {
-    if (removedAnswerIds.includes(option.id)) return false;
+    if (removedAnswerIds.includes(option.id)) {
+      return false;
+    }
     return !isEquationCorrect(option.equation, task.result);
   });
 };
@@ -73,7 +75,9 @@ export const findIncorrectCreateMathOptions = (
   const correctNumbers = findCorrectNumbers(task);
 
   return task.options.filter((option) => {
-    if (removedAnswerIds.includes(option.id)) return false;
+    if (removedAnswerIds.includes(option.id)) {
+      return false;
+    }
     return !correctNumbers.has(Number(option.number));
   });
 };
@@ -82,7 +86,9 @@ export const findIncorrectCreateMathOptions = (
  * Selects and returns a random item from an array
  */
 export const selectRandomItem = <T>(items: T[]): T | null => {
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return null;
+  }
   const randomIndex = Math.floor(Math.random() * items.length);
   return items[randomIndex];
 };

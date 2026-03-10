@@ -97,3 +97,29 @@ describe("appReducer SELECT_LEVEL", () => {
     expect(nextState.results["3"]).toEqual(state.results["3"]);
   });
 });
+
+describe("appReducer GET_NEXT_TASK", () => {
+  it("does not advance progression on an incorrect answer", () => {
+    const state = {
+      ...initialState,
+      currentTaskAttemptCount: 1,
+      game: {
+        currentLevel: 2,
+        currentTaskInLevel: 3,
+      },
+      results: {
+        ...initialState.results,
+        "2": {
+          tasksResults: [{ taskNumber: "1", correctnessPercentage: 20 }],
+        },
+      },
+    };
+
+    const nextState = appReducer(state, {
+      type: "GET_NEXT_TASK",
+      payload: { isCorrect: false, maxLevelStep: 5 },
+    });
+
+    expect(nextState).toEqual(state);
+  });
+});

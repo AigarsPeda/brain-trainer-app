@@ -1,8 +1,16 @@
 import { LIFE_RESTORE_INTERVAL_MS, MAX_LIVES } from "@/constants/GameSettings";
-import { AppContext, AppContextStateType, appReducer, initialState } from "@/context/app.context.reducer";
+import {
+  AppDispatchContext,
+  AppStateContext,
+  AppStatsContext,
+  AppContextStateType,
+  AppThemeContext,
+  appReducer,
+  initialState,
+} from "@/context/app.context.reducer";
 import { calculateRestoredLives, validateDaysInARow } from "@/utils/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 const STORAGE_KEY = "brain_trainer_app_state";
 
@@ -11,6 +19,16 @@ export const AppContextProvider = ({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(true);
   const [state, dispatch] = useReducer(appReducer, initialState);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const theme = useMemo(() => state.theme ?? "dark", [state.theme]);
+  const stats = useMemo(
+    () => ({
+      gems: state.gems,
+      lives: state.lives,
+      daysInARow: state.daysInARow,
+      lastLifeLostAt: state.lastLifeLostAt,
+    }),
+    [state.daysInARow, state.gems, state.lastLifeLostAt, state.lives]
+  );
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -96,5 +114,13 @@ export const AppContextProvider = ({ children }: { children: React.ReactNode }) 
     return null;
   }
 
-  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
+  return (
+    <AppDispatchContext.Provider value={dispatch}>
+      <AppThemeContext.Provider value={theme}>
+        <AppStatsContext.Provider value={stats}>
+          <AppStateContext.Provider value={state}>{children}</AppStateContext.Provider>
+        </AppStatsContext.Provider>
+      </AppThemeContext.Provider>
+    </AppDispatchContext.Provider>
+  );
 };

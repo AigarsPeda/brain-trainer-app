@@ -6,7 +6,7 @@ import Heart from "@/assets/images/heart.png";
 import { SettingsModal } from "@/components/SettingsModal";
 import { StatisticsItem } from "@/components/StatisticsItem";
 import Settings from "@/assets/images/settings.png";
-import useAppContext from "@/hooks/useAppContext";
+import { useAppStats } from "@/hooks/useAppContext";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
 import { useState } from "react";
 import { useWindowDimensions, View } from "react-native";
@@ -18,21 +18,21 @@ interface UserStatisticsProps {
 }
 
 export function UserStatistics({ onLivesPress, onGemsPress, onStreakPress }: UserStatisticsProps) {
-  const { state } = useAppContext();
+  const stats = useAppStats();
   const { width } = useWindowDimensions();
 
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const livesAnimatedStyle = usePulseOnChange(state.lives);
-  const gemsAnimatedStyle = usePulseOnChange(state.gems);
+  const livesAnimatedStyle = usePulseOnChange(stats.lives);
+  const gemsAnimatedStyle = usePulseOnChange(stats.gems);
 
   const itemWidth = width / 4;
 
   const getFireImage = () => {
-    if (state.daysInARow >= 7) {
+    if (stats.daysInARow >= 7) {
       return FireOrange;
     }
 
-    if (state.daysInARow >= 3) {
+    if (stats.daysInARow >= 3) {
       return FireRed;
     }
 
@@ -54,7 +54,7 @@ export function UserStatistics({ onLivesPress, onGemsPress, onStreakPress }: Use
           <StatisticsItem
             src={getFireImage()}
             width={itemWidth}
-            stat={state.daysInARow}
+            stat={stats.daysInARow}
             size={{
               width: 38,
               height: 38,
@@ -64,7 +64,7 @@ export function UserStatistics({ onLivesPress, onGemsPress, onStreakPress }: Use
           <StatisticsItem
             src={Gem}
             width={itemWidth}
-            stat={state.gems}
+            stat={stats.gems}
             size={{
               width: 36,
               height: 36,
@@ -74,7 +74,7 @@ export function UserStatistics({ onLivesPress, onGemsPress, onStreakPress }: Use
           />
           <StatisticsItem
             src={Heart}
-            stat={state.lives}
+            stat={stats.lives}
             size={{
               width: 36,
               height: 36,

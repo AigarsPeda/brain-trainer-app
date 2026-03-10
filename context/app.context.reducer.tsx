@@ -99,6 +99,7 @@ export type AppContextType = {
 };
 
 export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType | TextTaskType;
+export type AppStatsContextType = Pick<AppContextStateType, "gems" | "lives" | "daysInARow" | "lastLifeLostAt">;
 
 export const isMultiAnswerMathTask = (task: TaskType): task is MultiAnswerMathTaskType => {
   return task.taskType === "mathTaskWithResult";
@@ -145,12 +146,10 @@ export const initialState: AppContextStateType = {
   },
 };
 
-export const initialContext: AppContextType = {
-  state: initialState,
-  dispatch: () => null,
-};
-
-export const AppContext = createContext<AppContextType>(initialContext);
+export const AppStateContext = createContext<AppContextStateType | null>(null);
+export const AppDispatchContext = createContext<React.Dispatch<AppContextActionType> | null>(null);
+export const AppThemeContext = createContext<ThemeType>("dark");
+export const AppStatsContext = createContext<AppStatsContextType | null>(null);
 
 // Helper Functions
 const getLevelResultsEntry = (
@@ -370,8 +369,13 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
     case "GET_NEXT_TASK": {
       const { isCorrect, maxLevelStep } = action.payload;
+
+      if (!isCorrect) {
+        return state;
+      }
+
       const nextTaskInLevel = state.game.currentTaskInLevel + 1;
-      const finalAttemptCount = isCorrect ? state.currentTaskAttemptCount + 1 : state.currentTaskAttemptCount;
+      const finalAttemptCount = state.currentTaskAttemptCount + 1;
       const correctnessPercentage = calculateTaskCorrectnessPercentage(isCorrect, finalAttemptCount, maxLevelStep);
       const streak = updateDaysInARow(state.lastPlayedDate, state.daysInARow);
       const newResults = appendTaskResult(state, correctnessPercentage);

@@ -1,12 +1,5 @@
 import { AppContextProvider } from "@/context/app.context";
-import useAppContext from "@/hooks/useAppContext";
-// import {
-//   Nunito_400Regular,
-//   Nunito_600SemiBold,
-//   Nunito_700Bold,
-//   Nunito_700Bold_Italic,
-//   useFonts,
-// } from "@expo-google-fonts/nunito";
+import { useAppTheme } from "@/hooks/useAppContext";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -28,8 +21,7 @@ import { Colors } from "@/constants/Colors";
 SplashScreen.preventAutoHideAsync();
 
 function AppContent() {
-  const { state } = useAppContext();
-  const theme = state.theme ?? "light";
+  const theme = useAppTheme();
   const backgroundColor = Colors[theme].background;
 
   return (

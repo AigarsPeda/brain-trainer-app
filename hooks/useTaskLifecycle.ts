@@ -33,17 +33,15 @@ export function useTaskLifecycle({
   const hasNextLevel = levelNumber < availableLevels;
 
   const finalizeTaskProgress = useCallback(() => {
-    const isCorrect = checkIfCorrect();
-
     dispatch({
       type: "GET_NEXT_TASK",
-      payload: { isCorrect, maxLevelStep },
+      payload: { isCorrect: true, maxLevelStep },
     });
 
     resetTaskState();
     setDisplayTaskResults(false);
     hasAppliedLifePenaltyRef.current = false;
-  }, [checkIfCorrect, dispatch, maxLevelStep, resetTaskState]);
+  }, [dispatch, maxLevelStep, resetTaskState]);
 
   const nextLevelValue = (levelNumber + 1).toString();
 
@@ -52,6 +50,7 @@ export function useTaskLifecycle({
     hasNextLevel,
     nextLevelValue,
     isFinalTaskInLevel,
+    canFinalizeTaskProgress: checkIfCorrect,
     finalizeTaskProgress,
   });
 

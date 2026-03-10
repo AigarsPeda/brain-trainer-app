@@ -1,5 +1,5 @@
 import { Colors } from "@/constants/Colors";
-import useAppContext from "@/hooks/useAppContext";
+import { useAppTheme } from "@/hooks/useAppContext";
 
 type ColorTheme = typeof Colors.light | typeof Colors.dark;
 
@@ -18,8 +18,7 @@ export function useThemeColor<
   P extends { light?: string; dark?: string } | undefined = undefined,
   C extends keyof ColorTheme | undefined = undefined,
 >(props?: P, colorName?: C): ThemeColorResult<P, C> {
-  const { state } = useAppContext();
-  const theme = state.theme ?? "light";
+  const theme = useAppTheme();
 
   const colorFromProps = props?.[theme];
 

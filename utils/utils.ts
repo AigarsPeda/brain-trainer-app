@@ -16,18 +16,24 @@ export const getAnswersOfTask = (answers: TaskAnswerType[] | undefined, option: 
 
 // Evaluate a simple binary equation like "4 + 4" or "10 - 2" or with ×/÷. Returns null if invalid.
 export const evaluateEquation = (equation: string): number | null => {
-  if (!equation) return null;
+  if (!equation) {
+    return null;
+  }
 
   const normalized = equation.replace(/×/g, "*").replace(/÷/g, "/").trim();
   const match = normalized.match(/^(-?\d+(?:\.\d+)?)\s*([+\-*/])\s*(-?\d+(?:\.\d+)?)$/);
 
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
 
   const [, aStr, op, bStr] = match;
   const a = Number(aStr);
   const b = Number(bStr);
 
-  if (Number.isNaN(a) || Number.isNaN(b)) return null;
+  if (Number.isNaN(a) || Number.isNaN(b)) {
+    return null;
+  }
 
   switch (op) {
     case "+":
@@ -150,10 +156,7 @@ const parseLocalDateString = (dateString: string): Date => {
   return new Date(year, month - 1, day);
 };
 
-export const validateDaysInARow = (
-  lastPlayedDate: string | null,
-  currentDaysInARow: number
-): number => {
+export const validateDaysInARow = (lastPlayedDate: string | null, currentDaysInARow: number): number => {
   if (!lastPlayedDate) {
     return 0;
   }
@@ -180,7 +183,10 @@ export const validateDaysInARow = (
 export const updateDaysInARow = (
   lastPlayedDate: string | null,
   currentDaysInARow: number
-): { daysInARow: number; lastPlayedDate: string } => {
+): {
+  daysInARow: number;
+  lastPlayedDate: string;
+} => {
   const today = new Date();
   const todayString = getLocalDateString(today);
 
@@ -239,15 +245,11 @@ export const findNextUnclaimedBonus = (
   excludeDay?: number
 ): StreakBonusConfig | null => {
   return (
-    STREAK_BONUSES.find(
-      (b) => b.day !== excludeDay && daysInARow >= b.day && !claimedBonuses.includes(b.day)
-    ) || null
+    STREAK_BONUSES.find((b) => b.day !== excludeDay && daysInARow >= b.day && !claimedBonuses.includes(b.day)) || null
   );
 };
 
-export const getTotalCompletedTasks = (
-  results: { [level: string]: { tasksResults: TaskResultType[] } }
-): number => {
+export const getTotalCompletedTasks = (results: { [level: string]: { tasksResults: TaskResultType[] } }): number => {
   return Object.values(results).reduce((total, level) => {
     const uniqueTasks = new Set(level.tasksResults.map((t) => t.taskNumber));
     return total + uniqueTasks.size;

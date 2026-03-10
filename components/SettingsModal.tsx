@@ -7,7 +7,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { SwitchColors } from "@/constants/Colors";
 import licensesData from "@/data/licenses.json";
-import useAppContext from "@/hooks/useAppContext";
+import { useAppDispatch, useAppTheme } from "@/hooks/useAppContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import Constants from "expo-constants";
 import { useState } from "react";
@@ -26,13 +26,14 @@ interface License {
 const licenses: License[] = licensesData as License[];
 
 export function SettingsModal({ visible, onClose }: SettingsModalProps) {
-  const { state, dispatch } = useAppContext();
+  const dispatch = useAppDispatch();
+  const theme = useAppTheme();
   const textColor = useThemeColor({}, "text");
   const borderColor = useThemeColor({}, "border");
   const [showLicenses, setShowLicenses] = useState(false);
   const [expandedLicense, setExpandedLicense] = useState<string | null>(null);
 
-  const isDarkMode = state.theme === "dark";
+  const isDarkMode = theme === "dark";
 
   const handleThemeToggle = () => {
     dispatch({ type: "SET_THEME", payload: isDarkMode ? "light" : "dark" });
