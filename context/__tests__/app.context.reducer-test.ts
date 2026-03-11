@@ -123,3 +123,37 @@ describe("appReducer GET_NEXT_TASK", () => {
     expect(nextState).toEqual(state);
   });
 });
+
+describe("appReducer RESTART_LEVEL", () => {
+  it("clears the current level progress and returns to task 1", () => {
+    const state = {
+      ...initialState,
+      currentTaskAttemptCount: 2,
+      game: {
+        currentLevel: 10,
+        currentTaskInLevel: 4,
+      },
+      results: {
+        ...initialState.results,
+        "10": {
+          tasksResults: [
+            { taskNumber: "1", correctnessPercentage: 20 },
+            { taskNumber: "2", correctnessPercentage: 20 },
+          ],
+        },
+      },
+    };
+
+    const nextState = appReducer(state, {
+      type: "RESTART_LEVEL",
+      payload: { level: 10 },
+    });
+
+    expect(nextState.game).toEqual({
+      currentLevel: 10,
+      currentTaskInLevel: 1,
+    });
+    expect(nextState.currentTaskAttemptCount).toBe(0);
+    expect(nextState.results["10"]).toEqual({ tasksResults: [] });
+  });
+});

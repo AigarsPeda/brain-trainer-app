@@ -15,6 +15,7 @@ interface UseTaskLifecycleArgs {
   checkIfCorrect: () => boolean;
   taskNumberInLevel: number;
   getLevelCompletionDurationMs?: () => number;
+  isBossLevel?: boolean;
 }
 
 export function useTaskLifecycle({
@@ -25,6 +26,7 @@ export function useTaskLifecycle({
   isFinalTaskInLevel,
   taskNumberInLevel,
   getLevelCompletionDurationMs,
+  isBossLevel = false,
 }: UseTaskLifecycleArgs) {
   const {
     dispatch,
@@ -36,6 +38,7 @@ export function useTaskLifecycle({
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [completionTimeMs, setCompletionTimeMs] = useState<number | null>(null);
+  const [bossFailureState, setBossFailureState] = useState<{ title: string; description: string } | null>(null);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
@@ -48,6 +51,7 @@ export function useTaskLifecycle({
 
     resetTaskState();
     setDisplayTaskResults(false);
+    setBossFailureState(null);
     hasAppliedLifePenaltyRef.current = false;
   }, [dispatch, maxLevelStep, resetTaskState]);
 
@@ -118,18 +122,32 @@ export function useTaskLifecycle({
     if (!isCorrect) {
       hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
+      if (isBossLevel) {
+        setBossFailureState({
+          title: "Boss neizdevās!",
+          description: "Boss līmenī nedrīkst kļūdīties. Mēģini vēlreiz no sākuma.",
+        });
+      }
     } else if (isFinalTaskInLevel) {
       setCompletionTimeMs(getLevelCompletionDurationMs?.() ?? 0);
     }
 
     setDisplayTaskResults(true);
-  }, [checkIfCorrect, dispatch, getLevelCompletionDurationMs, isFinalTaskInLevel]);
+  }, [checkIfCorrect, dispatch, getLevelCompletionDurationMs, isBossLevel, isFinalTaskInLevel]);
 
   const handleTryAgain = useCallback(() => {
+    if (isBossLevel && bossFailureState) {
+      dispatch({
+        type: "RESTART_LEVEL",
+        payload: { level: levelNumber },
+      });
+    }
+
     resetTaskState();
     setDisplayTaskResults(false);
+    setBossFailureState(null);
     hasAppliedLifePenaltyRef.current = false;
-  }, [resetTaskState]);
+  }, [bossFailureState, dispatch, isBossLevel, levelNumber, resetTaskState]);
 
   const handleWatchAd = useCallback(() => {
     showAdForReward(
@@ -151,11 +169,19 @@ export function useTaskLifecycle({
     onWatchAdPress: handleWatchAd,
     onNextTaskPress: goToNextTask,
     onTryAgainPress: handleTryAgain,
+    failureState: bossFailureState
+      ? {
+          ...bossFailureState,
+          retryLabel: "Atkārtot bossu",
+        }
+      : undefined,
     levelCompletionState: isFinalTaskInLevel
       ? {
           hasNextLevel,
           isCompleted: true,
           summary: levelCompletionSummary,
+          title: isBossLevel ? "Boss pabeigts!" : undefined,
+          description: isBossLevel ? "Tu pārspēji boss līmeni. Turpini uz nākamo izaicinājumu." : undefined,
           onGoHomePress: handleGoHome,
           onNextLevelPress: handleNextLevel,
         }

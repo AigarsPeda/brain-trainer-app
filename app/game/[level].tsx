@@ -1,6 +1,8 @@
 import Close from "@/assets/images/close.png";
 import Heart from "@/assets/images/heart.png";
 import { BackgroundPattern } from "@/components/BackgroundPattern";
+import { BossTimerBar } from "@/components/BossTimerBar";
+import { BossTimerModal } from "@/components/BossTimerModal";
 import { HelpModal } from "@/components/HelpModal";
 import { HintModal } from "@/components/HintModal";
 import { InfoModal } from "@/components/InfoModal";
@@ -13,7 +15,13 @@ import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
-import { HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
+import {
+  BOSS_EXTRA_TIME_COST,
+  BOSS_LEVEL_DURATION_MS,
+  BOSS_LEVEL_EXTRA_TIME_MS,
+  HINT_COST,
+  REMOVE_WRONG_ANSWER_COST,
+} from "@/constants/GameSettings";
 import {
   getTaskInLevelForSelection,
   isCreateMathTask,
@@ -24,6 +32,7 @@ import useAppContext from "@/hooks/useAppContext";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { useLevelData } from "@/hooks/useLevelData";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
+import { formatBossTimer, isBossLevel } from "@/utils/bossLevel";
 import { findIncorrectCreateMathOptions, findIncorrectMultiAnswerOptions, selectRandomItem } from "@/utils/taskHelpers";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -34,7 +43,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ADDITIONAL_TOP_PADDING = 12;
 
-type ModalType = "help" | "hint" | "info" | "lives" | null;
+type ModalType = "help" | "hint" | "info" | "lives" | "bossTimer" | null;
 
 export default function GameLevelScreen() {
   const {
@@ -61,8 +70,8 @@ export default function GameLevelScreen() {
   const levelNumber = Number(level);
   const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
   const hasRenderedInitialTaskRef = useRef(false);
-  const levelTimerLevelRef = useRef<number | null>(null);
   const levelStartedAtRef = useRef<number | null>(null);
+  const bossDeadlineAtRef = useRef<number | null>(null);
   const selectedTaskInLevel =
     !Number.isNaN(levelNumber) && levelNumber > 0
       ? getTaskInLevelForSelection({ levels, results }, levelNumber)
@@ -70,6 +79,14 @@ export default function GameLevelScreen() {
   const effectiveTaskInLevel = levelNumber === currentLevel ? currentTaskInLevel : selectedTaskInLevel;
   const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, effectiveTaskInLevel);
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
+  const [bossTimeLeftMs, setBossTimeLeftMs] = useState(BOSS_LEVEL_DURATION_MS);
+  const [bossTotalDurationMs, setBossTotalDurationMs] = useState(BOSS_LEVEL_DURATION_MS);
+  const [bossTimerStarted, setBossTimerStarted] = useState(false);
+  const [bossTimerExpired, setBossTimerExpired] = useState(false);
+  const bossLevel = isBossLevel(levelNumber);
+  const currentLevelResults = results[levelNumber?.toString()];
+  const currentLevelResultsCount = currentLevelResults?.tasksResults.length ?? 0;
+  const bossTimerProgress = bossLevel ? Math.max(0, Math.min(1, bossTimeLeftMs / bossTotalDurationMs)) : 0;
 
   useEffect(() => {
     if (Number.isNaN(levelNumber) || levelNumber < 1) {
@@ -105,11 +122,54 @@ export default function GameLevelScreen() {
       return;
     }
 
-    if (levelTimerLevelRef.current !== levelNumber) {
-      levelTimerLevelRef.current = levelNumber;
+    if (effectiveTaskInLevel === 1 && currentLevelResultsCount === 0) {
       levelStartedAtRef.current = Date.now();
+      if (bossLevel) {
+        bossDeadlineAtRef.current = null;
+        setBossTimeLeftMs(BOSS_LEVEL_DURATION_MS);
+        setBossTotalDurationMs(BOSS_LEVEL_DURATION_MS);
+        setBossTimerStarted(false);
+        setBossTimerExpired(false);
+        setOpenModal((currentOpenModal) => (currentOpenModal === "bossTimer" ? null : currentOpenModal));
+      }
     }
-  }, [currentTask, levelNumber]);
+  }, [bossLevel, currentLevelResults, currentLevelResultsCount, currentTask, effectiveTaskInLevel, levelNumber]);
+
+  useEffect(() => {
+    if (!bossLevel || !bossTimerStarted || bossTimerExpired) {
+      return;
+    }
+
+    const updateBossTimer = () => {
+      if (!bossDeadlineAtRef.current) {
+        return;
+      }
+
+      const rawTimeLeft = Math.max(0, bossDeadlineAtRef.current - Date.now());
+      const nextTimeLeft = Math.ceil(rawTimeLeft / 1000) * 1000;
+      setBossTimeLeftMs(nextTimeLeft);
+
+      if (nextTimeLeft === 0) {
+        setBossTimerExpired(true);
+        setOpenModal("bossTimer");
+      }
+    };
+
+    updateBossTimer();
+
+    const interval = setInterval(updateBossTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [bossLevel, bossTimerExpired, bossTimerStarted]);
+
+  const handleBossInteraction = useCallback(() => {
+    if (!bossLevel || bossTimerStarted || bossTimerExpired) {
+      return;
+    }
+
+    bossDeadlineAtRef.current = Date.now() + bossTimeLeftMs;
+    setBossTimerStarted(true);
+  }, [bossLevel, bossTimeLeftMs, bossTimerExpired, bossTimerStarted]);
 
   const getLevelCompletionDurationMs = useCallback(() => {
     if (!levelStartedAtRef.current) {
@@ -120,6 +180,10 @@ export default function GameLevelScreen() {
   }, []);
 
   const canRemoveAnswer = useMemo(() => {
+    if (bossLevel) {
+      return false;
+    }
+
     if (!currentTask) {
       return false;
     }
@@ -134,12 +198,16 @@ export default function GameLevelScreen() {
       return remainingOptions.length > 2; // Need at least 2 numbers to solve + 1 to remove
     }
     return false;
-  }, [currentTask, removedAnswerIds, showTextTaskAsMultipleChoice]);
+  }, [bossLevel, currentTask, removedAnswerIds, showTextTaskAsMultipleChoice]);
 
   const backgroundColors = useMemo(() => {
+    if (bossLevel) {
+      return getTaskBackground("boss", theme);
+    }
+
     const taskType = currentTask?.taskType ?? "home";
-    return getTaskBackground(taskType as "mathTaskWithResult" | "createMathTask", theme);
-  }, [currentTask?.taskType, theme]);
+    return getTaskBackground(taskType as "mathTaskWithResult" | "createMathTask" | "textTask", theme);
+  }, [bossLevel, currentTask?.taskType, theme]);
 
   const currentTaskExplanation = useMemo(() => {
     if (!currentTask) {
@@ -157,6 +225,22 @@ export default function GameLevelScreen() {
     setShowGemAnimation(false);
     setGemAnimationStartValue(undefined);
   };
+
+  const handleRestartBoss = useCallback(() => {
+    dispatch({
+      type: "RESTART_LEVEL",
+      payload: { level: levelNumber },
+    });
+    setRemovedAnswerIds([]);
+    setShowTextTaskAsMultipleChoice(false);
+    setBossTimerStarted(false);
+    setBossTimerExpired(false);
+    setBossTimeLeftMs(BOSS_LEVEL_DURATION_MS);
+    setBossTotalDurationMs(BOSS_LEVEL_DURATION_MS);
+    bossDeadlineAtRef.current = null;
+    levelStartedAtRef.current = Date.now();
+    setOpenModal(null);
+  }, [dispatch, levelNumber]);
 
   const handlePurchaseHint = () => {
     dispatch({ type: "SPEND_GEMS", payload: HINT_COST });
@@ -208,6 +292,29 @@ export default function GameLevelScreen() {
     );
   };
 
+  const handleBuyBossExtraTime = useCallback(() => {
+    dispatch({ type: "SPEND_GEMS", payload: BOSS_EXTRA_TIME_COST });
+
+    if (bossTimerStarted) {
+      const currentDeadline = bossDeadlineAtRef.current ?? Date.now();
+      bossDeadlineAtRef.current = Math.max(currentDeadline, Date.now()) + BOSS_LEVEL_EXTRA_TIME_MS;
+    }
+
+    setBossTotalDurationMs((previousTotalDuration) => previousTotalDuration + BOSS_LEVEL_EXTRA_TIME_MS);
+    setBossTimeLeftMs((previousTimeLeft) =>
+      bossTimerStarted
+        ? Math.max(0, (bossDeadlineAtRef.current ?? Date.now()) - Date.now())
+        : previousTimeLeft + BOSS_LEVEL_EXTRA_TIME_MS
+    );
+    setBossTimerExpired(false);
+    setOpenModal(null);
+  }, [bossTimerStarted, dispatch]);
+
+  const handleGoHome = useCallback(() => {
+    setOpenModal(null);
+    router.replace("/");
+  }, [router]);
+
   if (!level || isNaN(Number(level)) || Array.isArray(level)) {
     return (
       <ThemedView>
@@ -253,7 +360,7 @@ export default function GameLevelScreen() {
         adLoaded={loaded}
         currentGems={gems}
         onClose={closeHelpModal}
-        visible={openModal === "help"}
+        visible={!bossLevel && openModal === "help"}
         showAnimation={showGemAnimation}
         canRemoveAnswer={canRemoveAnswer}
         onPurchaseHint={handlePurchaseHint}
@@ -262,9 +369,23 @@ export default function GameLevelScreen() {
         onRemoveWrongAnswer={handleRemoveWrongAnswer}
       />
       <HintModal
-        visible={openModal === "hint"}
+        visible={!bossLevel && openModal === "hint"}
         onClose={() => setOpenModal(null)}
         explanation={currentTaskExplanation}
+      />
+      <BossTimerModal
+        visible={bossLevel && openModal === "bossTimer"}
+        adLoaded={loaded}
+        currentGems={gems}
+        timeLeftMs={bossTimeLeftMs}
+        extraTimeCost={BOSS_EXTRA_TIME_COST}
+        hasStarted={bossTimerStarted}
+        hasExpired={bossTimerExpired}
+        onBuyTime={handleBuyBossExtraTime}
+        onWatchAdForGems={handleWatchAdForGems}
+        onRetry={handleRestartBoss}
+        onGoHome={handleGoHome}
+        onClose={() => setOpenModal(null)}
       />
       <View
         style={{
@@ -280,7 +401,15 @@ export default function GameLevelScreen() {
               router.back();
             }}
           />
-          <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={effectiveTaskInLevel} />
+          {bossLevel ? (
+            <BossTimerBar
+              timeLabel={formatBossTimer(bossTimeLeftMs)}
+              progress={bossTimerProgress}
+              onPress={() => setOpenModal("bossTimer")}
+            />
+          ) : (
+            <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={effectiveTaskInLevel} />
+          )}
           <StatisticsItem
             src={Heart}
             stat={lives}
@@ -289,13 +418,22 @@ export default function GameLevelScreen() {
             onPress={() => setOpenModal("lives")}
           />
         </View>
-        {/* Hint button row */}
-        <Pressable style={styles.hintRow} onPress={() => setOpenModal("help")}>
-          <ThemedText style={styles.hintEmoji}>💎</ThemedText>
-          <ThemedText style={styles.hintText} type="subtitle">
-            Palīdzība
-          </ThemedText>
-        </Pressable>
+        {bossLevel ? (
+          <View style={styles.bossNoticeRow}>
+            <ThemedText style={styles.bossNoticeText} type="subtitle">
+              {bossTimerStarted
+                ? "Boss līmenis: laiks iet, kļūdīties nedrīkst"
+                : "Boss līmenis: taimeris sāksies pēc pirmās atbildes"}
+            </ThemedText>
+          </View>
+        ) : (
+          <Pressable style={styles.hintRow} onPress={() => setOpenModal("help")}>
+            <ThemedText style={styles.hintEmoji}>💎</ThemedText>
+            <ThemedText style={styles.hintText} type="subtitle">
+              Palīdzība
+            </ThemedText>
+          </Pressable>
+        )}
         <View style={styles.levelView}>
           <Animated.View
             key={`${level}-${currentTask.id}-${currentTask.taskNumberInLevel}`}
@@ -318,6 +456,8 @@ export default function GameLevelScreen() {
                 removedAnswerIds={removedAnswerIds}
                 isFinalTaskInLevel={isFinalTaskInLevel}
                 getLevelCompletionDurationMs={getLevelCompletionDurationMs}
+                isBossLevel={bossLevel}
+                onBossInteraction={handleBossInteraction}
               />
             )}
             {isCreateMathTask(currentTask) && (
@@ -328,6 +468,8 @@ export default function GameLevelScreen() {
                 removedAnswerIds={removedAnswerIds}
                 isFinalTaskInLevel={isFinalTaskInLevel}
                 getLevelCompletionDurationMs={getLevelCompletionDurationMs}
+                isBossLevel={bossLevel}
+                onBossInteraction={handleBossInteraction}
               />
             )}
             {isTextTask(currentTask) && (
@@ -339,6 +481,8 @@ export default function GameLevelScreen() {
                 isFinalTaskInLevel={isFinalTaskInLevel}
                 showAsMultipleChoice={showTextTaskAsMultipleChoice}
                 getLevelCompletionDurationMs={getLevelCompletionDurationMs}
+                isBossLevel={bossLevel}
+                onBossInteraction={handleBossInteraction}
               />
             )}
           </Animated.View>
@@ -392,5 +536,16 @@ const styles = StyleSheet.create({
   hintText: {
     fontSize: 14,
     opacity: 0.8,
+  },
+  bossNoticeRow: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+    alignItems: "center",
+  },
+  bossNoticeText: {
+    fontSize: 14,
+    opacity: 0.9,
+    color: "#FFF7D6",
   },
 });

@@ -19,6 +19,8 @@ interface TextTaskProps {
   isFinalTaskInLevel: boolean;
   showAsMultipleChoice?: boolean;
   getLevelCompletionDurationMs?: () => number;
+  isBossLevel?: boolean;
+  onBossInteraction?: () => void;
 }
 
 export function TextTask({
@@ -29,6 +31,8 @@ export function TextTask({
   removedAnswerIds = [],
   showAsMultipleChoice = false,
   getLevelCompletionDurationMs,
+  isBossLevel = false,
+  onBossInteraction,
 }: TextTaskProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -115,6 +119,7 @@ export function TextTask({
     checkIfCorrect,
     resetTaskState,
     getLevelCompletionDurationMs,
+    isBossLevel,
   });
 
   const handleCheckAnswer = useCallback(() => {
@@ -131,6 +136,17 @@ export function TextTask({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   }, [handleCheckFromHook, hasAnswer, isAnswerCorrect]);
+
+  const handleUserAnswerChange = useCallback(
+    (value: string) => {
+      if (value.trim().length > 0 && userAnswer.trim().length === 0) {
+        onBossInteraction?.();
+      }
+
+      setUserAnswer(value);
+    },
+    [onBossInteraction, userAnswer]
+  );
 
   const getInputBorderColor = () => {
     if (!displayTaskResults) {
@@ -192,6 +208,7 @@ export function TextTask({
                       gradientColor={gradientColor}
                       onPress={() => {
                         if (!displayTaskResults) {
+                          onBossInteraction?.();
                           setSelectedOptionId(isSelected ? null : option.id);
                         }
                       }}
@@ -207,7 +224,7 @@ export function TextTask({
               <View style={styles.inputContainer}>
                 <TextInput
                   value={userAnswer}
-                  onChangeText={setUserAnswer}
+                  onChangeText={handleUserAnswerChange}
                   style={[
                     styles.input,
                     {

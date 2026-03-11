@@ -326,8 +326,16 @@ interface SelectLevelActionType {
   };
 }
 
+interface RestartLevelActionType {
+  type: "RESTART_LEVEL";
+  payload: {
+    level: number;
+  };
+}
+
 export type AppContextActionType =
   | SelectLevelActionType
+  | RestartLevelActionType
   | GetNextLevel
   | SetNameActionType
   | SetThemeActionType
@@ -362,6 +370,23 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         results: {
           ...state.results,
           [level.toString()]: getLevelResultsEntry(state.results, level),
+        },
+      };
+    }
+
+    case "RESTART_LEVEL": {
+      const { level } = action.payload;
+
+      return {
+        ...state,
+        currentTaskAttemptCount: 0,
+        game: {
+          currentLevel: level,
+          currentTaskInLevel: 1,
+        },
+        results: {
+          ...state.results,
+          [level.toString()]: { tasksResults: [] },
         },
       };
     }

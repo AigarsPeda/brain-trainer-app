@@ -81,6 +81,8 @@ interface CreateMathTaskProps {
   isFinalTaskInLevel: boolean;
   removedAnswerIds?: number[];
   getLevelCompletionDurationMs?: () => number;
+  isBossLevel?: boolean;
+  onBossInteraction?: () => void;
 }
 
 export function CreateMathTask({
@@ -90,6 +92,8 @@ export function CreateMathTask({
   isFinalTaskInLevel,
   removedAnswerIds = [],
   getLevelCompletionDurationMs,
+  isBossLevel = false,
+  onBossInteraction,
 }: CreateMathTaskProps) {
   const { width } = useWindowDimensions();
   const colorScheme = useAppColorScheme();
@@ -138,6 +142,7 @@ export function CreateMathTask({
     checkIfCorrect,
     resetTaskState,
     getLevelCompletionDurationMs,
+    isBossLevel,
   });
 
   const isAllAnswersCorrect = checkIfCorrect();
@@ -326,6 +331,7 @@ export function CreateMathTask({
       }
 
       if (doBoxesIntersect(draggedItemBox, leftDropZoneLayout)) {
+        onBossInteraction?.();
         if (leftOptionId !== null && leftOptionId !== optionId) {
           animateNumberToRandomPosition(leftOptionId);
         }
@@ -337,6 +343,7 @@ export function CreateMathTask({
       }
 
       if (doBoxesIntersect(draggedItemBox, rightDropZoneLayout)) {
+        onBossInteraction?.();
         if (rightOptionId !== null && rightOptionId !== optionId) {
           animateNumberToRandomPosition(rightOptionId);
         }
@@ -358,6 +365,7 @@ export function CreateMathTask({
       numbersContainerLayout,
       rightOptionId,
       rightZoneLayout,
+      onBossInteraction,
     ]
   );
 

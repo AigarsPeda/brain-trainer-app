@@ -1,8 +1,10 @@
+import CrownIcon from "@/components/icons/CrownIcon";
 import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import { SETTINGS } from "@/hardcoded";
+import { isBossLevel } from "@/utils/bossLevel";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -42,6 +44,14 @@ const adjustColorBrightness = (hex: string, percent: number): string => {
 };
 
 const getColorInfo = (levelNumber: number, isLevelLocked: boolean, bgColor?: string) => {
+  if (isBossLevel(levelNumber) && !isLevelLocked) {
+    return {
+      bgColor: "#B45309",
+      lightColor: "#FCD34D",
+      darkColor: "#78350F",
+    };
+  }
+
   if (bgColor) {
     return {
       bgColor,
@@ -172,9 +182,18 @@ const ListItem: FC<ListItemProps> = memo(
                 style={styles.outerSquare}
               >
                 <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
-                  <ThemedText type="subtitle" style={styles.levelText}>
-                    {item.levelNumber}
-                  </ThemedText>
+                  {isBossLevel(item.levelNumber) && !item.isLevelLocked ? (
+                    <>
+                      <CrownIcon width={36} height={36} stroke="#FFF7D6" fill="rgba(255, 247, 214, 0.18)" />
+                      <ThemedText type="defaultSemiBold" style={styles.bossLevelText}>
+                        {item.levelNumber}
+                      </ThemedText>
+                    </>
+                  ) : (
+                    <ThemedText type="subtitle" style={styles.levelText}>
+                      {item.levelNumber}
+                    </ThemedText>
+                  )}
                 </View>
               </LinearGradient>
             </Pressable>
@@ -253,6 +272,11 @@ const styles = StyleSheet.create({
   levelText: {
     fontSize: 32,
     color: "#fff",
+  },
+  bossLevelText: {
+    fontSize: 22,
+    color: "#FFF7D6",
+    marginTop: 6,
   },
   starContainer: {
     marginTop: 20,

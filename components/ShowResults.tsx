@@ -34,6 +34,11 @@ interface ShowResultsProps {
   isAllAnswersCorrect: boolean;
   onTryAgainPress?: () => void;
   levelCompletionState?: LevelCompletionState;
+  failureState?: {
+    title: string;
+    description: string;
+    retryLabel?: string;
+  };
 }
 
 export function ShowResults({
@@ -45,6 +50,7 @@ export function ShowResults({
   onNextTaskPress,
   isAllAnswersCorrect,
   levelCompletionState,
+  failureState,
 }: ShowResultsProps) {
   const sheetRef = useRef<BottomSheet>(null);
   const { background, text } = useThemeColor();
@@ -144,6 +150,8 @@ export function ShowResults({
           >
             {!isCompletedLevelSuccess && isAllAnswersCorrect ? (
               <DisplayResults title="Pareizi!" description="Visas atbildes ir pareizas! Turpini tā!" />
+            ) : failureState ? (
+              <DisplayResults isIncorrectAnswer title={failureState.title} description={failureState.description} />
             ) : lives === 0 ? (
               <DisplayResults
                 isIncorrectAnswer
@@ -158,7 +166,17 @@ export function ShowResults({
               />
             ) : null}
 
-            {lives === 0 ? (
+            {failureState ? (
+              onTryAgainPress ? (
+                <ThemedView style={styles.singleButtonWrap}>
+                  <MainButton onPress={onTryAgainPress}>
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      {failureState.retryLabel ?? "Mēģini vēlreiz"}
+                    </ThemedText>
+                  </MainButton>
+                </ThemedView>
+              ) : null
+            ) : lives === 0 ? (
               <ThemedView style={styles.buttonsStack}>
                 {onWatchAdPress ? (
                   <ThemedView style={styles.buttonContainer}>

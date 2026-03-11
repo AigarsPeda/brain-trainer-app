@@ -20,6 +20,8 @@ interface MathTaskWithResultProps {
   task: MultiAnswerMathTaskType;
   removedAnswerIds?: number[];
   getLevelCompletionDurationMs?: () => number;
+  isBossLevel?: boolean;
+  onBossInteraction?: () => void;
 }
 
 export default function MathTaskWithResult({
@@ -29,6 +31,8 @@ export default function MathTaskWithResult({
   isFinalTaskInLevel,
   removedAnswerIds = [],
   getLevelCompletionDurationMs,
+  isBossLevel = false,
+  onBossInteraction,
 }: MathTaskWithResultProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -54,6 +58,7 @@ export default function MathTaskWithResult({
     checkIfCorrect,
     resetTaskState,
     getLevelCompletionDurationMs,
+    isBossLevel,
   });
 
   const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;
@@ -131,6 +136,7 @@ export default function MathTaskWithResult({
                         key={`${option.id}-${i}`}
                         gradientColor={finalGradientColor}
                         onPress={() => {
+                          onBossInteraction?.();
                           const foundAnswer = getAnswersOfTask(answers, option);
 
                           if (foundAnswer) {

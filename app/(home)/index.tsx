@@ -242,7 +242,7 @@ export default function HomeScreen() {
           position={getPosition(index)}
           isCurrentLevel={index === lastAvailableTaskIndex}
           handleClick={() => {
-            router.push({ pathname: "/game/[level]", params: { level: index + 1 } });
+            router.push({ pathname: "/game/[level]", params: { level: item.levelNumber } });
           }}
         />
       );

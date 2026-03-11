@@ -29,6 +29,10 @@ export const LevelBackgrounds = {
     dark: ["#581C87", "#4C1D95", "#2E1065"] as const,
     light: ["#F3E8FF", "#EDE9FE", "#FAE8FF"] as const,
   },
+  boss: {
+    dark: ["#7C2D12", "#92400E", "#1C1917"] as const,
+    light: ["#FDE68A", "#FED7AA", "#FFF7ED"] as const,
+  },
   practice: {
     dark: ["#881337", "#701A3F", "#4A0D2E"] as const,
     light: ["#FCE7F3", "#FBCFE8", "#FDF2F8"] as const,
@@ -195,7 +199,7 @@ export const HintModalColors = {
 } as const;
 
 export const getTaskBackground = (
-  taskType: "mathTaskWithResult" | "createMathTask" | "textTask" | "challenge" | "bonus" | "practice" | "home",
+  taskType: "mathTaskWithResult" | "createMathTask" | "textTask" | "challenge" | "bonus" | "boss" | "practice" | "home",
   theme: "light" | "dark"
 ): GradientColors => {
   return LevelBackgrounds[taskType]?.[theme] ?? LevelBackgrounds.home[theme];
