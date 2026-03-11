@@ -34,7 +34,7 @@ export function BossTimerBar({ timeLabel, progress, onPress }: BossTimerBarProps
             time={timeLabel}
             direction="countdown"
             style={styles.timerText}
-            digitHeight={24}
+            digitHeight={32}
             containerStyle={styles.timerWrap}
           />
         </View>
@@ -49,7 +49,7 @@ export function BossTimerBar({ timeLabel, progress, onPress }: BossTimerBarProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginHorizontal: 4,
+    marginLeft: 0,
   },
   shell: {
     height: 42,
@@ -57,9 +57,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
     justifyContent: "center",
-    backgroundColor: "rgba(120, 53, 15, 0.72)",
-    borderWidth: 1,
-    borderColor: "rgba(252, 211, 77, 0.45)",
   },
   content: {
     flexDirection: "row",

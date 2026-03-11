@@ -394,7 +394,7 @@ export default function GameLevelScreen() {
           paddingBottom: styles.itemsWrap.paddingBottom + insets.bottom,
         }}
       >
-        <View style={styles.view}>
+        <View style={[styles.view, bossLevel && styles.bossHeaderRow]}>
           <StatisticsItem
             src={Close}
             onPress={() => {
@@ -410,13 +410,15 @@ export default function GameLevelScreen() {
           ) : (
             <Progressbar maxLevelStep={maxLevelStep} currentLevelStep={effectiveTaskInLevel} />
           )}
-          <StatisticsItem
-            src={Heart}
-            stat={lives}
-            animation={livesAnimation}
-            size={styles.statisticsItem}
-            onPress={() => setOpenModal("lives")}
-          />
+          {!bossLevel && (
+            <StatisticsItem
+              src={Heart}
+              stat={lives}
+              animation={livesAnimation}
+              size={styles.statisticsItem}
+              onPress={() => setOpenModal("lives")}
+            />
+          )}
         </View>
         {bossLevel ? (
           <View style={styles.bossNoticeRow}>
@@ -507,6 +509,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     justifyContent: "space-between",
+  },
+  bossHeaderRow: {
+    gap: 2,
+    justifyContent: "flex-start",
   },
   statisticsItem: {
     width: 36,

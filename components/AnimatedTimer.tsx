@@ -1,7 +1,6 @@
-import { ThemedText } from "@/components/ThemedText";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleProp, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
+import { Animated, Easing, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 
 type AnimationDirection = "up" | "down" | "auto" | "countdown" | "countup";
 const PLACEHOLDER_DIGIT = " ";
@@ -243,11 +242,13 @@ export function AnimatedTimer({
   digitHeight,
   direction = "countdown",
 }: AnimatedTimerProps) {
+  const { text: themeTextColor } = useThemeColor();
   const textStyle = StyleSheet.flatten(style);
   const fontSize = textStyle?.fontSize ?? 16;
   const lineHeight = textStyle?.lineHeight ?? Math.ceil(fontSize * 1.2);
   const resolvedHeight = digitHeight ?? lineHeight;
   const digitWidth = Math.ceil(fontSize * 0.65);
+  const separatorWidth = Math.max(8, Math.ceil(fontSize * 0.32));
 
   const previousTimeRef = useRef(time);
   const { previousChars, renderItems } = getAlignedCharacters(previousTimeRef.current, time, direction);
@@ -291,9 +292,20 @@ export function AnimatedTimer({
     <View style={[styles.timerContainer, containerStyle]}>
       {renderItems.map(({ char, key, animateOnMount, mountPreviousDigit }, index) =>
         char === ":" ? (
-          <ThemedText key={key} style={[style, separatorStyle]}>
-            :
-          </ThemedText>
+          <View key={key} style={[styles.digitContainer, { height: resolvedHeight, width: separatorWidth }]}>
+            <Text
+              style={[
+                styles.digitAbsolute,
+                styles.digitTextBase,
+                styles.separatorTextBase,
+                { color: themeTextColor },
+                style,
+                separatorStyle,
+              ]}
+            >
+              :
+            </Text>
+          </View>
         ) : (
           <AnimatedDigit
             key={key}
@@ -335,5 +347,8 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
     includeFontPadding: false,
     fontVariant: ["tabular-nums"],
+  },
+  separatorTextBase: {
+    transform: [{ translateY: -1.7 }],
   },
 });
