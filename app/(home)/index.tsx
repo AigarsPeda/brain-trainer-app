@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const [showGemAnimation, setShowGemAnimation] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [arrowDirection, setArrowDirection] = useState<"up" | "down">("down");
+  const [bossRetryClockNow, setBossRetryClockNow] = useState(Date.now());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pendingStreakBonus, setPendingStreakBonus] = useState<StreakBonusConfig | null>(null);
   const [pendingTaskAchievement, setPendingTaskAchievement] = useState<TaskAchievementConfig | null>(null);
@@ -49,6 +50,16 @@ export default function HomeScreen() {
   const flatListRef = useRef<AnimatedFlatListRef>(null);
 
   const totalCompletedLevels = useMemo(() => state.levels.filter((l) => l.isLevelCompleted).length, [state.levels]);
+  const activeBossRetryLevel =
+    state.bossRetryAvailableAt !== null &&
+    state.bossRetryAvailableAt > bossRetryClockNow &&
+    state.lastAttemptedBossLevel !== null
+      ? state.lastAttemptedBossLevel
+      : null;
+  const activeBossRetryTimeLeftMs =
+    activeBossRetryLevel !== null && state.bossRetryAvailableAt !== null
+      ? Math.max(0, state.bossRetryAvailableAt - bossRetryClockNow)
+      : 0;
 
   const handleClaimStreakBonus = () => {
     if (pendingStreakBonus) {
@@ -231,6 +242,20 @@ export default function HomeScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    if (state.bossRetryAvailableAt === null || state.bossRetryAvailableAt <= Date.now()) {
+      setBossRetryClockNow(Date.now());
+      return;
+    }
+
+    setBossRetryClockNow(Date.now());
+    const interval = setInterval(() => {
+      setBossRetryClockNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.bossRetryAvailableAt]);
+
   const renderItem = useCallback(
     ({ item, index, scrollY }: { item: TaskInfoType; index: number; scrollY: SharedValue<number> }) => {
       return (
@@ -239,6 +264,7 @@ export default function HomeScreen() {
           index={index}
           theme={theme}
           scrollY={scrollY}
+          bossRetryTimeLeftMs={activeBossRetryLevel === item.levelNumber ? activeBossRetryTimeLeftMs : null}
           position={getPosition(index)}
           isCurrentLevel={index === lastAvailableTaskIndex}
           handleClick={() => {
@@ -247,7 +273,7 @@ export default function HomeScreen() {
         />
       );
     },
-    [getPosition, theme, lastAvailableTaskIndex]
+    [activeBossRetryLevel, activeBossRetryTimeLeftMs, getPosition, theme, lastAvailableTaskIndex]
   );
 
   return (

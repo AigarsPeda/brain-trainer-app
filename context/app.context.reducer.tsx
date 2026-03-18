@@ -79,6 +79,8 @@ export type AppContextStateType = {
   availableLevels: number;
   lastPlayedDate: string | null;
   lastLifeLostAt: number | null;
+  lastAttemptedBossLevel: number | null;
+  bossRetryAvailableAt: number | null;
   claimedStreakBonuses: number[];
   currentTaskAttemptCount: number;
   claimedTaskAchievements: number[];
@@ -129,6 +131,8 @@ export const initialState: AppContextStateType = {
   name: "Aigars",
   lastPlayedDate: null,
   lastLifeLostAt: null,
+  lastAttemptedBossLevel: null,
+  bossRetryAvailableAt: null,
   lives: MAX_LIVES,
   claimedStreakBonuses: [],
   streakBonusClaimDates: {},
@@ -333,9 +337,21 @@ interface RestartLevelActionType {
   };
 }
 
+interface SetBossRetryCooldownActionType {
+  type: "SET_BOSS_RETRY_COOLDOWN";
+  payload: number | null;
+}
+
+interface SetLastAttemptedBossLevelActionType {
+  type: "SET_LAST_ATTEMPTED_BOSS_LEVEL";
+  payload: number | null;
+}
+
 export type AppContextActionType =
   | SelectLevelActionType
   | RestartLevelActionType
+  | SetBossRetryCooldownActionType
+  | SetLastAttemptedBossLevelActionType
   | GetNextLevel
   | SetNameActionType
   | SetThemeActionType
@@ -379,6 +395,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
       return {
         ...state,
+        lastAttemptedBossLevel: null,
+        bossRetryAvailableAt: null,
         currentTaskAttemptCount: 0,
         game: {
           currentLevel: level,
@@ -388,6 +406,20 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
           ...state.results,
           [level.toString()]: { tasksResults: [] },
         },
+      };
+    }
+
+    case "SET_BOSS_RETRY_COOLDOWN": {
+      return {
+        ...state,
+        bossRetryAvailableAt: action.payload,
+      };
+    }
+
+    case "SET_LAST_ATTEMPTED_BOSS_LEVEL": {
+      return {
+        ...state,
+        lastAttemptedBossLevel: action.payload,
       };
     }
 
@@ -518,6 +550,8 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         theme: action.payload.theme ?? "dark",
         availableLevels: TOTAL_LEVELS,
         lastPlayedDate: action.payload.lastPlayedDate ?? null,
+        lastAttemptedBossLevel: action.payload.lastAttemptedBossLevel ?? null,
+        bossRetryAvailableAt: action.payload.bossRetryAvailableAt ?? null,
         currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
         claimedStreakBonuses: action.payload.claimedStreakBonuses ?? [],
         claimedTaskAchievements: action.payload.claimedTaskAchievements ?? [],

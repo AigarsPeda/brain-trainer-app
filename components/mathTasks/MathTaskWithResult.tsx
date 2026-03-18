@@ -22,6 +22,8 @@ interface MathTaskWithResultProps {
   getLevelCompletionDurationMs?: () => number;
   isBossLevel?: boolean;
   onBossInteraction?: () => void;
+  onBossRetryRequest?: () => void;
+  onBossFailure?: () => void;
 }
 
 export default function MathTaskWithResult({
@@ -33,6 +35,8 @@ export default function MathTaskWithResult({
   getLevelCompletionDurationMs,
   isBossLevel = false,
   onBossInteraction,
+  onBossRetryRequest,
+  onBossFailure,
 }: MathTaskWithResultProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -59,6 +63,8 @@ export default function MathTaskWithResult({
     resetTaskState,
     getLevelCompletionDurationMs,
     isBossLevel,
+    onBossRetryRequest,
+    onBossFailure,
   });
 
   const isAtLeastOneTaskAnswered = (answers?.length ?? 0) > 0;

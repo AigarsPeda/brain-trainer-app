@@ -6,6 +6,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import {
   BOSS_EXTRA_TIME_PURCHASE_LABEL,
+  BOSS_RETRY_DESCRIPTION,
+  BOSS_RETRY_PURCHASE_LABEL,
   BOSS_TIMER_ACTIVE_DESCRIPTION,
   BOSS_TIMER_EXPIRED_DESCRIPTION,
   BOSS_TIMER_PENDING_DESCRIPTION,
@@ -22,9 +24,14 @@ interface BossTimerModalProps {
   currentGems: number;
   timeLeftMs: number;
   extraTimeCost: number;
+  retryCost: number;
+  mode: "timer" | "retry" | "expired";
   hasStarted?: boolean;
   hasExpired?: boolean;
+  canRetryForFree?: boolean;
+  retryWaitRemainingMs?: number;
   onBuyTime: () => void;
+  onBuyRetry: () => void;
   onWatchAdForGems: () => void;
   onRetry: () => void;
   onGoHome: () => void;
@@ -37,9 +44,14 @@ export function BossTimerModal({
   currentGems,
   timeLeftMs,
   extraTimeCost,
+  retryCost,
+  mode,
   hasStarted = false,
   hasExpired = false,
+  canRetryForFree = false,
+  retryWaitRemainingMs = 0,
   onBuyTime,
+  onBuyRetry,
   onWatchAdForGems,
   onRetry,
   onGoHome,
@@ -47,30 +59,51 @@ export function BossTimerModal({
 }: BossTimerModalProps) {
   const { text, tint } = useThemeColor();
   const canAffordExtraTime = currentGems >= extraTimeCost;
+  const canAffordRetry = currentGems >= retryCost;
+  const shouldShowRetryControls = mode === "retry" || mode === "expired";
+  const shouldShowTimeControls = mode === "timer" || mode === "expired";
+  const showRetryWaitTimer = mode === "retry" && !canRetryForFree;
+  const retryTitle = mode === "retry" ? "Atkārtot bossu" : hasExpired ? "Boss laiks beidzās!" : "Boss taimeris";
+  const retryDescription =
+    mode === "retry"
+      ? BOSS_RETRY_DESCRIPTION
+      : hasExpired
+        ? BOSS_TIMER_EXPIRED_DESCRIPTION
+        : hasStarted
+          ? BOSS_TIMER_ACTIVE_DESCRIPTION
+          : BOSS_TIMER_PENDING_DESCRIPTION;
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={hasExpired ? onGoHome : onClose}>
       <View style={styles.overlay}>
         <ThemedView style={[styles.container, { borderColor: tint }]}>
           <ThemedText type="title" style={styles.title}>
-            {hasExpired ? "Boss laiks beidzās!" : "Boss taimeris"}
+            {retryTitle}
           </ThemedText>
 
-          <AnimatedTimer
-            time={formatBossTimer(timeLeftMs)}
-            direction="countdown"
-            style={styles.timerValue}
-            digitHeight={40}
-            containerStyle={styles.timerWrap}
-          />
+          {showRetryWaitTimer ? (
+            <View style={styles.waitContainer}>
+              <ThemedText style={styles.waitLabel}>Bezmaksas atkārtojums pēc:</ThemedText>
+              <AnimatedTimer
+                time={formatBossTimer(retryWaitRemainingMs)}
+                direction="countdown"
+                style={styles.waitTimer}
+                digitHeight={24}
+              />
+            </View>
+          ) : null}
 
-          <ThemedText style={styles.description}>
-            {hasExpired
-              ? BOSS_TIMER_EXPIRED_DESCRIPTION
-              : hasStarted
-                ? BOSS_TIMER_ACTIVE_DESCRIPTION
-                : BOSS_TIMER_PENDING_DESCRIPTION}
-          </ThemedText>
+          {shouldShowTimeControls ? (
+            <AnimatedTimer
+              time={formatBossTimer(timeLeftMs)}
+              direction="countdown"
+              style={styles.timerValue}
+              digitHeight={40}
+              containerStyle={styles.timerWrap}
+            />
+          ) : null}
+
+          <ThemedText style={styles.description}>{retryDescription}</ThemedText>
 
           <View style={styles.gemsRow}>
             <Image source={Gem} style={styles.gemIcon} contentFit="contain" />
@@ -78,48 +111,81 @@ export function BossTimerModal({
           </View>
 
           <View style={styles.buttonGroup}>
-            {canAffordExtraTime ? (
-              <MainButton onPress={onBuyTime} style={styles.button}>
-                <View style={styles.purchaseContent}>
-                  <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                    {BOSS_EXTRA_TIME_PURCHASE_LABEL}
-                  </ThemedText>
-                  <Image source={Gem} style={styles.smallIcon} contentFit="contain" />
-                  <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                    {extraTimeCost}
-                  </ThemedText>
-                </View>
-              </MainButton>
-            ) : (
-              <MainButton onPress={onWatchAdForGems} disabled={!adLoaded} style={styles.button}>
-                <View style={styles.purchaseContent}>
-                  {adLoaded && <Image source={AdIcon} style={styles.smallIcon} contentFit="contain" />}
-                  <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                    {adLoaded ? `Skatīties (+${GEMS_FROM_AD}` : "⏳ Ielādē..."}
-                  </ThemedText>
-                  {adLoaded && <Image source={Gem} style={styles.smallIcon} contentFit="contain" />}
-                  {adLoaded && (
+            {shouldShowTimeControls ? (
+              canAffordExtraTime ? (
+                <MainButton onPress={onBuyTime} style={styles.button}>
+                  <View style={styles.purchaseContent}>
                     <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                      )
+                      {BOSS_EXTRA_TIME_PURCHASE_LABEL}
                     </ThemedText>
-                  )}
-                </View>
-              </MainButton>
-            )}
+                    <Image source={Gem} style={styles.smallIcon} contentFit="contain" />
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      {extraTimeCost}
+                    </ThemedText>
+                  </View>
+                </MainButton>
+              ) : (
+                <MainButton onPress={onWatchAdForGems} disabled={!adLoaded} style={styles.button}>
+                  <View style={styles.purchaseContent}>
+                    {adLoaded && <Image source={AdIcon} style={styles.smallIcon} contentFit="contain" />}
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      {adLoaded ? `Skatīties (+${GEMS_FROM_AD}` : "⏳ Ielādē..."}
+                    </ThemedText>
+                    {adLoaded && <Image source={Gem} style={styles.smallIcon} contentFit="contain" />}
+                    {adLoaded && (
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        )
+                      </ThemedText>
+                    )}
+                  </View>
+                </MainButton>
+              )
+            ) : null}
 
-            {hasExpired ? (
-              <MainButton variant="secondary" onPress={onRetry} style={styles.button}>
-                <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
-                  Atkārtot bossu
-                </ThemedText>
-              </MainButton>
-            ) : (
+            {shouldShowRetryControls ? (
+              canRetryForFree ? (
+                <MainButton variant="secondary" onPress={onRetry} style={styles.button}>
+                  <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
+                    {BOSS_RETRY_PURCHASE_LABEL}
+                  </ThemedText>
+                </MainButton>
+              ) : canAffordRetry ? (
+                <MainButton variant="secondary" onPress={onBuyRetry} style={styles.button}>
+                  <View style={styles.purchaseContent}>
+                    <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
+                      {BOSS_RETRY_PURCHASE_LABEL}
+                    </ThemedText>
+                    <Image source={Gem} style={styles.smallIcon} contentFit="contain" />
+                    <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
+                      {retryCost}
+                    </ThemedText>
+                  </View>
+                </MainButton>
+              ) : (
+                <MainButton onPress={onWatchAdForGems} disabled={!adLoaded} style={styles.button}>
+                  <View style={styles.purchaseContent}>
+                    {adLoaded && <Image source={AdIcon} style={styles.smallIcon} contentFit="contain" />}
+                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                      {adLoaded ? `Skatīties (+${GEMS_FROM_AD}` : "⏳ Ielādē..."}
+                    </ThemedText>
+                    {adLoaded && <Image source={Gem} style={styles.smallIcon} contentFit="contain" />}
+                    {adLoaded && (
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        )
+                      </ThemedText>
+                    )}
+                  </View>
+                </MainButton>
+              )
+            ) : null}
+
+            {!hasExpired && mode !== "retry" ? (
               <MainButton variant="secondary" onPress={onClose} style={styles.button}>
                 <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
                   Aizvērt
                 </ThemedText>
               </MainButton>
-            )}
+            ) : null}
 
             <MainButton variant="secondary" onPress={onGoHome} style={styles.button}>
               <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
@@ -196,5 +262,20 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 17,
+  },
+  waitContainer: {
+    gap: 4,
+    alignItems: "center",
+    marginTop: 2,
+  },
+  waitLabel: {
+    fontSize: 14,
+    opacity: 0.75,
+    textAlign: "center",
+  },
+  waitTimer: {
+    fontSize: 20,
+    lineHeight: 24,
+    color: "#F59E0B",
   },
 });

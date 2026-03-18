@@ -128,6 +128,8 @@ describe("appReducer RESTART_LEVEL", () => {
   it("clears the current level progress and returns to task 1", () => {
     const state = {
       ...initialState,
+      lastAttemptedBossLevel: 10,
+      bossRetryAvailableAt: 123456,
       currentTaskAttemptCount: 2,
       game: {
         currentLevel: 10,
@@ -153,7 +155,31 @@ describe("appReducer RESTART_LEVEL", () => {
       currentLevel: 10,
       currentTaskInLevel: 1,
     });
+    expect(nextState.lastAttemptedBossLevel).toBeNull();
+    expect(nextState.bossRetryAvailableAt).toBeNull();
     expect(nextState.currentTaskAttemptCount).toBe(0);
     expect(nextState.results["10"]).toEqual({ tasksResults: [] });
+  });
+});
+
+describe("appReducer SET_BOSS_RETRY_COOLDOWN", () => {
+  it("stores the boss retry availability timestamp", () => {
+    const nextState = appReducer(initialState, {
+      type: "SET_BOSS_RETRY_COOLDOWN",
+      payload: 123456,
+    });
+
+    expect(nextState.bossRetryAvailableAt).toBe(123456);
+  });
+});
+
+describe("appReducer SET_LAST_ATTEMPTED_BOSS_LEVEL", () => {
+  it("stores the last attempted boss level", () => {
+    const nextState = appReducer(initialState, {
+      type: "SET_LAST_ATTEMPTED_BOSS_LEVEL",
+      payload: 20,
+    });
+
+    expect(nextState.lastAttemptedBossLevel).toBe(20);
   });
 });

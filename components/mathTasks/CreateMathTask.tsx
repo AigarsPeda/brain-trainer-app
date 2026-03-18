@@ -83,6 +83,8 @@ interface CreateMathTaskProps {
   getLevelCompletionDurationMs?: () => number;
   isBossLevel?: boolean;
   onBossInteraction?: () => void;
+  onBossRetryRequest?: () => void;
+  onBossFailure?: () => void;
 }
 
 export function CreateMathTask({
@@ -94,6 +96,8 @@ export function CreateMathTask({
   getLevelCompletionDurationMs,
   isBossLevel = false,
   onBossInteraction,
+  onBossRetryRequest,
+  onBossFailure,
 }: CreateMathTaskProps) {
   const { width } = useWindowDimensions();
   const colorScheme = useAppColorScheme();
@@ -143,6 +147,8 @@ export function CreateMathTask({
     resetTaskState,
     getLevelCompletionDurationMs,
     isBossLevel,
+    onBossRetryRequest,
+    onBossFailure,
   });
 
   const isAllAnswersCorrect = checkIfCorrect();
@@ -590,7 +596,7 @@ const DraggableNumber = ({
           testID={`draggable-number-${optionId}`}
           end={{ x: 0.5, y: 1 }}
           start={{ x: 0.5, y: 0 }}
-          style={[styles.numberContainer, { width: size, height: size, borderRadius: Math.max(8, size * 0.14) }]}
+          style={[styles.numberContainer, { width: size, height: size, borderRadius: Math.max(6, size * 0.08) }]}
           colors={gradientColors as [string, string]}
         >
           <Animated.View style={overlayStyle} pointerEvents="none" />
@@ -666,7 +672,7 @@ const styles = StyleSheet.create({
   numberContainer: {
     elevation: 2,
     borderWidth: 1,
-    shadowRadius: 4,
+    shadowRadius: 2,
     shadowOpacity: 0.1,
     shadowColor: "#000",
     alignItems: "center",

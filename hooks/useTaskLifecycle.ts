@@ -1,5 +1,6 @@
 import { getLevel } from "@/data/levelLoader";
 import useAppContext from "@/hooks/useAppContext";
+import { BOSS_RETRY_COST, BOSS_RETRY_WAIT_MS } from "@/constants/GameSettings";
 import { buildLevelFeedbackSummary, buildTaskFeedbackEntries } from "@/utils/levelFeedback";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { createLevelNavigationHandlers } from "@/utils/levelNavigation";
@@ -16,6 +17,8 @@ interface UseTaskLifecycleArgs {
   taskNumberInLevel: number;
   getLevelCompletionDurationMs?: () => number;
   isBossLevel?: boolean;
+  onBossRetryRequest?: () => void;
+  onBossFailure?: () => void;
 }
 
 export function useTaskLifecycle({
@@ -27,10 +30,12 @@ export function useTaskLifecycle({
   taskNumberInLevel,
   getLevelCompletionDurationMs,
   isBossLevel = false,
+  onBossRetryRequest,
+  onBossFailure,
 }: UseTaskLifecycleArgs) {
   const {
     dispatch,
-    state: { availableLevels, currentTaskAttemptCount, lives, results },
+    state: { availableLevels, currentTaskAttemptCount, gems, lives, results },
   } = useAppContext();
 
   const router = useRouter();
@@ -123,6 +128,8 @@ export function useTaskLifecycle({
       hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
       if (isBossLevel) {
+        onBossFailure?.();
+        dispatch({ type: "SET_BOSS_RETRY_COOLDOWN", payload: Date.now() + BOSS_RETRY_WAIT_MS });
         setBossFailureState({
           title: "Boss neizdevās!",
           description: "Boss līmenī nedrīkst kļūdīties. Mēģini vēlreiz no sākuma.",
@@ -133,21 +140,23 @@ export function useTaskLifecycle({
     }
 
     setDisplayTaskResults(true);
-  }, [checkIfCorrect, dispatch, getLevelCompletionDurationMs, isBossLevel, isFinalTaskInLevel]);
+  }, [checkIfCorrect, dispatch, getLevelCompletionDurationMs, isBossLevel, isFinalTaskInLevel, onBossFailure]);
 
   const handleTryAgain = useCallback(() => {
     if (isBossLevel && bossFailureState) {
-      dispatch({
-        type: "RESTART_LEVEL",
-        payload: { level: levelNumber },
-      });
+      resetTaskState();
+      setDisplayTaskResults(false);
+      setBossFailureState(null);
+      hasAppliedLifePenaltyRef.current = false;
+      onBossRetryRequest?.();
+      return;
     }
 
     resetTaskState();
     setDisplayTaskResults(false);
     setBossFailureState(null);
     hasAppliedLifePenaltyRef.current = false;
-  }, [bossFailureState, dispatch, isBossLevel, levelNumber, resetTaskState]);
+  }, [bossFailureState, isBossLevel, onBossRetryRequest, resetTaskState]);
 
   const handleWatchAd = useCallback(() => {
     showAdForReward(
@@ -172,7 +181,8 @@ export function useTaskLifecycle({
     failureState: bossFailureState
       ? {
           ...bossFailureState,
-          retryLabel: "Atkārtot bossu",
+          retryLabel: `Atkārtot bossu (${BOSS_RETRY_COST} 💎)`,
+          currentGems: gems,
         }
       : undefined,
     levelCompletionState: isFinalTaskInLevel

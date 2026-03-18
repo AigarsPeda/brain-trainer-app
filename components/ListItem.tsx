@@ -1,16 +1,19 @@
-import CrownIcon from "@/components/icons/CrownIcon";
+import CrownIconImage from "@/assets/images/crown-icon.png";
+import { AnimatedTimer } from "@/components/AnimatedTimer";
 import StarIcon from "@/components/icons/StarIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { GAME_CARD_COLORS_LIGHT } from "@/constants/Colors";
 import { TaskInfoType } from "@/context/app.context.reducer";
 import { SETTINGS } from "@/hardcoded";
-import { isBossLevel } from "@/utils/bossLevel";
+import { formatBossTimer, isBossLevel } from "@/utils/bossLevel";
 import createArray from "@/utils/createArray";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { type FC, memo, useMemo, useCallback, useEffect } from "react";
+import { type FC, memo, useCallback, useEffect, useMemo } from "react";
 import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
+  Easing,
   Extrapolation,
   SharedValue,
   interpolate,
@@ -21,12 +24,19 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
-  Easing,
 } from "react-native-reanimated";
 
 const DARK_STAR_COLOR = "#e8ae4a";
 const LIGHT_STAR_COLOR = "#1C274C";
 const { STATS_PER_LEVEL } = SETTINGS;
+
+// Pre-create star array to avoid recreation
+const STAR_ARRAY = createArray(STATS_PER_LEVEL);
+
+// Item height must match AnimatedFlatList's ITEM_HEIGHT
+const ITEM_HEIGHT = 190;
+// Use actual screen height for adaptive animations across different devices
+const VIEWPORT_HEIGHT = Dimensions.get("window").height;
 
 // Move helper functions outside component to prevent recreation
 const adjustColorBrightness = (hex: string, percent: number): string => {
@@ -46,9 +56,9 @@ const adjustColorBrightness = (hex: string, percent: number): string => {
 const getColorInfo = (levelNumber: number, isLevelLocked: boolean, bgColor?: string) => {
   if (isBossLevel(levelNumber) && !isLevelLocked) {
     return {
-      bgColor: "#B45309",
-      lightColor: "#FCD34D",
-      darkColor: "#78350F",
+      bgColor: "#24120A",
+      lightColor: "#F6CD63",
+      darkColor: "#8A4A0F",
     };
   }
 
@@ -76,14 +86,6 @@ const getColorInfo = (levelNumber: number, isLevelLocked: boolean, bgColor?: str
   };
 };
 
-// Pre-create star array to avoid recreation
-const STAR_ARRAY = createArray(STATS_PER_LEVEL);
-
-// Item height must match AnimatedFlatList's ITEM_HEIGHT
-const ITEM_HEIGHT = 190;
-// Use actual screen height for adaptive animations across different devices
-const VIEWPORT_HEIGHT = Dimensions.get("window").height;
-
 type ListItemProps = {
   index: number;
   bgColor?: string;
@@ -93,11 +95,32 @@ type ListItemProps = {
   handleClick: () => void;
   isCurrentLevel?: boolean;
   scrollY: SharedValue<number>;
+  bossRetryTimeLeftMs?: number | null;
+};
+
+const areEqual = (prevProps: ListItemProps, nextProps: ListItemProps) => {
+  const sameItem =
+    prevProps.item.levelNumber === nextProps.item.levelNumber &&
+    prevProps.item.stars === nextProps.item.stars &&
+    prevProps.item.isLevelLocked === nextProps.item.isLevelLocked;
+
+  const sameLayout =
+    prevProps.position === nextProps.position &&
+    prevProps.index === nextProps.index &&
+    prevProps.isCurrentLevel === nextProps.isCurrentLevel;
+
+  const sameVisualState =
+    prevProps.theme === nextProps.theme &&
+    prevProps.bgColor === nextProps.bgColor &&
+    prevProps.bossRetryTimeLeftMs === nextProps.bossRetryTimeLeftMs;
+
+  return sameItem && sameLayout && sameVisualState;
 };
 
 const ListItem: FC<ListItemProps> = memo(
-  ({ item, index, bgColor, position, theme, isCurrentLevel, handleClick, scrollY }) => {
+  ({ item, index, bgColor, position, theme, isCurrentLevel, handleClick, bossRetryTimeLeftMs, scrollY }) => {
     const pressScale = useSharedValue(1);
+    const isBossCard = isBossLevel(item.levelNumber) && !item.isLevelLocked;
 
     // Calculate item's vertical position (memoized constant per item)
     const itemOffset = index * ITEM_HEIGHT;
@@ -150,6 +173,10 @@ const ListItem: FC<ListItemProps> = memo(
       }),
       [position]
     );
+    const hasActiveBossRetryTimer = useMemo(
+      () => isBossCard && (bossRetryTimeLeftMs ?? 0) > 0,
+      [bossRetryTimeLeftMs, isBossCard]
+    );
 
     const handlePressIn = useCallback(() => {
       pressScale.value = withSpring(0.95);
@@ -176,19 +203,24 @@ const ListItem: FC<ListItemProps> = memo(
               disabled={item.isLevelLocked}
             >
               <LinearGradient
-                colors={[colorInfo.lightColor, colorInfo.darkColor]}
-                start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
+                start={{ x: 0, y: 0 }}
                 style={styles.outerSquare}
+                colors={[colorInfo.lightColor, colorInfo.darkColor]}
               >
-                <View style={[styles.innerSquare, { backgroundColor: colorInfo.bgColor }]}>
-                  {isBossLevel(item.levelNumber) && !item.isLevelLocked ? (
-                    <>
-                      <CrownIcon width={36} height={36} stroke="#FFF7D6" fill="rgba(255, 247, 214, 0.18)" />
-                      <ThemedText type="defaultSemiBold" style={styles.bossLevelText}>
-                        {item.levelNumber}
-                      </ThemedText>
-                    </>
+                <View
+                  style={[
+                    styles.innerSquare,
+                    { backgroundColor: colorInfo.bgColor },
+                    isBossCard && styles.bossInnerSquare,
+                  ]}
+                >
+                  {isBossCard ? (
+                    <View style={styles.bossContent}>
+                      <View style={styles.bossIconShell}>
+                        <Image source={CrownIconImage} style={styles.bossIcon} contentFit="contain" />
+                      </View>
+                    </View>
                   ) : (
                     <ThemedText type="subtitle" style={styles.levelText}>
                       {item.levelNumber}
@@ -198,39 +230,36 @@ const ListItem: FC<ListItemProps> = memo(
               </LinearGradient>
             </Pressable>
           </View>
-          {!item.isLevelLocked && (
-            <View style={styles.starContainer}>
-              {STAR_ARRAY.map((_, index) => {
-                const isFilled = index < item.stars && item.stars > 0;
-                return (
-                  <StarIcon
-                    key={index}
-                    stroke={starColor}
-                    fill={isFilled ? starColor : "transparent"}
-                    style={styles.starIcon}
-                  />
-                );
-              })}
-            </View>
-          )}
+          {!item.isLevelLocked &&
+            (hasActiveBossRetryTimer ? (
+              <View style={styles.bossTimerContainer}>
+                <AnimatedTimer
+                  digitHeight={18}
+                  direction="countdown"
+                  style={styles.bossTimerValue}
+                  time={formatBossTimer(bossRetryTimeLeftMs ?? 0)}
+                />
+              </View>
+            ) : (
+              <View style={styles.starContainer}>
+                {STAR_ARRAY.map((_, index) => {
+                  const isFilled = index < item.stars && item.stars > 0;
+                  return (
+                    <StarIcon
+                      key={index}
+                      stroke={starColor}
+                      style={styles.starIcon}
+                      fill={isFilled ? starColor : "transparent"}
+                    />
+                  );
+                })}
+              </View>
+            ))}
         </View>
       </Animated.View>
     );
   },
-  // Custom comparison function for memo - only re-render when these props change
-  (prevProps, nextProps) => {
-    return (
-      prevProps.item.levelNumber === nextProps.item.levelNumber &&
-      prevProps.item.stars === nextProps.item.stars &&
-      prevProps.item.isLevelLocked === nextProps.item.isLevelLocked &&
-      prevProps.isCurrentLevel === nextProps.isCurrentLevel &&
-      prevProps.position === nextProps.position &&
-      prevProps.index === nextProps.index &&
-      prevProps.theme === nextProps.theme &&
-      prevProps.bgColor === nextProps.bgColor
-      // Note: scrollY is a SharedValue and handled by Reanimated
-    );
-  }
+  areEqual
 );
 
 ListItem.displayName = "ListItem";
@@ -269,20 +298,56 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  bossInnerSquare: {
+    borderWidth: 1,
+    borderColor: "rgba(246, 205, 99, 0.28)",
+  },
+  bossContent: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bossIconShell: {
+    width: 66,
+    height: 66,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bossIcon: {
+    width: 58,
+    height: 58,
+  },
   levelText: {
     fontSize: 32,
     color: "#fff",
-  },
-  bossLevelText: {
-    fontSize: 22,
-    color: "#FFF7D6",
-    marginTop: 6,
   },
   starContainer: {
     marginTop: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  bossTimerContainer: {
+    marginTop: 16,
+    minWidth: 112,
+    borderRadius: 14,
+    paddingVertical: 8,
+    alignItems: "center",
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.18)",
+  },
+  bossTimerLabel: {
+    fontSize: 11,
+    opacity: 0.8,
+    marginBottom: 2,
+  },
+  bossTimerValue: {
+    fontSize: 18,
+    lineHeight: 20,
+    color: "#FFF7D6",
   },
   starIcon: {
     width: 20,

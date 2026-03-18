@@ -20,9 +20,9 @@ interface LevelCompletionState {
   description?: string;
   isCompleted: boolean;
   hasNextLevel?: boolean;
-  summary?: LevelFeedbackSummary;
   onGoHomePress: () => void;
   onNextLevelPress?: () => void;
+  summary?: LevelFeedbackSummary;
 }
 
 interface ShowResultsProps {
@@ -38,19 +38,20 @@ interface ShowResultsProps {
     title: string;
     description: string;
     retryLabel?: string;
+    currentGems?: number;
   };
 }
 
 export function ShowResults({
   lives,
   adLoaded,
+  failureState,
   onGoHomePress,
   onWatchAdPress,
   onTryAgainPress,
   onNextTaskPress,
   isAllAnswersCorrect,
   levelCompletionState,
-  failureState,
 }: ShowResultsProps) {
   const sheetRef = useRef<BottomSheet>(null);
   const { background, text } = useThemeColor();
@@ -167,15 +168,29 @@ export function ShowResults({
             ) : null}
 
             {failureState ? (
-              onTryAgainPress ? (
-                <ThemedView style={styles.singleButtonWrap}>
-                  <MainButton onPress={onTryAgainPress}>
-                    <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                      {failureState.retryLabel ?? "Mēģini vēlreiz"}
-                    </ThemedText>
-                  </MainButton>
-                </ThemedView>
-              ) : null
+              <ThemedView style={styles.buttonsStack}>
+                {failureState.currentGems !== undefined ? (
+                  <ThemedText style={styles.failureMeta}>Tev ir {failureState.currentGems} 💎</ThemedText>
+                ) : null}
+                {onTryAgainPress ? (
+                  <ThemedView style={styles.buttonContainer}>
+                    <MainButton onPress={onTryAgainPress}>
+                      <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                        {failureState.retryLabel ?? "Mēģini vēlreiz"}
+                      </ThemedText>
+                    </MainButton>
+                  </ThemedView>
+                ) : null}
+                {onGoHomePress ? (
+                  <ThemedView style={styles.buttonContainer}>
+                    <MainButton variant="secondary" onPress={onGoHomePress}>
+                      <ThemedText type="defaultSemiBold" style={[styles.buttonText, { color: text }]}>
+                        Uz sākumu
+                      </ThemedText>
+                    </MainButton>
+                  </ThemedView>
+                ) : null}
+              </ThemedView>
             ) : lives === 0 ? (
               <ThemedView style={styles.buttonsStack}>
                 {onWatchAdPress ? (
@@ -279,7 +294,7 @@ function LevelCompletionNotice({
   summary,
   showSuccessState = false,
 }: LevelCompletionNoticeProps) {
-  const { border, icon, tint } = useThemeColor();
+  const { border, tint } = useThemeColor();
   const defaultTitle = title ?? "Līmenis pabeigts!";
   const defaultDescription =
     description ??
@@ -307,7 +322,6 @@ function LevelCompletionNotice({
         <ThemedView style={[styles.feedbackCard, { borderColor: border }]}>
           <ThemedView style={styles.feedbackStatsGrid}>
             <FeedbackStat label="Precizitāte" value={`${summary.accuracy}%`} accentColor={tint} />
-            <FeedbackStat label="Labākā sērija" value={`${summary.bestStreak}`} accentColor={icon} />
           </ThemedView>
 
           <ThemedView style={styles.feedbackSection}>
@@ -356,12 +370,12 @@ interface FeedbackStatProps {
 }
 
 function FeedbackStat({ label, value, accentColor }: FeedbackStatProps) {
-  const { border } = useThemeColor();
+  // const { border } = useThemeColor();
 
   return (
-    <ThemedView style={[styles.feedbackStat, { borderColor: border }]}>
+    <ThemedView style={[styles.feedbackStat]}>
       <ThemedText style={styles.feedbackStatLabel}>{label}</ThemedText>
-      <ThemedText type="subtitle" style={[styles.feedbackStatValue, { color: accentColor }]}>
+      <ThemedText type="title" style={[styles.feedbackStatValue, { color: accentColor }]}>
         {value}
       </ThemedText>
     </ThemedView>
@@ -467,6 +481,11 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
   },
+  failureMeta: {
+    fontSize: 15,
+    opacity: 0.8,
+    textAlign: "center",
+  },
   singleButtonWrap: {
     width: "100%",
     alignItems: "center",
@@ -506,17 +525,14 @@ const styles = StyleSheet.create({
   },
   feedbackStat: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    // paddingVertical: 12,
   },
   feedbackStatLabel: {
     fontSize: 13,
     opacity: 0.7,
   },
   feedbackStatValue: {
-    marginTop: 4,
+    // marginTop: 4,
   },
   feedbackSection: {
     gap: 6,

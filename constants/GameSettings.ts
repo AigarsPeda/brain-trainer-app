@@ -47,11 +47,16 @@ export const BOSS_LEVEL_INTERVAL = 10;
 export const BOSS_LEVEL_DURATION_MS = 90 * 1000;
 export const BOSS_LEVEL_EXTRA_TIME_MS = 30 * 1000;
 export const BOSS_EXTRA_TIME_COST = 12;
+export const BOSS_RETRY_COST = 15;
+export const BOSS_RETRY_WAIT_MINUTES = 30;
+export const BOSS_RETRY_WAIT_MS = BOSS_RETRY_WAIT_MINUTES * 60 * 1000;
 export const BOSS_EXTRA_TIME_SECONDS = BOSS_LEVEL_EXTRA_TIME_MS / 1000;
 export const BOSS_EXTRA_TIME_PURCHASE_LABEL = `Pirkt +${BOSS_EXTRA_TIME_SECONDS} sek`;
+export const BOSS_RETRY_PURCHASE_LABEL = "Atkārtot bossu";
 export const BOSS_TIMER_PENDING_DESCRIPTION = `Boss taimeris sāksies pēc pirmās atbildes. Ja vajag, vari iegādāties vēl ${BOSS_EXTRA_TIME_SECONDS} sekundes.`;
 export const BOSS_TIMER_EXPIRED_DESCRIPTION = `Pērc vēl ${BOSS_EXTRA_TIME_SECONDS} sekundes ar dimantiem vai nopelni dimantus no reklāmas.`;
 export const BOSS_TIMER_ACTIVE_DESCRIPTION = `Boss līmenī nav palīdzības. Ja vajag, vari iegādāties vēl ${BOSS_EXTRA_TIME_SECONDS} sekundes.`;
+export const BOSS_RETRY_DESCRIPTION = `Atkārto boss līmeni ar dimantiem, vai nopelni dimantus no reklāmas. Ja nevēlies tērēt dimantus, vari gaidīt ${BOSS_RETRY_WAIT_MINUTES} minūtes un mēģināt bez maksas.`;
 
 // UI Layout constants
 export const ANDROID_TOP_PADDING = 25;

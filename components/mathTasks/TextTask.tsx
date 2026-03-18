@@ -21,6 +21,8 @@ interface TextTaskProps {
   getLevelCompletionDurationMs?: () => number;
   isBossLevel?: boolean;
   onBossInteraction?: () => void;
+  onBossRetryRequest?: () => void;
+  onBossFailure?: () => void;
 }
 
 export function TextTask({
@@ -33,6 +35,8 @@ export function TextTask({
   getLevelCompletionDurationMs,
   isBossLevel = false,
   onBossInteraction,
+  onBossRetryRequest,
+  onBossFailure,
 }: TextTaskProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -120,6 +124,8 @@ export function TextTask({
     resetTaskState,
     getLevelCompletionDurationMs,
     isBossLevel,
+    onBossRetryRequest,
+    onBossFailure,
   });
 
   const handleCheckAnswer = useCallback(() => {
