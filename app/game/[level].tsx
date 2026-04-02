@@ -15,22 +15,15 @@ import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
+import { BOSS_EXTRA_TIME_COST, BOSS_RETRY_COST, HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
 import {
-  BOSS_EXTRA_TIME_COST,
-  BOSS_LEVEL_DURATION_MS,
-  BOSS_LEVEL_EXTRA_TIME_MS,
-  BOSS_RETRY_COST,
-  BOSS_RETRY_WAIT_MS,
-  HINT_COST,
-  REMOVE_WRONG_ANSWER_COST,
-} from "@/constants/GameSettings";
-import {
-  getTaskInLevelForSelection,
+  getLevelSelectionState,
   isCreateMathTask,
   isMultiAnswerMathTask,
   isTextTask,
 } from "@/context/app.context.reducer";
 import useAppContext from "@/hooks/useAppContext";
+import { useBossLevelFlow } from "@/hooks/useBossLevelFlow";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { useLevelData } from "@/hooks/useLevelData";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
@@ -46,7 +39,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const ADDITIONAL_TOP_PADDING = 12;
 
 type ModalType = "help" | "hint" | "info" | "lives" | "bossTimer" | null;
-type BossModalMode = "timer" | "retry" | "expired";
 
 export default function GameLevelScreen() {
   const {
@@ -71,38 +63,93 @@ export default function GameLevelScreen() {
   const [openModal, setOpenModal] = useState<ModalType>(null);
   const [showGemAnimation, setShowGemAnimation] = useState(false);
   const [removedAnswerIds, setRemovedAnswerIds] = useState<number[]>([]);
-  const { level } = useLocalSearchParams<"/game/[level]">() as { level: string };
-  const levelNumber = Number(level);
+  const { level } = useLocalSearchParams<{ level?: string | string[] }>();
+  const levelParam = Array.isArray(level) ? level[0] : level;
+  const levelNumber = Number(levelParam);
+  const hasValidLevelNumber = Boolean(levelParam) && Number.isInteger(levelNumber) && levelNumber > 0;
   const [showTextTaskAsMultipleChoice, setShowTextTaskAsMultipleChoice] = useState(false);
   const hasRenderedInitialTaskRef = useRef(false);
   const levelStartedAtRef = useRef<number | null>(null);
-  const bossDeadlineAtRef = useRef<number | null>(null);
-  const selectedTaskInLevel =
-    !Number.isNaN(levelNumber) && levelNumber > 0
-      ? getTaskInLevelForSelection({ levels, results }, levelNumber)
-      : currentTaskInLevel;
-  const effectiveTaskInLevel = levelNumber === currentLevel ? currentTaskInLevel : selectedTaskInLevel;
-  const { levelTasks, currentTask, maxLevelStep } = useLevelData(level, effectiveTaskInLevel);
+  const levelSelection = useMemo(() => {
+    if (!hasValidLevelNumber) {
+      return null;
+    }
+
+    return getLevelSelectionState(
+      {
+        levels,
+        results,
+        game: { currentLevel, currentTaskInLevel },
+      },
+      levelNumber
+    );
+  }, [currentLevel, currentTaskInLevel, hasValidLevelNumber, levelNumber, levels, results]);
+  const effectiveTaskInLevel = levelSelection?.currentTaskInLevel ?? currentTaskInLevel;
+  const { levelTasks, currentTask, maxLevelStep } = useLevelData(levelParam ?? "", effectiveTaskInLevel);
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
-  const [bossTimeLeftMs, setBossTimeLeftMs] = useState(BOSS_LEVEL_DURATION_MS);
-  const [bossTotalDurationMs, setBossTotalDurationMs] = useState(BOSS_LEVEL_DURATION_MS);
-  const [bossTimerStarted, setBossTimerStarted] = useState(false);
-  const [bossTimerExpired, setBossTimerExpired] = useState(false);
-  const [bossModalMode, setBossModalMode] = useState<BossModalMode>("timer");
-  const [bossRetryWaitRemainingMs, setBossRetryWaitRemainingMs] = useState(0);
-  const bossLevel = isBossLevel(levelNumber);
-  const currentLevelResults = results[levelNumber?.toString()];
-  const currentLevelResultsCount = currentLevelResults?.tasksResults.length ?? 0;
-  const bossTimerProgress = bossLevel ? Math.max(0, Math.min(1, bossTimeLeftMs / bossTotalDurationMs)) : 0;
+  const bossLevel = hasValidLevelNumber && isBossLevel(levelNumber);
+  const currentLevelResultsCount = levelSelection?.levelResultsCount ?? 0;
   const isCurrentBossRetryLevel = bossLevel && lastAttemptedBossLevel === levelNumber;
   const hasBossRetryState = isCurrentBossRetryLevel && bossRetryAvailableAt !== null;
   const hasActiveBossRetryCooldown = hasBossRetryState && bossRetryAvailableAt > Date.now();
   const canRetryBossForFree = hasBossRetryState && bossRetryAvailableAt <= Date.now();
-  const isCurrentBossCompleted =
-    levels.find((levelInfo) => levelInfo.levelNumber === levelNumber)?.isLevelCompleted ?? false;
+  const isCurrentBossCompleted = levelSelection?.isLevelCompleted ?? false;
+  const isBossTimerModalOpen = openModal === "bossTimer";
+
+  const resetTaskUiState = useCallback(() => {
+    setRemovedAnswerIds([]);
+    setShowTextTaskAsMultipleChoice(false);
+  }, []);
+
+  const showBossTimerModal = useCallback(() => {
+    setOpenModal("bossTimer");
+  }, []);
+
+  const hideBossTimerModal = useCallback(() => {
+    setOpenModal((currentOpenModal) => (currentOpenModal === "bossTimer" ? null : currentOpenModal));
+  }, []);
+
+  const markLevelStarted = useCallback(() => {
+    levelStartedAtRef.current = Date.now();
+  }, []);
+
+  const {
+    bossModalMode,
+    bossRetryWaitRemainingMs,
+    bossTimerExpired,
+    bossTimerProgress,
+    bossTimerStarted,
+    bossTimeLeftMs,
+    handleBossFailure,
+    handleBossInteraction,
+    handleBossRetryRequest,
+    handleBuyBossExtraTime,
+    handleBuyBossRetry,
+    handleRestartBoss,
+    openBossModal,
+    resetBossRunState,
+    setBossModalMode,
+  } = useBossLevelFlow({
+    bossLevel,
+    levelNumber,
+    gems,
+    currentTaskExists: Boolean(currentTask),
+    bossRetryAvailableAt,
+    hasBossRetryState,
+    hasActiveBossRetryCooldown,
+    canRetryBossForFree,
+    isCurrentBossCompleted,
+    isCurrentLevel: levelSelection?.isCurrentLevel ?? false,
+    isBossTimerModalOpen,
+    dispatch,
+    resetTaskUiState,
+    onLevelRestarted: markLevelStarted,
+    showBossTimerModal,
+    hideBossTimerModal,
+  });
 
   useEffect(() => {
-    if (Number.isNaN(levelNumber) || levelNumber < 1) {
+    if (!hasValidLevelNumber) {
       return;
     }
 
@@ -110,114 +157,42 @@ export default function GameLevelScreen() {
       type: "SELECT_LEVEL",
       payload: { level: levelNumber },
     });
-  }, [dispatch, levelNumber]);
+  }, [dispatch, hasValidLevelNumber, levelNumber]);
 
   const isFinalTaskInLevel = currentTask?.taskNumberInLevel === maxLevelStep;
 
-  // Reset hint state when task changes
-  const taskIdentity = `${level}-${effectiveTaskInLevel}`;
-  const prevTaskRef = useRef(taskIdentity);
-
   useEffect(() => {
-    if (prevTaskRef.current !== taskIdentity) {
-      prevTaskRef.current = taskIdentity;
-      setRemovedAnswerIds([]);
-      setShowTextTaskAsMultipleChoice(false);
+    if (!currentTask) {
+      return;
     }
-  }, [taskIdentity]);
+
+    resetTaskUiState();
+  }, [currentTask, levelNumber, resetTaskUiState]);
 
   useEffect(() => {
     hasRenderedInitialTaskRef.current = true;
   }, []);
 
   useEffect(() => {
-    if (!currentTask || Number.isNaN(levelNumber) || levelNumber < 1) {
+    if (!currentTask || !hasValidLevelNumber) {
       return;
     }
 
     if (effectiveTaskInLevel === 1 && currentLevelResultsCount === 0) {
-      levelStartedAtRef.current = Date.now();
+      markLevelStarted();
       if (bossLevel) {
-        bossDeadlineAtRef.current = null;
-        setBossTimeLeftMs(BOSS_LEVEL_DURATION_MS);
-        setBossTotalDurationMs(BOSS_LEVEL_DURATION_MS);
-        setBossTimerStarted(false);
-        setBossTimerExpired(false);
-        setBossModalMode("timer");
-        setOpenModal((currentOpenModal) => (currentOpenModal === "bossTimer" ? null : currentOpenModal));
+        resetBossRunState(true);
       }
     }
-  }, [bossLevel, currentLevelResults, currentLevelResultsCount, currentTask, effectiveTaskInLevel, levelNumber]);
-
-  useEffect(() => {
-    if (!bossLevel || !hasBossRetryState || bossRetryAvailableAt === null) {
-      setBossRetryWaitRemainingMs(0);
-      return;
-    }
-
-    const updateRetryWait = () => {
-      setBossRetryWaitRemainingMs(Math.max(0, bossRetryAvailableAt - Date.now()));
-    };
-
-    updateRetryWait();
-    const interval = setInterval(updateRetryWait, 1000);
-
-    return () => clearInterval(interval);
-  }, [bossLevel, bossRetryAvailableAt, hasBossRetryState]);
-
-  useEffect(() => {
-    if (!bossLevel || !bossTimerStarted || bossTimerExpired) {
-      return;
-    }
-
-    const updateBossTimer = () => {
-      if (!bossDeadlineAtRef.current) {
-        return;
-      }
-
-      const rawTimeLeft = Math.max(0, bossDeadlineAtRef.current - Date.now());
-      const nextTimeLeft = Math.ceil(rawTimeLeft / 1000) * 1000;
-      setBossTimeLeftMs(nextTimeLeft);
-
-      if (nextTimeLeft === 0) {
-        dispatch({ type: "SET_BOSS_RETRY_COOLDOWN", payload: Date.now() + BOSS_RETRY_WAIT_MS });
-        setBossTimerExpired(true);
-        setBossModalMode("expired");
-        setOpenModal("bossTimer");
-      }
-    };
-
-    updateBossTimer();
-
-    const interval = setInterval(updateBossTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [bossLevel, bossTimerExpired, bossTimerStarted, dispatch]);
-
-  const handleBossInteraction = useCallback(() => {
-    if (!bossLevel || bossTimerStarted || bossTimerExpired) {
-      return;
-    }
-
-    dispatch({ type: "SET_LAST_ATTEMPTED_BOSS_LEVEL", payload: levelNumber });
-    bossDeadlineAtRef.current = Date.now() + bossTimeLeftMs;
-    setBossTimerStarted(true);
-  }, [bossLevel, bossTimeLeftMs, bossTimerExpired, bossTimerStarted, dispatch, levelNumber]);
-
-  const handleBossFailure = useCallback(() => {
-    if (!bossLevel) {
-      return;
-    }
-
-    const remainingTimeMs = bossDeadlineAtRef.current
-      ? Math.max(0, bossDeadlineAtRef.current - Date.now())
-      : bossTimeLeftMs;
-    const nextTimeLeft = Math.ceil(remainingTimeMs / 1000) * 1000;
-
-    setBossTimeLeftMs(nextTimeLeft);
-    setBossTimerStarted(false);
-    bossDeadlineAtRef.current = null;
-  }, [bossLevel, bossTimeLeftMs]);
+  }, [
+    bossLevel,
+    currentLevelResultsCount,
+    currentTask,
+    effectiveTaskInLevel,
+    hasValidLevelNumber,
+    markLevelStarted,
+    resetBossRunState,
+  ]);
 
   const getLevelCompletionDurationMs = useCallback(() => {
     if (!levelStartedAtRef.current) {
@@ -274,96 +249,6 @@ export default function GameLevelScreen() {
     setGemAnimationStartValue(undefined);
   };
 
-  const handleRestartBoss = useCallback(() => {
-    dispatch({ type: "SET_BOSS_RETRY_COOLDOWN", payload: null });
-    dispatch({
-      type: "RESTART_LEVEL",
-      payload: { level: levelNumber },
-    });
-    setRemovedAnswerIds([]);
-    setShowTextTaskAsMultipleChoice(false);
-    setBossTimerStarted(false);
-    setBossTimerExpired(false);
-    setBossTimeLeftMs(BOSS_LEVEL_DURATION_MS);
-    setBossTotalDurationMs(BOSS_LEVEL_DURATION_MS);
-    setBossModalMode("timer");
-    bossDeadlineAtRef.current = null;
-    levelStartedAtRef.current = Date.now();
-    setOpenModal(null);
-  }, [dispatch, levelNumber]);
-
-  useEffect(() => {
-    if (!bossLevel || !currentTask || !hasActiveBossRetryCooldown) {
-      return;
-    }
-
-    setBossModalMode("retry");
-    setOpenModal("bossTimer");
-  }, [bossLevel, currentTask, hasActiveBossRetryCooldown]);
-
-  useEffect(() => {
-    if (
-      !bossLevel ||
-      !currentTask ||
-      !hasBossRetryState ||
-      hasActiveBossRetryCooldown ||
-      openModal === "bossTimer" ||
-      isCurrentBossCompleted ||
-      currentLevel !== levelNumber
-    ) {
-      return;
-    }
-
-    handleRestartBoss();
-  }, [
-    bossLevel,
-    currentTask,
-    currentLevel,
-    handleRestartBoss,
-    hasActiveBossRetryCooldown,
-    hasBossRetryState,
-    isCurrentBossCompleted,
-    levelNumber,
-    openModal,
-  ]);
-
-  const handleBuyBossRetry = useCallback(() => {
-    dispatch({ type: "SPEND_GEMS", payload: BOSS_RETRY_COST });
-    handleRestartBoss();
-  }, [dispatch, handleRestartBoss]);
-
-  const handleBossRetryRequest = useCallback(() => {
-    if (canRetryBossForFree) {
-      handleRestartBoss();
-      return;
-    }
-
-    if (gems >= BOSS_RETRY_COST) {
-      handleBuyBossRetry();
-      return;
-    }
-
-    setBossModalMode("retry");
-    setOpenModal("bossTimer");
-  }, [canRetryBossForFree, gems, handleBuyBossRetry, handleRestartBoss]);
-
-  const openBossModal = useCallback(() => {
-    if (hasBossRetryState) {
-      setBossModalMode("retry");
-      setOpenModal("bossTimer");
-      return;
-    }
-
-    if (bossTimerExpired) {
-      setBossModalMode("expired");
-      setOpenModal("bossTimer");
-      return;
-    }
-
-    setBossModalMode("timer");
-    setOpenModal("bossTimer");
-  }, [bossTimerExpired, hasBossRetryState]);
-
   const handlePurchaseHint = () => {
     dispatch({ type: "SPEND_GEMS", payload: HINT_COST });
     setOpenModal("hint");
@@ -417,30 +302,12 @@ export default function GameLevelScreen() {
     );
   };
 
-  const handleBuyBossExtraTime = useCallback(() => {
-    dispatch({ type: "SPEND_GEMS", payload: BOSS_EXTRA_TIME_COST });
-
-    if (bossTimerStarted) {
-      const currentDeadline = bossDeadlineAtRef.current ?? Date.now();
-      bossDeadlineAtRef.current = Math.max(currentDeadline, Date.now()) + BOSS_LEVEL_EXTRA_TIME_MS;
-    }
-
-    setBossTotalDurationMs((previousTotalDuration) => previousTotalDuration + BOSS_LEVEL_EXTRA_TIME_MS);
-    setBossTimeLeftMs((previousTimeLeft) =>
-      bossTimerStarted
-        ? Math.max(0, (bossDeadlineAtRef.current ?? Date.now()) - Date.now())
-        : previousTimeLeft + BOSS_LEVEL_EXTRA_TIME_MS
-    );
-    setBossTimerExpired(false);
-    setOpenModal(null);
-  }, [bossTimerStarted, dispatch]);
-
   const handleGoHome = useCallback(() => {
     setOpenModal(null);
     router.replace("/");
   }, [router]);
 
-  if (!level || isNaN(Number(level)) || Array.isArray(level)) {
+  if (!levelParam || !hasValidLevelNumber) {
     return (
       <ThemedView>
         <ThemedText>Nav atrasts līmenis</ThemedText>
@@ -582,7 +449,7 @@ export default function GameLevelScreen() {
           >
             {isMultiAnswerMathTask(currentTask) && (
               <MathTaskWithResult
-                level={level}
+                level={levelParam}
                 task={currentTask}
                 maxLevelStep={maxLevelStep}
                 removedAnswerIds={removedAnswerIds}
@@ -596,7 +463,7 @@ export default function GameLevelScreen() {
             )}
             {isCreateMathTask(currentTask) && (
               <CreateMathTask
-                level={level}
+                level={levelParam}
                 task={currentTask}
                 maxLevelStep={maxLevelStep}
                 removedAnswerIds={removedAnswerIds}
@@ -610,7 +477,7 @@ export default function GameLevelScreen() {
             )}
             {isTextTask(currentTask) && (
               <TextTask
-                level={level}
+                level={levelParam}
                 task={currentTask}
                 maxLevelStep={maxLevelStep}
                 removedAnswerIds={removedAnswerIds}

@@ -8,6 +8,40 @@ import { calculateTaskCorrectnessPercentage } from "@/utils/utils";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+type BossFailureState = {
+  title: string;
+  description: string;
+};
+
+type TaskAttemptOutcome = {
+  bossFailureState: BossFailureState | null;
+  completionTimeMs: number | null;
+  isCorrect: boolean;
+};
+
+const getBossFailureState = (): BossFailureState => {
+  return {
+    title: "Boss neizdevās!",
+    description: "Boss līmenī nedrīkst kļūdīties. Mēģini vēlreiz no sākuma.",
+  };
+};
+
+const buildProvisionalTaskResults = (
+  taskResults: { taskNumber: string; correctnessPercentage: number }[],
+  taskNumberInLevel: number,
+  correctnessPercentage: number
+) => {
+  const taskNumber = taskNumberInLevel.toString();
+
+  return [
+    ...taskResults.filter((taskResult) => taskResult.taskNumber !== taskNumber),
+    {
+      taskNumber,
+      correctnessPercentage,
+    },
+  ];
+};
+
 interface UseTaskLifecycleArgs {
   level: string;
   maxLevelStep: number;
@@ -43,10 +77,23 @@ export function useTaskLifecycle({
   const { loaded: adLoaded, showAdForReward } = useGoogleAd();
   const [displayTaskResults, setDisplayTaskResults] = useState(false);
   const [completionTimeMs, setCompletionTimeMs] = useState<number | null>(null);
-  const [bossFailureState, setBossFailureState] = useState<{ title: string; description: string } | null>(null);
+  const [bossFailureState, setBossFailureState] = useState<BossFailureState | null>(null);
 
   const levelNumber = Number(level);
   const hasNextLevel = levelNumber < availableLevels;
+
+  const resetAttemptState = useCallback(
+    (shouldResetTask = false) => {
+      if (shouldResetTask) {
+        resetTaskState();
+      }
+
+      setDisplayTaskResults(false);
+      setBossFailureState(null);
+      hasAppliedLifePenaltyRef.current = false;
+    },
+    [resetTaskState]
+  );
 
   const finalizeTaskProgress = useCallback(() => {
     dispatch({
@@ -54,14 +101,30 @@ export function useTaskLifecycle({
       payload: { isCorrect: true, maxLevelStep },
     });
 
-    resetTaskState();
-    setDisplayTaskResults(false);
-    setBossFailureState(null);
-    hasAppliedLifePenaltyRef.current = false;
-  }, [dispatch, maxLevelStep, resetTaskState]);
+    resetAttemptState(true);
+  }, [dispatch, maxLevelStep, resetAttemptState]);
 
   const nextLevelValue = (levelNumber + 1).toString();
   const isCurrentTaskCorrect = checkIfCorrect();
+
+  const getTaskAttemptOutcome = useCallback((): TaskAttemptOutcome => {
+    const isCorrect = checkIfCorrect();
+
+    if (!isCorrect) {
+      return {
+        bossFailureState: isBossLevel ? getBossFailureState() : null,
+        completionTimeMs: null,
+        isCorrect: false,
+      };
+    }
+
+    return {
+      bossFailureState: null,
+      completionTimeMs: isFinalTaskInLevel ? (getLevelCompletionDurationMs?.() ?? 0) : null,
+      isCorrect: true,
+    };
+  }, [checkIfCorrect, getLevelCompletionDurationMs, isBossLevel, isFinalTaskInLevel]);
+
   const levelCompletionSummary = useMemo(() => {
     if (!isFinalTaskInLevel || !isCurrentTaskCorrect) {
       return undefined;
@@ -80,15 +143,11 @@ export function useTaskLifecycle({
       maxLevelStep
     );
 
-    const provisionalTaskResults = [
-      ...(results[levelKey]?.tasksResults ?? []).filter(
-        (taskResult) => taskResult.taskNumber !== taskNumberInLevel.toString()
-      ),
-      {
-        taskNumber: taskNumberInLevel.toString(),
-        correctnessPercentage: currentCorrectnessPercentage,
-      },
-    ];
+    const provisionalTaskResults = buildProvisionalTaskResults(
+      results[levelKey]?.tasksResults ?? [],
+      taskNumberInLevel,
+      currentCorrectnessPercentage
+    );
 
     return buildLevelFeedbackSummary(
       buildTaskFeedbackEntries(levelTasks, provisionalTaskResults),
@@ -122,54 +181,46 @@ export function useTaskLifecycle({
       return;
     }
 
-    const isCorrect = checkIfCorrect();
+    const taskOutcome = getTaskAttemptOutcome();
 
-    if (!isCorrect) {
+    if (!taskOutcome.isCorrect) {
       hasAppliedLifePenaltyRef.current = true;
       dispatch({ type: "LOSE_LIFE" });
-      if (isBossLevel) {
+      if (taskOutcome.bossFailureState) {
         onBossFailure?.();
         dispatch({ type: "SET_BOSS_RETRY_COOLDOWN", payload: Date.now() + BOSS_RETRY_WAIT_MS });
-        setBossFailureState({
-          title: "Boss neizdevās!",
-          description: "Boss līmenī nedrīkst kļūdīties. Mēģini vēlreiz no sākuma.",
-        });
+        setBossFailureState(taskOutcome.bossFailureState);
       }
-    } else if (isFinalTaskInLevel) {
-      setCompletionTimeMs(getLevelCompletionDurationMs?.() ?? 0);
+    }
+
+    if (taskOutcome.completionTimeMs !== null) {
+      setCompletionTimeMs(taskOutcome.completionTimeMs);
     }
 
     setDisplayTaskResults(true);
-  }, [checkIfCorrect, dispatch, getLevelCompletionDurationMs, isBossLevel, isFinalTaskInLevel, onBossFailure]);
+  }, [dispatch, getTaskAttemptOutcome, onBossFailure]);
 
   const handleTryAgain = useCallback(() => {
     if (isBossLevel && bossFailureState) {
-      resetTaskState();
-      setDisplayTaskResults(false);
-      setBossFailureState(null);
-      hasAppliedLifePenaltyRef.current = false;
+      resetAttemptState(true);
       onBossRetryRequest?.();
       return;
     }
 
-    resetTaskState();
-    setDisplayTaskResults(false);
-    setBossFailureState(null);
-    hasAppliedLifePenaltyRef.current = false;
-  }, [bossFailureState, isBossLevel, onBossRetryRequest, resetTaskState]);
+    resetAttemptState(true);
+  }, [bossFailureState, isBossLevel, onBossRetryRequest, resetAttemptState]);
 
   const handleWatchAd = useCallback(() => {
     showAdForReward(
       () => {
         dispatch({ type: "RESTORE_LIFE_FROM_AD" });
-        resetTaskState();
-        hasAppliedLifePenaltyRef.current = false;
+        resetAttemptState(true);
       },
       () => {
         setDisplayTaskResults(false);
       }
     );
-  }, [showAdForReward, dispatch, resetTaskState]);
+  }, [showAdForReward, dispatch, resetAttemptState]);
 
   const showResultsProps = {
     lives,

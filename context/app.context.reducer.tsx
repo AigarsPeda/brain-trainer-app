@@ -101,6 +101,15 @@ export type AppContextType = {
 
 export type TaskType = MultiAnswerMathTaskType | CreateMathTaskType | TextTaskType;
 export type AppStatsContextType = Pick<AppContextStateType, "gems" | "lives" | "daysInARow" | "lastLifeLostAt">;
+type LevelResultsEntry = { tasksResults: TaskResultType[] };
+type LevelSelectionStateSource = Pick<AppContextStateType, "levels" | "results"> &
+  Partial<Pick<AppContextStateType, "game">>;
+type StreakState = Pick<AppContextStateType, "daysInARow" | "lastPlayedDate">;
+type MilestoneClaimState = {
+  gems: number;
+  claimedMilestones: number[];
+  claimDates: Record<number, string>;
+};
 
 export const isMultiAnswerMathTask = (task: TaskType): task is MultiAnswerMathTaskType => {
   return task.taskType === "mathTaskWithResult";
@@ -155,24 +164,66 @@ export const AppThemeContext = createContext<ThemeType>("dark");
 export const AppStatsContext = createContext<AppStatsContextType | null>(null);
 
 // Helper Functions
-const getLevelResultsEntry = (
-  results: AppContextStateType["results"],
-  level: number
-): { tasksResults: TaskResultType[] } => {
-  return results[level.toString()] ?? { tasksResults: [] };
+const toLevelKey = (level: number): string => {
+  return level.toString();
+};
+
+const createEmptyLevelResultsEntry = (): LevelResultsEntry => {
+  return { tasksResults: [] };
+};
+
+const getTodayIsoDate = (): string => {
+  return new Date().toISOString().split("T")[0];
+};
+
+const getLevelResultsEntry = (results: AppContextStateType["results"], level: number): LevelResultsEntry => {
+  return results[toLevelKey(level)] ?? createEmptyLevelResultsEntry();
+};
+
+const getLevelInfo = (levels: TaskInfoType[], level: number): TaskInfoType | undefined => {
+  return levels.find((item) => item.levelNumber === level);
+};
+
+export const getLevelSelectionState = (state: LevelSelectionStateSource, level: number) => {
+  const gameState = state.game;
+  const levelInfo = getLevelInfo(state.levels, level);
+  const levelResults = getLevelResultsEntry(state.results, level);
+  const nextTaskInLevel = levelInfo?.isLevelCompleted ? 1 : levelResults.tasksResults.length + 1;
+  const isCurrentLevel = gameState?.currentLevel === level;
+
+  return {
+    isCurrentLevel,
+    isLevelCompleted: levelInfo?.isLevelCompleted ?? false,
+    levelResults,
+    levelResultsCount: levelResults.tasksResults.length,
+    nextTaskInLevel,
+    currentTaskInLevel: isCurrentLevel && gameState ? gameState.currentTaskInLevel : nextTaskInLevel,
+  };
+};
+
+const buildLevelProgressState = (
+  state: AppContextStateType,
+  level: number,
+  currentTaskInLevel: number,
+  levelResults: LevelResultsEntry
+): Pick<AppContextStateType, "game" | "results"> => {
+  return {
+    game: {
+      currentLevel: level,
+      currentTaskInLevel,
+    },
+    results: {
+      ...state.results,
+      [toLevelKey(level)]: levelResults,
+    },
+  };
 };
 
 export const getTaskInLevelForSelection = (
   state: Pick<AppContextStateType, "levels" | "results">,
   level: number
 ): number => {
-  const selectedLevel = state.levels.find((item) => item.levelNumber === level);
-
-  if (selectedLevel?.isLevelCompleted) {
-    return 1;
-  }
-
-  return getLevelResultsEntry(state.results, level).tasksResults.length + 1;
+  return getLevelSelectionState(state, level).nextTaskInLevel;
 };
 
 const appendTaskResult = (
@@ -180,11 +231,13 @@ const appendTaskResult = (
   correctnessPercentage: number
 ): AppContextStateType["results"] => {
   const { currentLevel, currentTaskInLevel } = state.game;
+  const levelKey = toLevelKey(currentLevel);
+
   return {
     ...state.results,
-    [currentLevel.toString()]: {
+    [levelKey]: {
       tasksResults: [
-        ...(state.results[currentLevel.toString()]?.tasksResults || []),
+        ...getLevelResultsEntry(state.results, currentLevel).tasksResults,
         {
           taskNumber: currentTaskInLevel.toString(),
           correctnessPercentage,
@@ -198,14 +251,15 @@ const advanceToNextLevel = (
   state: AppContextStateType,
   nextLevel: number,
   results: AppContextStateType["results"],
-  streak: { daysInARow: number; lastPlayedDate: string | null }
+  streak: StreakState
 ): AppContextStateType => {
   const { currentLevel } = state.game;
+  const currentLevelKey = toLevelKey(currentLevel);
   const finalResults = {
     ...results,
-    [nextLevel.toString()]: { tasksResults: [] },
+    [toLevelKey(nextLevel)]: createEmptyLevelResultsEntry(),
   };
-  const stars = calculateStars(finalResults[currentLevel.toString()].tasksResults);
+  const stars = calculateStars(finalResults[currentLevelKey].tasksResults);
 
   return {
     ...state,
@@ -215,6 +269,16 @@ const advanceToNextLevel = (
     results: finalResults,
     currentTaskAttemptCount: 0,
     levels: updateLevelStates(state.levels, currentLevel, nextLevel, stars),
+  };
+};
+
+const buildCompletedTaskState = (
+  state: AppContextStateType,
+  correctnessPercentage: number
+): { results: AppContextStateType["results"]; streak: StreakState } => {
+  return {
+    results: appendTaskResult(state, correctnessPercentage),
+    streak: updateDaysInARow(state.lastPlayedDate, state.daysInARow),
   };
 };
 
@@ -253,6 +317,59 @@ const updateLevelStates = (
   });
 };
 
+const buildMilestoneClaimState = (
+  state: AppContextStateType,
+  milestone: number,
+  rewardGems: number,
+  claimedMilestones: number[],
+  claimDates: Record<number, string>
+): MilestoneClaimState => {
+  return {
+    gems: state.gems + rewardGems,
+    claimedMilestones: [...claimedMilestones, milestone],
+    claimDates: {
+      ...claimDates,
+      [milestone]: getTodayIsoDate(),
+    },
+  };
+};
+
+const mergePersistedLevels = (persistedLevels: TaskInfoType[] = []): TaskInfoType[] => {
+  const persistedLevelsByNumber = new Map(persistedLevels.map((level) => [level.levelNumber, level]));
+
+  return initializeLevels().map((freshLevel) => {
+    const persistedLevel = persistedLevelsByNumber.get(freshLevel.levelNumber);
+
+    if (!persistedLevel) {
+      return freshLevel;
+    }
+
+    return {
+      ...freshLevel,
+      stars: persistedLevel.stars,
+      isLevelCompleted: persistedLevel.isLevelCompleted,
+      isLevelLocked: persistedLevel.isLevelLocked,
+    };
+  });
+};
+
+const normalizeHydratedState = (state: AppContextStateType): AppContextStateType => {
+  return {
+    ...state,
+    levels: mergePersistedLevels(state.levels),
+    theme: state.theme ?? "dark",
+    availableLevels: TOTAL_LEVELS,
+    lastPlayedDate: state.lastPlayedDate ?? null,
+    lastAttemptedBossLevel: state.lastAttemptedBossLevel ?? null,
+    bossRetryAvailableAt: state.bossRetryAvailableAt ?? null,
+    currentTaskAttemptCount: state.currentTaskAttemptCount ?? 0,
+    claimedStreakBonuses: state.claimedStreakBonuses ?? [],
+    claimedTaskAchievements: state.claimedTaskAchievements ?? [],
+    streakBonusClaimDates: state.streakBonusClaimDates ?? {},
+    taskAchievementClaimDates: state.taskAchievementClaimDates ?? {},
+  };
+};
+
 interface SetNameActionType {
   type: "SET_NAME";
   payload: string;
@@ -261,14 +378,6 @@ interface SetNameActionType {
 interface SetThemeActionType {
   type: "SET_THEME";
   payload: ThemeType;
-}
-
-interface SetIsCheckedForTaskActionType {
-  type: "CHECK_ANSWERS";
-  payload: {
-    level: string;
-    currentTaskNumber: number;
-  };
 }
 
 interface CreateNextLevelActionType {
@@ -356,7 +465,6 @@ export type AppContextActionType =
   | SetNameActionType
   | SetThemeActionType
   | CreateNextLevelActionType
-  | SetIsCheckedForTaskActionType
   | LoseLifeActionType
   | RestoreLifeActionType
   | RestoreLifeFromAdActionType
@@ -376,17 +484,11 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
 
     case "SELECT_LEVEL": {
       const { level } = action.payload;
+      const levelSelection = getLevelSelectionState(state, level);
 
       return {
         ...state,
-        game: {
-          currentLevel: level,
-          currentTaskInLevel: getTaskInLevelForSelection(state, level),
-        },
-        results: {
-          ...state.results,
-          [level.toString()]: getLevelResultsEntry(state.results, level),
-        },
+        ...buildLevelProgressState(state, level, levelSelection.currentTaskInLevel, levelSelection.levelResults),
       };
     }
 
@@ -398,14 +500,7 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         lastAttemptedBossLevel: null,
         bossRetryAvailableAt: null,
         currentTaskAttemptCount: 0,
-        game: {
-          currentLevel: level,
-          currentTaskInLevel: 1,
-        },
-        results: {
-          ...state.results,
-          [level.toString()]: { tasksResults: [] },
-        },
+        ...buildLevelProgressState(state, level, 1, createEmptyLevelResultsEntry()),
       };
     }
 
@@ -433,11 +528,10 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
       const nextTaskInLevel = state.game.currentTaskInLevel + 1;
       const finalAttemptCount = state.currentTaskAttemptCount + 1;
       const correctnessPercentage = calculateTaskCorrectnessPercentage(isCorrect, finalAttemptCount, maxLevelStep);
-      const streak = updateDaysInARow(state.lastPlayedDate, state.daysInARow);
-      const newResults = appendTaskResult(state, correctnessPercentage);
+      const { streak, results } = buildCompletedTaskState(state, correctnessPercentage);
 
       if (nextTaskInLevel > maxLevelStep) {
-        return advanceToNextLevel(state, state.game.currentLevel + 1, newResults, streak);
+        return advanceToNextLevel(state, state.game.currentLevel + 1, results, streak);
       }
 
       return {
@@ -445,16 +539,16 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         daysInARow: streak.daysInARow,
         lastPlayedDate: streak.lastPlayedDate,
         game: { ...state.game, currentTaskInLevel: nextTaskInLevel },
-        results: newResults,
+        results,
         currentTaskAttemptCount: 0,
       };
     }
 
     case "GET_NEXT_LEVEL": {
       const { nextLevel, correctnessPercentage } = action.payload;
-      const streak = updateDaysInARow(state.lastPlayedDate, state.daysInARow);
-      const newResults = appendTaskResult(state, correctnessPercentage);
-      return advanceToNextLevel(state, nextLevel, newResults, streak);
+      const { streak, results } = buildCompletedTaskState(state, correctnessPercentage);
+
+      return advanceToNextLevel(state, nextLevel, results, streak);
     }
 
     case "LOSE_LIFE": {
@@ -500,11 +594,19 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         return state;
       }
 
+      const claimState = buildMilestoneClaimState(
+        state,
+        milestone,
+        bonus.gems,
+        state.claimedStreakBonuses,
+        state.streakBonusClaimDates
+      );
+
       return {
         ...state,
-        gems: state.gems + bonus.gems,
-        claimedStreakBonuses: [...state.claimedStreakBonuses, milestone],
-        streakBonusClaimDates: { ...state.streakBonusClaimDates, [milestone]: new Date().toISOString().split("T")[0] },
+        gems: claimState.gems,
+        claimedStreakBonuses: claimState.claimedMilestones,
+        streakBonusClaimDates: claimState.claimDates,
       };
     }
 
@@ -516,48 +618,24 @@ export const appReducer = (state: AppContextStateType, action: AppContextActionT
         return state;
       }
 
+      const claimState = buildMilestoneClaimState(
+        state,
+        milestone,
+        achievement.gems,
+        state.claimedTaskAchievements,
+        state.taskAchievementClaimDates
+      );
+
       return {
         ...state,
-        gems: state.gems + achievement.gems,
-        claimedTaskAchievements: [...state.claimedTaskAchievements, milestone],
-        taskAchievementClaimDates: {
-          ...state.taskAchievementClaimDates,
-          [milestone]: new Date().toISOString().split("T")[0],
-        },
+        gems: claimState.gems,
+        claimedTaskAchievements: claimState.claimedMilestones,
+        taskAchievementClaimDates: claimState.claimDates,
       };
     }
 
     case "HYDRATE_STATE": {
-      // Restore the entire state from persisted storage
-      // Merge persisted levels with fresh levels to handle new levels added
-      const freshLevels = initializeLevels();
-      const mergedLevels = freshLevels.map((freshLevel) => {
-        const persistedLevel = action.payload.levels?.find((l) => l.levelNumber === freshLevel.levelNumber);
-        if (persistedLevel) {
-          return {
-            ...freshLevel,
-            stars: persistedLevel.stars,
-            isLevelCompleted: persistedLevel.isLevelCompleted,
-            isLevelLocked: persistedLevel.isLevelLocked,
-          };
-        }
-        return freshLevel;
-      });
-
-      return {
-        ...action.payload,
-        levels: mergedLevels,
-        theme: action.payload.theme ?? "dark",
-        availableLevels: TOTAL_LEVELS,
-        lastPlayedDate: action.payload.lastPlayedDate ?? null,
-        lastAttemptedBossLevel: action.payload.lastAttemptedBossLevel ?? null,
-        bossRetryAvailableAt: action.payload.bossRetryAvailableAt ?? null,
-        currentTaskAttemptCount: action.payload.currentTaskAttemptCount ?? 0,
-        claimedStreakBonuses: action.payload.claimedStreakBonuses ?? [],
-        claimedTaskAchievements: action.payload.claimedTaskAchievements ?? [],
-        streakBonusClaimDates: action.payload.streakBonusClaimDates ?? {},
-        taskAchievementClaimDates: action.payload.taskAchievementClaimDates ?? {},
-      };
+      return normalizeHydratedState(action.payload);
     }
 
     default: {
