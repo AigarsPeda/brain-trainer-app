@@ -1,3 +1,4 @@
+import { describe, expect, it } from "@jest/globals";
 import { BOSS_LEVEL_INTERVAL } from "@/constants/GameSettings";
 import { formatBossTimer, isBossLevel } from "@/utils/bossLevel";
 

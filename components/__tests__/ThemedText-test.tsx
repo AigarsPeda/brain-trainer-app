@@ -1,16 +1,17 @@
 import * as React from "react";
+import { expect, it } from "@jest/globals";
 import renderer, { act } from "react-test-renderer";
 
 import { ThemedText } from "../ThemedText";
 
 it(`renders correctly`, () => {
-  let tree: renderer.ReactTestRenderer | null = null;
+  let tree!: renderer.ReactTestRenderer;
 
   act(() => {
     tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>);
   });
 
-  const json = tree?.toJSON();
+  const json = tree.toJSON();
 
   expect(json).not.toBeNull();
   expect(Array.isArray(json)).toBe(false);
