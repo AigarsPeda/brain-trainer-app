@@ -15,7 +15,7 @@ import { StatisticsItem } from "@/components/StatisticsItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { getTaskBackground } from "@/constants/Colors";
-import { BOSS_EXTRA_TIME_COST, BOSS_RETRY_COST, HINT_COST, REMOVE_WRONG_ANSWER_COST } from "@/constants/GameSettings";
+import { BOSS_EXTRA_TIME_COST, BOSS_RETRY_COST } from "@/constants/GameSettings";
 import {
   getLevelSelectionState,
   isCreateMathTask,
@@ -27,8 +27,8 @@ import { useBossLevelFlow } from "@/hooks/useBossLevelFlow";
 import useGoogleAd from "@/hooks/useGoogleAd";
 import { useLevelData } from "@/hooks/useLevelData";
 import { usePulseOnChange } from "@/hooks/usePulseOnChange";
+import { useTaskHelpActions } from "@/hooks/useTaskHelpActions";
 import { formatBossTimer, isBossLevel } from "@/utils/bossLevel";
-import { findIncorrectCreateMathOptions, findIncorrectMultiAnswerOptions, selectRandomItem } from "@/utils/taskHelpers";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -85,7 +85,10 @@ export default function GameLevelScreen() {
     );
   }, [currentLevel, currentTaskInLevel, hasValidLevelNumber, levelNumber, levels, results]);
   const effectiveTaskInLevel = levelSelection?.currentTaskInLevel ?? currentTaskInLevel;
-  const { levelTasks, currentTask, maxLevelStep } = useLevelData(levelParam ?? "", effectiveTaskInLevel);
+  const { levelTasks, currentTask, maxLevelStep } = useLevelData(
+    hasValidLevelNumber ? levelNumber : null,
+    effectiveTaskInLevel
+  );
   const [gemAnimationStartValue, setGemAnimationStartValue] = useState<number | undefined>(undefined);
   const bossLevel = hasValidLevelNumber && isBossLevel(levelNumber);
   const currentLevelResultsCount = levelSelection?.levelResultsCount ?? 0;
@@ -202,26 +205,16 @@ export default function GameLevelScreen() {
     return Date.now() - levelStartedAtRef.current;
   }, []);
 
-  const canRemoveAnswer = useMemo(() => {
-    if (bossLevel) {
-      return false;
-    }
-
-    if (!currentTask) {
-      return false;
-    }
-
-    if (isTextTask(currentTask)) {
-      return !showTextTaskAsMultipleChoice;
-    } else if (isMultiAnswerMathTask(currentTask)) {
-      const remainingOptions = currentTask.options.filter((opt) => !removedAnswerIds.includes(opt.id));
-      return remainingOptions.length > 1; // Need at least one to remove
-    } else if (isCreateMathTask(currentTask)) {
-      const remainingOptions = currentTask.options.filter((opt) => !removedAnswerIds.includes(opt.id));
-      return remainingOptions.length > 2; // Need at least 2 numbers to solve + 1 to remove
-    }
-    return false;
-  }, [bossLevel, currentTask, removedAnswerIds, showTextTaskAsMultipleChoice]);
+  const { canRemoveAnswer, handlePurchaseHint, handleRemoveWrongAnswer } = useTaskHelpActions({
+    bossLevel,
+    currentTask,
+    dispatch,
+    removedAnswerIds,
+    setRemovedAnswerIds,
+    setShowTextTaskAsMultipleChoice,
+    showTextTaskAsMultipleChoice,
+    openHintModal: () => setOpenModal("hint"),
+  });
 
   const backgroundColors = useMemo(() => {
     if (bossLevel) {
@@ -247,33 +240,6 @@ export default function GameLevelScreen() {
     setOpenModal(null);
     setShowGemAnimation(false);
     setGemAnimationStartValue(undefined);
-  };
-
-  const handlePurchaseHint = () => {
-    dispatch({ type: "SPEND_GEMS", payload: HINT_COST });
-    setOpenModal("hint");
-  };
-
-  const handleRemoveWrongAnswer = () => {
-    if (!currentTask) {
-      return;
-    }
-
-    dispatch({ type: "SPEND_GEMS", payload: REMOVE_WRONG_ANSWER_COST });
-
-    if (isTextTask(currentTask)) {
-      setShowTextTaskAsMultipleChoice(true);
-      return;
-    }
-
-    const incorrectOptions: Array<{ id: number }> = isMultiAnswerMathTask(currentTask)
-      ? findIncorrectMultiAnswerOptions(currentTask, removedAnswerIds)
-      : findIncorrectCreateMathOptions(currentTask, removedAnswerIds);
-
-    const randomIncorrect = selectRandomItem(incorrectOptions);
-    if (randomIncorrect) {
-      setRemovedAnswerIds((prev) => [...prev, randomIncorrect.id]);
-    }
   };
 
   const handleWatchAd = () => {

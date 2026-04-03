@@ -16,11 +16,9 @@ type LevelDataResult =
       maxLevelStep: 0;
     };
 
-export function useLevelData(level: string, currentTaskInLevel: number): LevelDataResult {
+export function useLevelData(level: number | null, currentTaskInLevel: number): LevelDataResult {
   return useMemo(() => {
-    const levelNumber = Number(level);
-
-    if (isNaN(levelNumber) || levelNumber < 1) {
+    if (level === null || level < 1) {
       return {
         isLoading: false as const,
         levelTasks: null,
@@ -29,7 +27,7 @@ export function useLevelData(level: string, currentTaskInLevel: number): LevelDa
       };
     }
 
-    const tasks = getLevel(levelNumber);
+    const tasks = getLevel(level);
 
     if (!tasks) {
       return {
