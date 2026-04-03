@@ -1,5 +1,6 @@
 import { MainButton } from "@/components/MainButton";
 import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
+import { TaskSession } from "@/components/mathTasks/taskSession";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import type { MultiAnswerMathTaskType, TaskAnswerType } from "@/context/app.context.reducer";
@@ -19,11 +20,7 @@ interface MathTaskWithResultProps {
   isFinalTaskInLevel: boolean;
   task: MultiAnswerMathTaskType;
   removedAnswerIds?: number[];
-  getLevelCompletionDurationMs?: () => number;
-  isBossLevel?: boolean;
-  onBossInteraction?: () => void;
-  onBossRetryRequest?: () => void;
-  onBossFailure?: () => void;
+  session?: TaskSession;
 }
 
 export default function MathTaskWithResult({
@@ -32,14 +29,17 @@ export default function MathTaskWithResult({
   maxLevelStep,
   isFinalTaskInLevel,
   removedAnswerIds = [],
-  getLevelCompletionDurationMs,
-  isBossLevel = false,
-  onBossInteraction,
-  onBossRetryRequest,
-  onBossFailure,
+  session,
 }: MathTaskWithResultProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const {
+    getLevelCompletionDurationMs,
+    isBossLevel = false,
+    onBossFailure,
+    onBossInteraction,
+    onBossRetryRequest,
+  } = session ?? {};
 
   const [answers, setAnswer] = useState<TaskAnswerType[]>([]);
 

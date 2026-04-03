@@ -1,4 +1,5 @@
 import { MainButton } from "@/components/MainButton";
+import { TaskSession } from "@/components/mathTasks/taskSession";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { DropZoneColors } from "@/constants/Colors";
@@ -80,11 +81,7 @@ interface CreateMathTaskProps {
   task: CreateMathTaskType;
   isFinalTaskInLevel: boolean;
   removedAnswerIds?: number[];
-  getLevelCompletionDurationMs?: () => number;
-  isBossLevel?: boolean;
-  onBossInteraction?: () => void;
-  onBossRetryRequest?: () => void;
-  onBossFailure?: () => void;
+  session?: TaskSession;
 }
 
 export function CreateMathTask({
@@ -93,14 +90,17 @@ export function CreateMathTask({
   maxLevelStep,
   isFinalTaskInLevel,
   removedAnswerIds = [],
-  getLevelCompletionDurationMs,
-  isBossLevel = false,
-  onBossInteraction,
-  onBossRetryRequest,
-  onBossFailure,
+  session,
 }: CreateMathTaskProps) {
   const { width } = useWindowDimensions();
   const colorScheme = useAppColorScheme();
+  const {
+    getLevelCompletionDurationMs,
+    isBossLevel = false,
+    onBossFailure,
+    onBossInteraction,
+    onBossRetryRequest,
+  } = session ?? {};
   const dropZoneColors = DropZoneColors[colorScheme ?? "dark"];
   const { dropZoneSize, draggableNumberSize, equationFontSize, rowGap, draggableNumberFontSize, snappedScale } =
     useMemo(() => getResponsiveCreateMathLayout(width), [width]);

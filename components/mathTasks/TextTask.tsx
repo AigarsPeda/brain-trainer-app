@@ -1,5 +1,6 @@
 import { MainButton } from "@/components/MainButton";
 import { MathTaskButton } from "@/components/mathTasks/MathTaskButton";
+import { TaskSession } from "@/components/mathTasks/taskSession";
 import { ShowResults } from "@/components/ShowResults";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -18,11 +19,7 @@ interface TextTaskProps {
   removedAnswerIds?: number[];
   isFinalTaskInLevel: boolean;
   showAsMultipleChoice?: boolean;
-  getLevelCompletionDurationMs?: () => number;
-  isBossLevel?: boolean;
-  onBossInteraction?: () => void;
-  onBossRetryRequest?: () => void;
-  onBossFailure?: () => void;
+  session?: TaskSession;
 }
 
 export function TextTask({
@@ -32,14 +29,17 @@ export function TextTask({
   isFinalTaskInLevel,
   removedAnswerIds = [],
   showAsMultipleChoice = false,
-  getLevelCompletionDurationMs,
-  isBossLevel = false,
-  onBossInteraction,
-  onBossRetryRequest,
-  onBossFailure,
+  session,
 }: TextTaskProps) {
   const colorScheme = useAppColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const {
+    getLevelCompletionDurationMs,
+    isBossLevel = false,
+    onBossFailure,
+    onBossInteraction,
+    onBossRetryRequest,
+  } = session ?? {};
   const colors = Colors[isDarkMode ? "dark" : "light"];
   const iconShellBackground = isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.32)";
   const iconShellBorder = isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.22)";

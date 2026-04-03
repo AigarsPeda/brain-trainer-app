@@ -6,9 +6,19 @@ import {
   BOSS_RETRY_WAIT_MS,
 } from "@/constants/GameSettings";
 import type { AppContextActionType } from "@/context/app.context.reducer";
+import {
+  BossModalMode,
+  getBossExtraTimeState,
+  getBossFailureTimeLeftMs,
+  getBossModalModeForOpen,
+  getBossRetryWaitRemainingMs,
+  getBossTimerTickState,
+  shouldAutoRestartBoss,
+  shouldShowBossRetryModal,
+} from "@/hooks/bossLevelFlow.helpers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export type BossModalMode = "timer" | "retry" | "expired";
+export type { BossModalMode };
 
 type UseBossLevelFlowArgs = {
   bossLevel: boolean;
@@ -30,21 +40,25 @@ type UseBossLevelFlowArgs = {
 };
 
 type UseBossLevelFlowResult = {
-  bossModalMode: BossModalMode;
-  bossRetryWaitRemainingMs: number;
-  bossTimerExpired: boolean;
-  bossTimerProgress: number;
-  bossTimerStarted: boolean;
-  bossTimeLeftMs: number;
-  handleBossFailure: () => void;
-  handleBossInteraction: () => void;
-  handleBossRetryRequest: () => void;
-  handleBuyBossExtraTime: () => void;
-  handleBuyBossRetry: () => void;
-  handleRestartBoss: () => void;
-  openBossModal: () => void;
+  bossActions: {
+    handleBossFailure: () => void;
+    handleBossInteraction: () => void;
+    handleBossRetryRequest: () => void;
+    handleBuyBossExtraTime: () => void;
+    handleBuyBossRetry: () => void;
+    handleRestartBoss: () => void;
+    openBossModal: () => void;
+    setBossModalMode: React.Dispatch<React.SetStateAction<BossModalMode>>;
+  };
+  bossState: {
+    bossModalMode: BossModalMode;
+    bossRetryWaitRemainingMs: number;
+    bossTimerExpired: boolean;
+    bossTimerProgress: number;
+    bossTimerStarted: boolean;
+    bossTimeLeftMs: number;
+  };
   resetBossRunState: (shouldHideBossTimerModal?: boolean) => void;
-  setBossModalMode: React.Dispatch<React.SetStateAction<BossModalMode>>;
 };
 
 export function useBossLevelFlow({
@@ -104,7 +118,7 @@ export function useBossLevelFlow({
     }
 
     const updateRetryWait = () => {
-      setBossRetryWaitRemainingMs(Math.max(0, bossRetryAvailableAt - Date.now()));
+      setBossRetryWaitRemainingMs(getBossRetryWaitRemainingMs(bossRetryAvailableAt));
     };
 
     updateRetryWait();
@@ -123,11 +137,13 @@ export function useBossLevelFlow({
         return;
       }
 
-      const rawTimeLeft = Math.max(0, bossDeadlineAtRef.current - Date.now());
-      const nextTimeLeft = Math.ceil(rawTimeLeft / 1000) * 1000;
-      setBossTimeLeftMs(nextTimeLeft);
+      const { hasExpired, nextTimeLeftMs } = getBossTimerTickState({
+        bossDeadlineAt: bossDeadlineAtRef.current,
+      });
 
-      if (nextTimeLeft === 0) {
+      setBossTimeLeftMs(nextTimeLeftMs);
+
+      if (hasExpired) {
         dispatch({ type: "SET_BOSS_RETRY_COOLDOWN", payload: Date.now() + BOSS_RETRY_WAIT_MS });
         setBossTimerExpired(true);
         showBossModal("expired");
@@ -155,12 +171,12 @@ export function useBossLevelFlow({
       return;
     }
 
-    const remainingTimeMs = bossDeadlineAtRef.current
-      ? Math.max(0, bossDeadlineAtRef.current - Date.now())
-      : bossTimeLeftMs;
-    const nextTimeLeft = Math.ceil(remainingTimeMs / 1000) * 1000;
-
-    setBossTimeLeftMs(nextTimeLeft);
+    setBossTimeLeftMs(
+      getBossFailureTimeLeftMs({
+        bossDeadlineAt: bossDeadlineAtRef.current,
+        bossTimeLeftMs,
+      })
+    );
     setBossTimerStarted(false);
     bossDeadlineAtRef.current = null;
   }, [bossLevel, bossTimeLeftMs]);
@@ -178,7 +194,13 @@ export function useBossLevelFlow({
   }, [dispatch, hideBossTimerModal, levelNumber, onLevelRestarted, resetBossRunState, resetTaskUiState]);
 
   useEffect(() => {
-    if (!bossLevel || !currentTaskExists || !hasActiveBossRetryCooldown) {
+    if (
+      !shouldShowBossRetryModal({
+        bossLevel,
+        currentTaskExists,
+        hasActiveBossRetryCooldown,
+      })
+    ) {
       return;
     }
 
@@ -187,13 +209,15 @@ export function useBossLevelFlow({
 
   useEffect(() => {
     if (
-      !bossLevel ||
-      !currentTaskExists ||
-      !hasBossRetryState ||
-      hasActiveBossRetryCooldown ||
-      isBossTimerModalOpen ||
-      isCurrentBossCompleted ||
-      !isCurrentLevel
+      !shouldAutoRestartBoss({
+        bossLevel,
+        currentTaskExists,
+        hasBossRetryState,
+        hasActiveBossRetryCooldown,
+        isBossTimerModalOpen,
+        isCurrentBossCompleted,
+        isCurrentLevel,
+      })
     ) {
       return;
     }
@@ -230,36 +254,31 @@ export function useBossLevelFlow({
   }, [canRetryBossForFree, gems, handleBuyBossRetry, handleRestartBoss, showBossModal]);
 
   const openBossModal = useCallback(() => {
-    if (hasBossRetryState) {
-      showBossModal("retry");
-      return;
-    }
-
-    if (bossTimerExpired) {
-      showBossModal("expired");
-      return;
-    }
-
-    showBossModal("timer");
+    showBossModal(
+      getBossModalModeForOpen({
+        bossTimerExpired,
+        hasBossRetryState,
+      })
+    );
   }, [bossTimerExpired, hasBossRetryState, showBossModal]);
 
   const handleBuyBossExtraTime = useCallback(() => {
     dispatch({ type: "SPEND_GEMS", payload: BOSS_EXTRA_TIME_COST });
 
-    if (bossTimerStarted) {
-      const currentDeadline = bossDeadlineAtRef.current ?? Date.now();
-      bossDeadlineAtRef.current = Math.max(currentDeadline, Date.now()) + BOSS_LEVEL_EXTRA_TIME_MS;
-    }
+    const { nextDeadlineAt, nextTimeLeftMs, nextTotalDurationMs } = getBossExtraTimeState({
+      bossDeadlineAt: bossDeadlineAtRef.current,
+      bossTimeLeftMs,
+      bossTotalDurationMs,
+      bossTimerStarted,
+      extraTimeMs: BOSS_LEVEL_EXTRA_TIME_MS,
+    });
 
-    setBossTotalDurationMs((previousTotalDuration) => previousTotalDuration + BOSS_LEVEL_EXTRA_TIME_MS);
-    setBossTimeLeftMs((previousTimeLeft) =>
-      bossTimerStarted
-        ? Math.max(0, (bossDeadlineAtRef.current ?? Date.now()) - Date.now())
-        : previousTimeLeft + BOSS_LEVEL_EXTRA_TIME_MS
-    );
+    bossDeadlineAtRef.current = nextDeadlineAt;
+    setBossTotalDurationMs(nextTotalDurationMs);
+    setBossTimeLeftMs(nextTimeLeftMs);
     setBossTimerExpired(false);
     hideBossTimerModal();
-  }, [bossTimerStarted, dispatch, hideBossTimerModal]);
+  }, [bossTimeLeftMs, bossTimerStarted, bossTotalDurationMs, dispatch, hideBossTimerModal]);
 
   const bossTimerProgress = useMemo(() => {
     if (!bossLevel) {
@@ -270,20 +289,24 @@ export function useBossLevelFlow({
   }, [bossLevel, bossTimeLeftMs, bossTotalDurationMs]);
 
   return {
-    bossModalMode,
-    bossRetryWaitRemainingMs,
-    bossTimerExpired,
-    bossTimerProgress,
-    bossTimerStarted,
-    bossTimeLeftMs,
-    handleBossFailure,
-    handleBossInteraction,
-    handleBossRetryRequest,
-    handleBuyBossExtraTime,
-    handleBuyBossRetry,
-    handleRestartBoss,
-    openBossModal,
+    bossActions: {
+      handleBossFailure,
+      handleBossInteraction,
+      handleBossRetryRequest,
+      handleBuyBossExtraTime,
+      handleBuyBossRetry,
+      handleRestartBoss,
+      openBossModal,
+      setBossModalMode,
+    },
+    bossState: {
+      bossModalMode,
+      bossRetryWaitRemainingMs,
+      bossTimerExpired,
+      bossTimerProgress,
+      bossTimerStarted,
+      bossTimeLeftMs,
+    },
     resetBossRunState,
-    setBossModalMode,
   };
 }
