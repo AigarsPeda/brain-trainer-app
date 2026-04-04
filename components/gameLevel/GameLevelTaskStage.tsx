@@ -8,29 +8,29 @@ import { StyleSheet, View } from "react-native";
 import Animated, { SlideInRight, SlideOutLeft } from "react-native-reanimated";
 
 type GameLevelTaskStageProps = {
-  currentTask: TaskType;
-  getLevelCompletionDurationMs: () => number;
-  isBossLevel: boolean;
-  isFinalTaskInLevel: boolean;
   level: string;
-  maxLevelStep: number;
-  removedAnswerIds: number[];
-  showTextTaskAsMultipleChoice: boolean;
-  taskSession: TaskSession;
   taskKey: string;
+  maxLevelStep: number;
+  isBossLevel: boolean;
+  currentTask: TaskType;
+  taskSession: TaskSession;
+  removedAnswerIds: number[];
+  isFinalTaskInLevel: boolean;
+  showTextTaskAsMultipleChoice: boolean;
+  getLevelCompletionDurationMs: () => number;
 };
 
 export function GameLevelTaskStage({
-  currentTask,
-  getLevelCompletionDurationMs,
-  isBossLevel,
-  isFinalTaskInLevel,
   level,
+  taskKey,
+  taskSession,
+  currentTask,
+  isBossLevel,
   maxLevelStep,
   removedAnswerIds,
+  isFinalTaskInLevel,
   showTextTaskAsMultipleChoice,
-  taskSession,
-  taskKey,
+  getLevelCompletionDurationMs,
 }: GameLevelTaskStageProps) {
   const hasRenderedInitialTaskRef = useRef(false);
 
